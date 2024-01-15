@@ -30,7 +30,7 @@ def make_generator_model():
     conv2_filters = 64
     conv2_kernel_size = (5, 5)
 
-    conv3_filters = 1
+    conv3_filters = 3
     conv3_kernel_size = (5,5)
 
     model = tf.keras.Sequential()
@@ -52,7 +52,7 @@ def make_generator_model():
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2DTranspose(conv3_filters, conv3_kernel_size, strides=(2, 2), padding='same', use_bias=False, activation='tanh')) # filter = 1 we want black white, rgb conv3 = 3
-    assert model.output_shape == (None, input_size_noise_x*2*2, input_size_noise_y*2*2, 1) #a test that our image has the expected shape
+    assert model.output_shape == (None, input_size_noise_x*2*2, input_size_noise_y*2*2, conv3_filters) #a test that our image has the expected shape
 
     return model
 def make_discriminator_model():
@@ -71,3 +71,10 @@ def make_discriminator_model():
 
     return model
 
+generator = make_generator_model()
+
+noise = tf.random.normal([1, 100])
+generated_image = generator(noise, training=False)
+
+plt.imshow(generated_image[0, :, :, 0])# cmap='gray'
+plt.show()
