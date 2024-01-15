@@ -16,6 +16,7 @@ from IPython import display
 
 
 def make_generator_model():
+    #use_bias = False this is to reduce the models complexity
     #noise parameters
     input_size_noise_x = 7
     input_size_noise_y = 7
