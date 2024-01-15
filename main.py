@@ -24,8 +24,8 @@ def make_generator_model():
     noise_vector = 100
 
     #convolution parameter
-    conv1_filters = 128
-    conv1_kernel_size = (5,5)
+    conv1_filters = 128 # A filter is a matrice of numbers
+    conv1_kernel_size = (5,5) # the kernel size is the size of that filter.
 
     conv2_filters = 64
     conv2_kernel_size = (5, 5)
@@ -76,5 +76,5 @@ generator = make_generator_model()
 noise = tf.random.normal([1, 100])
 generated_image = generator(noise, training=False)
 
-plt.imshow(generated_image[0, :, :, 0])# cmap='gray'
+plt.imshow(generated_image[0, :, :, 0],cmap="gray")# cmap='gray'
 plt.show()
