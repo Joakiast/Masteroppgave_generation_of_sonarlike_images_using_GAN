@@ -13,8 +13,6 @@ import time
 
 from IPython import display
 
-
-
 def make_generator_model():
     """
     sett inn hardkodede tall for parametrene under trening for å unngå for mye beregninger.
