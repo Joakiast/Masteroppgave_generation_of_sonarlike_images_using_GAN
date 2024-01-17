@@ -13,6 +13,10 @@ import time
 
 from IPython import display
 
+"""
+skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
+"""
+
 def make_generator_model():
     """
     sett inn hardkodede tall for parametrene under trening for å unngå for mye beregninger.
