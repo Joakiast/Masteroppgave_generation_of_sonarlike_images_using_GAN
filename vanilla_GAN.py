@@ -67,6 +67,14 @@ def make_discriminator_model():
     size_of_input_image_y = 28
     size_of_last_filter_in_generator = 3
 
+#forklaringer til layers
+    #med filter så er det antall filteret som brukes over hver epoch og ser de samme pixlene
+    #kernel size er størrelsen på dette filteret.
+    #strides er hvor mange pixler vi beveger oss bort
+    #"Padding='same'" i en Conv2D-lag betyr at outputen beholder samme
+    #størrelse som inputen ved å legge til kanter rundt inputen.
+    #input shape er størrelsen på det vi sender inn til funksjonen make_discriminator_model
+    #altså størrelsen på noise vectoren.
 
     model = tf.keras.Sequential()
     model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
