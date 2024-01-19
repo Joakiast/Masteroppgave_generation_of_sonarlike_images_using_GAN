@@ -10,34 +10,43 @@ import os
 import PIL
 from tensorflow.keras import layers
 import time
+import pathlib
 
 from IPython import display
 
-# Sti til mappen der bildene dine er plassert
-train_set_path = "test1"
 
-#list out all files that contain jpg in the path file
-image_paths = glob.glob(os.path.join(train_set_path, '*.jpg'))
+# Sti til mappen der bildene dine er plassert
+train_set_path = pathlib.Path("test")
+
+# Opprett en liste over bildestier som strenger
+image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk '*.png' eller annet hvis bildene dine har en annen filtype
 
 # Funksjon for å lese og forbehandle bildene
-def load_image(image_path):
-    image = tf.io.read_file(image_path)
-    image = tf.io.decode_jpeg(image)
-    # Legg til eventuelle forbehandlingssteg her (resize, normalize, etc.)
+def load_and_preprocess_image(path):
+    image = tf.io.read_file(path)
+    image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
+    image = tf.image.resize(image, [128, 128])  # Endre størrelsen hvis nødvendig
+    image = image / 255.0  # Normaliser bildene til [0, 1] området
     return image
 
-# Last inn bildene som en liste av tensorer
-train_images = [load_image(path) for path in image_paths]
+# Opprett en tf.data.Dataset
+train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
+train_dataset = train_dataset.map(load_and_preprocess_image)
+train_dataset = train_dataset.batch(10)  # Velg en batch-størrelse som passer for din maskin
+train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
 
-# Sjekk dimensjonene til det første bildet
-print(train_images[0].shape)
+num_batches = len(list(train_dataset))
 
-# Vis ett av bildene
-plt.figure()
-plt.imshow(train_images[0].numpy())
-plt.axis('off')  # Skjul koordinataksene
+print("Antall batcher i datasettet:", num_batches)
+# Du kan nå iterere over train_dataset i din treningsloop
+number_of_samples_show = 4
+for images in train_dataset.take(1):  # Ta bare en batch for visning
+    plt.figure(figsize=(10, 10))
+    for i in range(number_of_samples_show):
+        plt.subplot(1, number_of_samples_show, i + 1)
+        plt.imshow(images[i])
+        plt.axis('off')
 plt.show()
-
 """
 skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
 """
