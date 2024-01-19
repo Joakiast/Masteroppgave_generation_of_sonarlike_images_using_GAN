@@ -13,6 +13,31 @@ import time
 
 from IPython import display
 
+# Sti til mappen der bildene dine er plassert
+train_set_path = "test1"
+
+#list out all files that contain jpg in the path file
+image_paths = glob.glob(os.path.join(train_set_path, '*.jpg'))
+
+# Funksjon for å lese og forbehandle bildene
+def load_image(image_path):
+    image = tf.io.read_file(image_path)
+    image = tf.io.decode_jpeg(image)
+    # Legg til eventuelle forbehandlingssteg her (resize, normalize, etc.)
+    return image
+
+# Last inn bildene som en liste av tensorer
+train_images = [load_image(path) for path in image_paths]
+
+# Sjekk dimensjonene til det første bildet
+print(train_images[0].shape)
+
+# Vis ett av bildene
+plt.figure()
+plt.imshow(train_images[0].numpy())
+plt.axis('off')  # Skjul koordinataksene
+plt.show()
+
 """
 skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
 """
