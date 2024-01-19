@@ -32,14 +32,14 @@ def load_and_preprocess_image(path):
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 train_dataset = train_dataset.map(load_and_preprocess_image)
-train_dataset = train_dataset.batch(10)  # Velg en batch-størrelse som passer for din maskin
+train_dataset = train_dataset.batch(2000)  # Velg en batch-størrelse som passer for din maskin
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
 
 num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 4
+number_of_samples_show = 1
 for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
