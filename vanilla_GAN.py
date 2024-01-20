@@ -16,7 +16,7 @@ from IPython import display
 
 
 # Sti til mappen der bildene dine er plassert
-train_set_path = pathlib.Path("train")
+train_set_path = pathlib.Path("train1")
 
 # Opprett en liste over bildestier som strenger
 image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk '*.png' eller annet hvis bildene dine har en annen filtype
@@ -25,7 +25,7 @@ image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk
 def load_and_preprocess_image(path):
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
-    image = tf.image.resize(image, [128, 128])  # Endre størrelsen hvis nødvendig
+    image = tf.image.resize(image, [64, 64])  # Endre størrelsen hvis nødvendig
     image = image / 255.0  # Normaliser bildene til [0, 1] området
     return image
 
