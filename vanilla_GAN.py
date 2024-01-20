@@ -3,6 +3,11 @@ tf.__version__
 
 
 import glob
+import tensorflow as tf
+tf.__version__
+
+
+import glob
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,8 +20,11 @@ import pathlib
 from IPython import display
 
 
+BUFFER_SIZE = 60000
+BATCH_SIZE = 256
+
 # Sti til mappen der bildene dine er plassert
-train_set_path = pathlib.Path("train1")
+train_set_path = pathlib.Path("train")
 
 # Opprett en liste over bildestier som strenger
 image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk '*.png' eller annet hvis bildene dine har en annen filtype
@@ -25,14 +33,19 @@ image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk
 def load_and_preprocess_image(path):
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
-    image = tf.image.resize(image, [64, 64])  # Endre størrelsen hvis nødvendig
-    image = image / 255.0  # Normaliser bildene til [0, 1] området
+    image = tf.image.resize(image, [64, 64])
+    image = tf.cast(image, tf.float32)
+    image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
     return image
 
+BUFFER_SIZE = len(image_paths)
+#print(BUFFER_SIZE)
+"""
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 train_dataset = train_dataset.map(load_and_preprocess_image)
-train_dataset = train_dataset.batch(500)  # Velg en batch-størrelse som passer for din maskin
+train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
+train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
 
 num_batches = len(list(train_dataset))
@@ -48,6 +61,7 @@ for images in train_dataset.take(1):  # Ta bare en batch for visning
         plt.axis('on')
         print(images[i].shape)
 plt.show()
+"""
 """
 skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
 """
