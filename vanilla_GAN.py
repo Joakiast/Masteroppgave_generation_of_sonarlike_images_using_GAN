@@ -18,10 +18,13 @@ train_set_path = pathlib.Path("train")
 image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk '*.png' eller annet hvis bildene dine har en annen filtype
 
 # Funksjon for å lese og forbehandle bildene
+resize_x = 64
+resize_y = 64
 def load_and_preprocess_image(path):
+
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
-    image = tf.image.resize(image, [28, 28]) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
+    image = tf.image.resize(image, [resize_x, resize_y]) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
     image = tf.cast(image, tf.float32)
     image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
     return image
@@ -132,12 +135,12 @@ def make_discriminator_model(input_x,input_y):
 
 #region test generator and discriminator
 
-generator = make_generator_model(7,7) #sett inn ønsket input noise størrelse
+generator = make_generator_model(resize_x//4,resize_y//4) #deler på 4 fordi vi har strides 2 to steder
 
 noise = tf.random.normal([1, 100])
 generated_image = generator(noise, training=False)
 
-plt.imshow(generated_image[0, :, :, 0],cmap="gray")# cmap='gray'
+plt.imshow(generated_image[0, :, :, 0])#,cmap="gray")# cmap='gray'
 plt.title("Generated image")
 plt.show()
 
