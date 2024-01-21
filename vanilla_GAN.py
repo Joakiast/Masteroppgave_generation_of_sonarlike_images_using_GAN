@@ -21,14 +21,14 @@ image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk
 def load_and_preprocess_image(path):
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
-    image = tf.image.resize(image, [28, 28])
+    image = tf.image.resize(image, [28, 28]) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
     image = tf.cast(image, tf.float32)
     image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
     return image
 
 BUFFER_SIZE = len(image_paths)
 BATCH_SIZE = 256
-EPOCHS = 20
+EPOCHS = 50
 #print(BUFFER_SIZE)
 
 # Opprett en tf.data.Dataset
@@ -42,15 +42,15 @@ num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-# number_of_samples_show = 2
-# for images in train_dataset.take(1):  # Ta bare en batch for visning
-#     plt.figure(figsize=(10, 10))
-#     for i in range(number_of_samples_show):
-#         plt.subplot(1, number_of_samples_show, i + 1)
-#         plt.imshow(images[i])
-#         plt.axis('on')
-#         print(images[i].shape)
-# plt.show()
+number_of_samples_show = 2
+for images in train_dataset.take(1):  # Ta bare en batch for visning
+    plt.figure(figsize=(10, 10))
+    for i in range(number_of_samples_show):
+        plt.subplot(1, number_of_samples_show, i + 1)
+        plt.imshow(images[i])
+        plt.axis('on')
+        print(images[i].shape)
+plt.show()
 
 """
 skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
@@ -221,6 +221,8 @@ def generate_and_save_images(model, epoch, test_input):
 
 
   plt.savefig(os.path.join(folder_name,'image_at_epoch_{:04d}.png'.format(epoch)))
+  if epoch % 10 == 0:
+      plt.close(fig)
   #plt.show()
   #plt.savefig(‘din_fig.png’)
 
@@ -253,3 +255,4 @@ def train(dataset, epochs):
 
 
 train(train_dataset, EPOCHS)
+checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
