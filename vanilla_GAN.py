@@ -1,12 +1,5 @@
 import tensorflow as tf
 tf.__version__
-
-
-import glob
-import tensorflow as tf
-tf.__version__
-
-
 import glob
 import imageio
 import matplotlib.pyplot as plt
@@ -16,12 +9,7 @@ import PIL
 from tensorflow.keras import layers
 import time
 import pathlib
-
 from IPython import display
-
-
-BUFFER_SIZE = 60000
-BATCH_SIZE = 256
 
 # Sti til mappen der bildene dine er plassert
 train_set_path = pathlib.Path("train")
@@ -33,14 +21,16 @@ image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk
 def load_and_preprocess_image(path):
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
-    image = tf.image.resize(image, [64, 64])
+    image = tf.image.resize(image, [28, 28])
     image = tf.cast(image, tf.float32)
     image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
     return image
 
 BUFFER_SIZE = len(image_paths)
+BATCH_SIZE = 256
+EPOCHS = 20
 #print(BUFFER_SIZE)
-"""
+
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 train_dataset = train_dataset.map(load_and_preprocess_image)
@@ -52,29 +42,29 @@ num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 2
-for images in train_dataset.take(1):  # Ta bare en batch for visning
-    plt.figure(figsize=(10, 10))
-    for i in range(number_of_samples_show):
-        plt.subplot(1, number_of_samples_show, i + 1)
-        plt.imshow(images[i])
-        plt.axis('on')
-        print(images[i].shape)
-plt.show()
-"""
+# number_of_samples_show = 2
+# for images in train_dataset.take(1):  # Ta bare en batch for visning
+#     plt.figure(figsize=(10, 10))
+#     for i in range(number_of_samples_show):
+#         plt.subplot(1, number_of_samples_show, i + 1)
+#         plt.imshow(images[i])
+#         plt.axis('on')
+#         print(images[i].shape)
+# plt.show()
+
 """
 skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
 """
 
-def make_generator_model():
+def make_generator_model(input_size_noise_x, input_size_noise_y):
     """
     sett inn hardkodede tall for parametrene under trening for å unngå for mye beregninger.
     """
 
     #use_bias = False this is to reduce the models complexity
     #noise parameters
-    input_size_noise_x = 7
-    input_size_noise_y = 7
+    input_size_noise_x = input_size_noise_x
+    input_size_noise_y = input_size_noise_y
     depth_feature_map = 256
     noise_vector = 100
 
@@ -110,10 +100,10 @@ def make_generator_model():
     assert model.output_shape == (None, input_size_noise_x*2*2, input_size_noise_y*2*2, conv3_filters) #a test that our image has the expected shape
 
     return model
-def make_discriminator_model():
+def make_discriminator_model(input_x,input_y):
 
-    size_of_input_image_x = 28
-    size_of_input_image_y = 28
+    size_of_input_image_x = input_x
+    size_of_input_image_y = input_y
     size_of_last_filter_in_generator = 3
 
 #forklaringer til layers
@@ -140,7 +130,9 @@ def make_discriminator_model():
 
     return model
 
-generator = make_generator_model()
+#region test generator and discriminator
+
+generator = make_generator_model(7,7) #sett inn ønsket input noise størrelse
 
 noise = tf.random.normal([1, 100])
 generated_image = generator(noise, training=False)
@@ -148,3 +140,116 @@ generated_image = generator(noise, training=False)
 plt.imshow(generated_image[0, :, :, 0],cmap="gray")# cmap='gray'
 plt.title("Generated image")
 plt.show()
+
+noise_output_shape = generated_image.shape
+x_value_generated_image = noise_output_shape[1]
+y_value_generated_image = noise_output_shape[2]
+
+discriminator = make_discriminator_model(x_value_generated_image, y_value_generated_image)
+decision = discriminator(generated_image)
+print(f"If the value is positive the image is real {decision}")
+
+#endregion
+
+"""
+Define loss and optimizer functions
+"""
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+
+def discriminator_loss(real_output, fake_output):
+    real_loss = cross_entropy(tf.ones_like(real_output), real_output)
+    fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
+    total_loss = real_loss + fake_loss
+    return total_loss
+
+
+
+def generator_loss(fake_output):
+    return cross_entropy(tf.ones_like(fake_output), fake_output)
+
+
+generator_optimizer = tf.keras.optimizers.Adam(1e-4)
+discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+
+checkpoint_dir = './training_checkpoints'
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
+                                 discriminator_optimizer=discriminator_optimizer,
+                                 generator=generator,
+                                 discriminator=discriminator)
+
+# You will reuse this seed overtime (so it's easier)
+# to visualize progress in the animated GIF)
+noise_dim = 100
+num_examples_to_generate = 16
+seed = tf.random.normal([num_examples_to_generate, noise_dim])
+
+@tf.function
+def train_step(images):
+    noise = tf.random.normal([BATCH_SIZE, noise_dim])
+
+    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+      generated_images = generator(noise, training=True)
+
+      real_output = discriminator(images, training=True)
+      fake_output = discriminator(generated_images, training=True)
+
+      gen_loss = generator_loss(fake_output)
+      disc_loss = discriminator_loss(real_output, fake_output)
+
+    gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
+    gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+
+    generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+    discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
+def generate_and_save_images(model, epoch, test_input):
+  # Notice `training` is set to False.
+  # This is so all layers run in inference mode (batchnorm).
+  predictions = model(test_input, training=False)
+
+  fig = plt.figure(figsize=(4, 4))
+
+  for i in range(predictions.shape[0]):
+      plt.subplot(4, 4, i+1)
+      plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5)#, cmap='gray') #kommentere ut cmap=gray???
+      plt.axis('off')
+
+  folder_name = 'generated_images'
+  if not os.path.exists(folder_name):
+      os.makedirs(folder_name)
+
+
+  plt.savefig(os.path.join(folder_name,'image_at_epoch_{:04d}.png'.format(epoch)))
+  #plt.show()
+  #plt.savefig(‘din_fig.png’)
+
+
+def train(dataset, epochs):
+  for epoch in range(epochs):
+    start = time.time()
+
+    for image_batch in dataset:
+      train_step(image_batch)
+
+    # Produce images for the GIF as you go
+    display.clear_output(wait=True)
+    generate_and_save_images(generator,
+                             epoch + 1,
+                             seed)
+
+    # Save the model every 15 epochs
+    if (epoch + 1) % 15 == 0:
+      checkpoint.save(file_prefix = checkpoint_prefix)
+
+    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+
+  # Generate after the final epoch
+  display.clear_output(wait=True)
+  generate_and_save_images(generator,
+                           epochs,
+                           seed)
+
+
+
+train(train_dataset, EPOCHS)
