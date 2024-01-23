@@ -10,6 +10,8 @@ from tensorflow.keras import layers
 import time
 import pathlib
 from IPython import display
+import datetime
+
 
 # Sti til mappen der bildene dine er plassert
 train_set_path = pathlib.Path("test")
@@ -31,7 +33,7 @@ def load_and_preprocess_image(path):
 
 BUFFER_SIZE = len(image_paths)
 BATCH_SIZE = 100
-EPOCHS = 100
+EPOCHS = 40
 #print(BUFFER_SIZE)
 
 # Opprett en tf.data.Dataset
@@ -256,6 +258,12 @@ def train(dataset, epochs):
                            epochs,
                            seed)
 
+
+
+logdir = "logs/training/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+# Opprett en filskriver
+writer = tf.summary.create_file_writer(logdir)
 
 
 train(train_dataset, EPOCHS)
