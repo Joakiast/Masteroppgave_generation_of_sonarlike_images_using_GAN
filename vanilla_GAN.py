@@ -17,8 +17,8 @@ start_time = time.time()
 train_set_path = pathlib.Path("train")
 
 # Opprett en liste over bildestier som strenger
-image_paths = [str(path) for path in list(train_set_path.glob('*clutter_RGB.jpg'))]  # filterer ut data i datasettet
-
+image_paths = [str(path) for path in list(train_set_path.glob('*oil_drum_RGB.jpg'))]  # filterer ut data i datasettet i terminal: ls |grep oil
+print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
 resize_x = 64
 resize_y = 64
