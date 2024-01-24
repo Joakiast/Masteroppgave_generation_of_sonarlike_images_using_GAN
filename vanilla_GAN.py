@@ -20,8 +20,8 @@ train_set_path = pathlib.Path("train")
 image_paths = [str(path) for path in list(train_set_path.glob('*clutter_RGB.jpg'))]  # filterer ut data i datasettet
 
 # Funksjon for å lese og forbehandle bildene
-resize_x = 100
-resize_y = 100
+resize_x = 64
+resize_y = 64
 def load_and_preprocess_image(path):
 
     image = tf.io.read_file(path)
