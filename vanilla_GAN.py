@@ -12,16 +12,16 @@ import pathlib
 from IPython import display
 import datetime
 
-
+start_time = time.time()
 # Sti til mappen der bildene dine er plassert
-train_set_path = pathlib.Path("test")
+train_set_path = pathlib.Path("train")
 
 # Opprett en liste over bildestier som strenger
 image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk '*.png' eller annet hvis bildene dine har en annen filtype
 
 # Funksjon for å lese og forbehandle bildene
-resize_x = 64
-resize_y = 64
+resize_x = 100
+resize_y = 100
 def load_and_preprocess_image(path):
 
     image = tf.io.read_file(path)
@@ -33,7 +33,7 @@ def load_and_preprocess_image(path):
 
 BUFFER_SIZE = len(image_paths)
 BATCH_SIZE = 100
-EPOCHS = 40
+EPOCHS = 100
 #print(BUFFER_SIZE)
 
 # Opprett en tf.data.Dataset
@@ -229,7 +229,7 @@ def generate_and_save_images(model, epoch, test_input):
   if epoch % 10 == 0:
       plt.savefig(os.path.join(folder_name, 'image_at_epoch_{:04d}.png'.format(epoch)))
       #plt.close(fig)
-  #plt.show()
+  #plt.show() plot for hver epoch
   #plt.savefig(‘din_fig.png’)
 
 
@@ -269,6 +269,10 @@ writer = tf.summary.create_file_writer(logdir)
 train(train_dataset, EPOCHS)
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
+end_time = time.time()  # Lagrer slutttiden
+elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
+
+print(f"Tiden det tok å kjøre koden: {elapsed_time} sekunder")
 
 # Display a single image using the epoch number (display as gif)
 def display_image(epoch_no):
