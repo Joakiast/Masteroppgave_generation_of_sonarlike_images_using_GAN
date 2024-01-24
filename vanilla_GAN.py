@@ -17,7 +17,7 @@ start_time = time.time()
 train_set_path = pathlib.Path("train")
 
 # Opprett en liste over bildestier som strenger
-image_paths = [str(path) for path in list(train_set_path.glob('*.jpg'))]  # Bruk '*.png' eller annet hvis bildene dine har en annen filtype
+image_paths = [str(path) for path in list(train_set_path.glob('*clutter_RGB.jpg'))]  # filterer ut data i datasettet
 
 # Funksjon for å lese og forbehandle bildene
 resize_x = 100
