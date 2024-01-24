@@ -12,28 +12,45 @@ import pathlib
 from IPython import display
 import datetime
 
+
 start_time = time.time()
 # Sti til mappen der bildene dine er plassert
 train_set_path = pathlib.Path("train")
 
+image_type = [None]*3
+image_type[0] = '*rock_RGB.jpg'
+image_type[1] = '*oil_drum_RGB.jpg'
+image_type[2] = '*clutter_RGB.jpg'
+
+
 # Opprett en liste over bildestier som strenger
-image_paths = [str(path) for path in list(train_set_path.glob('*oil_drum_RGB.jpg'))]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths = [str(path) for path in list(train_set_path.glob(image_type[0]))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 64
-resize_y = 64
+resize_x = 100
+resize_y = 100
 def load_and_preprocess_image(path):
-
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
     image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
     image = tf.cast(image, tf.float32)
-    image = (image / 127.5) -1  # Normaliser bildene til [-1, 1] området
+    print(f"image shape: {image.shape}")
+    image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
+
+    print(f"path: {path}")
+    # path_str = path#.numpy().decode('utf-8')
+    # if tf.strings.regex_full_match(path_str, ".*rock.*"):
+    #     print(f"its a rock {image.shape}")
+    # elif tf.strings.regex_full_match(path_str, ".*oil_drum.*"):
+    #     print(f"its an oil drum {image.shape}")
+    # elif tf.strings.regex_full_match(path_str, ".*clutter.*"):
+    #     print(f"its clutter {image.shape}")
+
     return image
 
 BUFFER_SIZE = len(image_paths)
 BATCH_SIZE = 100
-EPOCHS = 100
+EPOCHS = 10#0
 #print(BUFFER_SIZE)
 
 # Opprett en tf.data.Dataset
@@ -54,22 +71,24 @@ for images in train_dataset.take(1):  # Ta bare en batch for visning
         plt.subplot(1, number_of_samples_show, i + 1)
         plt.imshow(images[i])
         plt.axis('on')
+        #plt.title(images[i])
         print(images[i].shape)
 plt.show()
 
 """
-skjelletet til denne koden er ikke ferdig, se DCGAN for ferdig skjelett i github
+The dataset is now ready for training
+
 """
 
-def make_generator_model(input_size_noise_x, input_size_noise_y):
+def make_generator_model(tensor_size_x, tensor_size_y):
     """
     sett inn hardkodede tall for parametrene under trening for å unngå for mye beregninger.
     """
 
     #use_bias = False this is to reduce the models complexity
     #noise parameters
-    input_size_noise_x = input_size_noise_x
-    input_size_noise_y = input_size_noise_y
+    tensor_size_x = tensor_size_x
+    tensor_size_y = tensor_size_y
     depth_feature_map = 256
     noise_vector = 100
 
@@ -84,25 +103,25 @@ def make_generator_model(input_size_noise_x, input_size_noise_y):
     conv3_kernel_size = (5,5)
 
     model = tf.keras.Sequential()
-    model.add(layers.Dense(input_size_noise_x*input_size_noise_y*depth_feature_map, use_bias=True, input_shape=(noise_vector,)))
+    model.add(layers.Dense(tensor_size_x * tensor_size_y * depth_feature_map, use_bias=True, input_shape=(noise_vector,)))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Reshape((input_size_noise_x, input_size_noise_y, depth_feature_map)))
-    assert model.output_shape == (None, input_size_noise_x, input_size_noise_y, depth_feature_map)  # Note: None is the batch size
+    model.add(layers.Reshape((tensor_size_x, tensor_size_y, depth_feature_map)))
+    assert model.output_shape == (None, tensor_size_x, tensor_size_y, depth_feature_map)  # Note: None is the batch size
 
     model.add(layers.Conv2DTranspose(conv1_filters, conv1_kernel_size, strides=(1, 1), padding='same', use_bias=True))
-    assert model.output_shape == (None, input_size_noise_x, input_size_noise_y, conv1_filters)
+    assert model.output_shape == (None, tensor_size_x, tensor_size_y, conv1_filters)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2DTranspose(conv2_filters, conv2_kernel_size, strides=(2, 2), padding='same', use_bias=True)) #filter reduce stride = 2
-    assert model.output_shape == (None, input_size_noise_x*2, input_size_noise_y*2, conv1_filters/2) #strides increase the size (14,14,64)
+    assert model.output_shape == (None, tensor_size_x * 2, tensor_size_y * 2, conv1_filters / 2) #strides increase the size (14,14,64)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2DTranspose(conv3_filters, conv3_kernel_size, strides=(2, 2), padding='same', use_bias=True, activation='tanh')) # filter = 1 we want black white, rgb conv3 = 3
-    assert model.output_shape == (None, input_size_noise_x*2*2, input_size_noise_y*2*2, conv3_filters) #a test that our image has the expected shape
+    assert model.output_shape == (None, tensor_size_x * 2 * 2, tensor_size_y * 2 * 2, conv3_filters) #a test that our image has the expected shape
 
     return model
 def make_discriminator_model(input_x,input_y):
@@ -139,7 +158,7 @@ def make_discriminator_model(input_x,input_y):
 
 generator = make_generator_model(resize_x//4,resize_y//4) #deler på 4 fordi vi har strides 2 to steder
 
-noise = tf.random.normal([1, 100])
+noise = tf.random.normal([1, 100]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
 generated_image = generator(noise, training=False)
 
 plt.imshow(generated_image[0, :, :, 0])#,cmap="gray")# cmap='gray'
@@ -147,6 +166,7 @@ plt.title("Generated image")
 plt.show()
 
 noise_output_shape = generated_image.shape
+print(f"=====================================noise output shape: {noise_output_shape}========================================")
 x_value_generated_image = noise_output_shape[1]
 y_value_generated_image = noise_output_shape[2]
 
@@ -170,7 +190,7 @@ def discriminator_loss(real_output, fake_output):
 
 
 def generator_loss(fake_output):
-    return cross_entropy(tf.ones_like(fake_output), fake_output)
+    return cross_entropy(tf.ones_like(fake_output), fake_output) #Generator loss bruker barte fake output
 
 
 generator_optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -189,6 +209,10 @@ noise_dim = 100
 num_examples_to_generate = 16
 seed = tf.random.normal([num_examples_to_generate, noise_dim])
 
+"""
+Her trenes både generator og discriminator
+training = True
+"""
 @tf.function
 def train_step(images):
     noise = tf.random.normal([BATCH_SIZE, noise_dim])
@@ -196,8 +220,8 @@ def train_step(images):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
       generated_images = generator(noise, training=True)
 
-      real_output = discriminator(images, training=True)
-      fake_output = discriminator(generated_images, training=True)
+      real_output = discriminator(images, training=True) # fra dataset
+      fake_output = discriminator(generated_images, training=True) #bilde generert av generator
 
       gen_loss = generator_loss(fake_output)
       disc_loss = discriminator_loss(real_output, fake_output)
@@ -212,12 +236,13 @@ def generate_and_save_images(model, epoch, test_input):
   # Notice `training` is set to False.
   # This is so all layers run in inference mode (batchnorm).
   predictions = model(test_input, training=False)
+  #print(f"predictions.shape", predictions.shape)
 
   fig = plt.figure(figsize=(4, 4))
 
   for i in range(predictions.shape[0]):
       plt.subplot(4, 4, i+1)
-      plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5)#, cmap='gray') #kommentere ut cmap=gray???
+      plt.imshow((predictions[i, :, :, 0] * 127.5) + 127.5)#, cmap='rgb') #kommentere ut cmap=gray???
       plt.axis('off')
 
   folder_name = 'generated_images'
@@ -257,14 +282,6 @@ def train(dataset, epochs):
   generate_and_save_images(generator,
                            epochs,
                            seed)
-
-
-
-logdir = "logs/training/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-
-# Opprett en filskriver
-writer = tf.summary.create_file_writer(logdir)
-
 
 train(train_dataset, EPOCHS)
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
