@@ -18,11 +18,11 @@ start_time = time.time()
 train_set_path = pathlib.Path("train")
 
 """
-Dersom jeg ønsker rock så kommenter ut de 2 andre 
+Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
 BATCH_SIZE = 100
-image_type = '*rock_RGB.jpg'
-#image_type = '*oil_drum_RGB.jpg'
+#image_type = '*rock_RGB.jpg'
+image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
 
 
@@ -34,7 +34,7 @@ resize_x = 100
 resize_y = 100
 
 """
-increase the dataset used for "rock and oil" 
+increase the dataset used for "rock and oil"
 """
 
 def load_and_preprocess_image(path):
@@ -42,48 +42,44 @@ def load_and_preprocess_image(path):
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
     image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
     image = tf.cast(image, tf.float32)
-    print(f"image shape: {image.shape}")
+    #print(f"image shape: {image.shape}")
     image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
     return image
 
 BUFFER_SIZE = len(image_paths)
 
-EPOCHS = 100
+EPOCHS = 40
 #print(BUFFER_SIZE)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
-    if "rock_RGB" in image_type:
+    if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
         #print("Det er rock, gjør noe")
         flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
         flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
-    elif "oil_drum_RGB" in image_type:
-        #print("Det er oil, gjør noe")
-        flip_image_left_right = load_and_preprocess_image(image_path)
-        flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
 
+        flipped_images_left_to_right.append(flip_image_left_right)
+        flipped_images_up_down.append(flip_image_up_down)
+       # print(f" augmented_images.shape {len(flipped_images_left_to_right)}")
     else:
-        #print("Det er clutter, gjør noe annet")
-        flip_image_left_right = None #load_and_preprocess_image(image_path)
-        flip_image_up_down = None
-
-    flipped_images_left_to_right.append(flip_image_left_right)
-    flipped_images_up_down.append(flip_image_up_down)
-print(f"augmented_images.shape {len(flipped_images_left_to_right)}")
+        pass
 
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image)
 print(f"dataset shape 2: {len(train_dataset)}")
-flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
-train_dataset = train_dataset.concatenate(flipped_images_left_right)
 
-print(f"dataset shape 3: {len(train_dataset)}")
-flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
-train_dataset = train_dataset.concatenate(flipped_images_up_down)
-print(f"dataset shape 4: {len(train_dataset)}")
+if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
+
+    flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
+    train_dataset = train_dataset.concatenate(flipped_images_left_right)
+
+    print(f"dataset shape 3: {len(train_dataset)}")
+    flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
+    train_dataset = train_dataset.concatenate(flipped_images_up_down)
+    print(f"dataset shape 4: {len(train_dataset)}")
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
 print(f"dataset shape 5: {len(train_dataset)}")
@@ -106,6 +102,50 @@ for images in train_dataset.take(1):  # Ta bare en batch for visning
         #plt.title(images[i])
         print(images[i].shape)
 plt.show()
+###kommentert ut alt over
+#lagt inn kode mellom ====
+
+#====================================
+#=======================================med mnist dataset husk å endre size_of_last_filter_in_generator til 1 og conv3_filters til 1
+# start_time = time.time()
+# print("======================Start======================")
+#
+# (train_images, train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
+#
+# """
+# print(train_images.shape)
+# plt.plot(train_images[60000-1,:,:])
+# plt.show()
+# """
+# train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
+#
+# print(train_images.shape)
+# plt.imshow(train_images[60000-1,:,:,0])  # Plotting the last image
+# #plt.show()
+# #plt.savefig(‘din_fig1.png’)
+# train_images = (train_images - 127.5) / 127.5  # Normalize the images to [-1, 1]
+#
+# plt.imshow(train_images[60000-1,:,:,0])  # Plotting the last image
+# #plt.show()
+# #plt.savefig(‘din_fig2.png’)
+#
+#
+# BUFFER_SIZE = 60000
+# BATCH_SIZE = 256
+# EPOCHS = 50
+#
+#
+#
+# # Batch and shuffle the data
+# train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+#
+# resize_x = 28
+# resize_y = 28
+# #====================================
+#=======================================med mnist dataset husk å endre size_of_last_filter_in_generator til 1 og conv3_filters til 1
+
+
+
 
 """
 The dataset is now ready for training
@@ -131,7 +171,7 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     conv2_filters = 64
     conv2_kernel_size = (5, 5)
 
-    conv3_filters = 3
+    conv3_filters = 1
     conv3_kernel_size = (5,5)
 
     model = tf.keras.Sequential()
@@ -160,7 +200,7 @@ def make_discriminator_model(input_x,input_y):
 
     size_of_input_image_x = input_x
     size_of_input_image_y = input_y
-    size_of_last_filter_in_generator = 3
+    size_of_last_filter_in_generator = 1
 
 #forklaringer til layers
     #med filter så er det antall filteret som brukes over hver epoch og ser de samme pixlene
@@ -307,7 +347,7 @@ def train(dataset, epochs):
     if (epoch + 1) % 15 == 0:
       checkpoint.save(file_prefix = checkpoint_prefix)
 
-    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start), " number of epochs: ", epoch)
 
   # Generate after the final epoch
   display.clear_output(wait=True)
