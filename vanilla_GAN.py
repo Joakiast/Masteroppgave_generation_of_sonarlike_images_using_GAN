@@ -48,7 +48,7 @@ def load_and_preprocess_image(path):
 
 BUFFER_SIZE = len(image_paths)
 
-EPOCHS = 10#0
+EPOCHS = 100
 #print(BUFFER_SIZE)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
