@@ -17,18 +17,26 @@ start_time = time.time()
 # Sti til mappen der bildene dine er plassert
 train_set_path = pathlib.Path("train")
 
-image_type = [None]*3
-image_type[0] = '*rock_RGB.jpg'
-image_type[1] = '*oil_drum_RGB.jpg'
-image_type[2] = '*clutter_RGB.jpg'
+"""
+Dersom jeg ønsker rock så kommenter ut de 2 andre 
+"""
+BATCH_SIZE = 100
+image_type = '*rock_RGB.jpg'
+#image_type = '*oil_drum_RGB.jpg'
+#image_type = '*clutter_RGB.jpg'
 
 
 # Opprett en liste over bildestier som strenger
-image_paths = [str(path) for path in list(train_set_path.glob(image_type[0]))]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
 resize_x = 100
 resize_y = 100
+
+"""
+increase the dataset used for "rock and oil" 
+"""
+
 def load_and_preprocess_image(path):
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
@@ -36,29 +44,53 @@ def load_and_preprocess_image(path):
     image = tf.cast(image, tf.float32)
     print(f"image shape: {image.shape}")
     image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
-
-    print(f"path: {path}")
-    # path_str = path#.numpy().decode('utf-8')
-    # if tf.strings.regex_full_match(path_str, ".*rock.*"):
-    #     print(f"its a rock {image.shape}")
-    # elif tf.strings.regex_full_match(path_str, ".*oil_drum.*"):
-    #     print(f"its an oil drum {image.shape}")
-    # elif tf.strings.regex_full_match(path_str, ".*clutter.*"):
-    #     print(f"its clutter {image.shape}")
-
     return image
 
 BUFFER_SIZE = len(image_paths)
-BATCH_SIZE = 100
+
 EPOCHS = 10#0
 #print(BUFFER_SIZE)
+flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
+flipped_images_up_down = []
+for image_path in image_paths:
+    original_image = load_and_preprocess_image(image_path)
+    if "rock_RGB" in image_type:
+        #print("Det er rock, gjør noe")
+        flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
+        flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
+    elif "oil_drum_RGB" in image_type:
+        #print("Det er oil, gjør noe")
+        flip_image_left_right = load_and_preprocess_image(image_path)
+        flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
+
+    else:
+        #print("Det er clutter, gjør noe annet")
+        flip_image_left_right = None #load_and_preprocess_image(image_path)
+        flip_image_up_down = None
+
+    flipped_images_left_to_right.append(flip_image_left_right)
+    flipped_images_up_down.append(flip_image_up_down)
+print(f"augmented_images.shape {len(flipped_images_left_to_right)}")
 
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
+print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image)
+print(f"dataset shape 2: {len(train_dataset)}")
+flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
+train_dataset = train_dataset.concatenate(flipped_images_left_right)
+
+print(f"dataset shape 3: {len(train_dataset)}")
+flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
+train_dataset = train_dataset.concatenate(flipped_images_up_down)
+print(f"dataset shape 4: {len(train_dataset)}")
+
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
+print(f"dataset shape 5: {len(train_dataset)}")
 train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
+print(f"dataset shape 6: {len(train_dataset)}")
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
+print(f"dataset shape 7: {len(train_dataset)}")
 
 num_batches = len(list(train_dataset))
 
