@@ -52,15 +52,18 @@ EPOCHS = 100
 #print(BUFFER_SIZE)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
+random_rotated = []
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
     if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
         #print("Det er rock, gjør noe")
         flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
         flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
+        random_rotate = tf.image.rot90(load_and_preprocess_image(image_path), k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
 
         flipped_images_left_to_right.append(flip_image_left_right)
         flipped_images_up_down.append(flip_image_up_down)
+        random_rotated.append(random_rotate)
        # print(f" augmented_images.shape {len(flipped_images_left_to_right)}")
     else:
         pass
@@ -81,12 +84,17 @@ if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
     train_dataset = train_dataset.concatenate(flipped_images_up_down)
     print(f"dataset shape 4: {len(train_dataset)}")
 
+    random_rotated = tf.data.Dataset.from_tensor_slices(random_rotated)
+    train_dataset = train_dataset.concatenate(random_rotated)
+    print(f"dataset shape 5: {len(train_dataset)}")
+
+
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
-print(f"dataset shape 5: {len(train_dataset)}")
-train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
 print(f"dataset shape 6: {len(train_dataset)}")
-train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
+train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
 print(f"dataset shape 7: {len(train_dataset)}")
+train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
+print(f"dataset shape 8: {len(train_dataset)}")
 
 num_batches = len(list(train_dataset))
 
@@ -347,7 +355,7 @@ def train(dataset, epochs):
     if (epoch + 1) % 15 == 0:
       checkpoint.save(file_prefix = checkpoint_prefix)
 
-    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start), " number of epochs: ", epoch)
+    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start), " number of epochs: ", EPOCHS)
 
   # Generate after the final epoch
   display.clear_output(wait=True)
