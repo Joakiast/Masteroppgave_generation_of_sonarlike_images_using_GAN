@@ -20,9 +20,9 @@ train_set_path = pathlib.Path("train")
 """
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
-BATCH_SIZE = 100
-#image_type = '*rock_RGB.jpg'
-image_type = '*oil_drum_RGB.jpg'
+BATCH_SIZE = 50
+image_type = '*rock_RGB.jpg'
+#image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
 
 
@@ -30,8 +30,8 @@ image_type = '*oil_drum_RGB.jpg'
 image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 100
-resize_y = 100
+resize_x = 48
+resize_y = 48
 
 """
 increase the dataset used for "rock and oil"
@@ -53,6 +53,7 @@ EPOCHS = 100
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
 random_rotated = []
+random_cropped_images = []
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
     if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
@@ -60,10 +61,12 @@ for image_path in image_paths:
         flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
         flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
         random_rotate = tf.image.rot90(load_and_preprocess_image(image_path), k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+        random_cropped_image = tf.image.random_crop(load_and_preprocess_image(image_path), size=(tf.shape(load_and_preprocess_image(image_path))[0], tf.shape(load_and_preprocess_image(image_path))[1], tf.shape(load_and_preprocess_image(image_path))[2]))
 
         flipped_images_left_to_right.append(flip_image_left_right)
         flipped_images_up_down.append(flip_image_up_down)
         random_rotated.append(random_rotate)
+        random_cropped_images.append(random_cropped_image)
        # print(f" augmented_images.shape {len(flipped_images_left_to_right)}")
     else:
         pass
@@ -88,13 +91,17 @@ if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
     train_dataset = train_dataset.concatenate(random_rotated)
     print(f"dataset shape 5: {len(train_dataset)}")
 
+    random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
+    train_dataset = train_dataset.concatenate(random_cropped)
+    print(f"dataset shape 6: {len(train_dataset)}")
+
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
-print(f"dataset shape 6: {len(train_dataset)}")
-train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
 print(f"dataset shape 7: {len(train_dataset)}")
-train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
+train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
 print(f"dataset shape 8: {len(train_dataset)}")
+train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
+print(f"dataset shape 9: {len(train_dataset)}")
 
 num_batches = len(list(train_dataset))
 
@@ -324,16 +331,20 @@ def generate_and_save_images(model, epoch, test_input):
       plt.subplot(4, 4, i+1)
       plt.imshow((predictions[i, :, :, 0] * 127.5) + 127.5)#, cmap='rgb') #kommentere ut cmap=gray???
       plt.axis('off')
+  plt.suptitle(image_type)
+
 
   folder_name = 'generated_images'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
 
-  plt.savefig(os.path.join(folder_name,'image_at_epoch_{:04d}.png'.format(epoch)))
   if epoch % 10 == 0:
       plt.savefig(os.path.join(folder_name, 'image_at_epoch_{:04d}.png'.format(epoch)))
-      #plt.close(fig)
+
+      #plt.savefig(os.path.join(folder_name, 'image_at_epoch_{:04d}.png'.format(epoch)))
+      print('fig closed')
+      plt.close("all")
   #plt.show() plot for hver epoch
   #plt.savefig(‘din_fig.png’)
 
@@ -369,7 +380,7 @@ checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 end_time = time.time()  # Lagrer slutttiden
 elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
-print(f"Tiden det tok å kjøre koden: {elapsed_time} sekunder")
+print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
 # Display a single image using the epoch number (display as gif)
 def display_image(epoch_no):
