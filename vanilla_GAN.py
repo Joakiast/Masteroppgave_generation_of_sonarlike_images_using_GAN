@@ -36,10 +36,10 @@ resize_y = 100
 """
 increase the dataset used for "rock and oil"
 """
-
+color_channel = 3
 def load_and_preprocess_image(path):
     image = tf.io.read_file(path)
-    image = tf.image.decode_jpeg(image, channels=3)  # Bruk tf.image.decode_png for PNG-bilder, etc.
+    image = tf.image.decode_jpeg(image, channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
     image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
     image = tf.cast(image, tf.float32)
     #print(f"image shape: {image.shape}")
@@ -48,7 +48,7 @@ def load_and_preprocess_image(path):
 
 BUFFER_SIZE = len(image_paths)
 
-EPOCHS = 40
+EPOCHS = 100
 #print(BUFFER_SIZE)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
@@ -171,7 +171,7 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     conv2_filters = 64
     conv2_kernel_size = (5, 5)
 
-    conv3_filters = 1
+    conv3_filters = color_channel
     conv3_kernel_size = (5,5)
 
     model = tf.keras.Sequential()
@@ -200,7 +200,7 @@ def make_discriminator_model(input_x,input_y):
 
     size_of_input_image_x = input_x
     size_of_input_image_y = input_y
-    size_of_last_filter_in_generator = 1
+    size_of_last_filter_in_generator = color_channel
 
 #forklaringer til layers
     #med filter så er det antall filteret som brukes over hver epoch og ser de samme pixlene
