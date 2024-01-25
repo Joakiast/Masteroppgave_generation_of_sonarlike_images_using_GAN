@@ -21,8 +21,8 @@ train_set_path = pathlib.Path("train")
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
 BATCH_SIZE = 50
-image_type = '*rock_RGB.jpg'
-#image_type = '*oil_drum_RGB.jpg'
+#image_type = '*rock_RGB.jpg'
+image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
 
 
@@ -30,8 +30,8 @@ image_type = '*rock_RGB.jpg'
 image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 48
-resize_y = 48
+resize_x = 40
+resize_y = 40
 
 """
 increase the dataset used for "rock and oil"
@@ -48,7 +48,7 @@ def load_and_preprocess_image(path):
 
 BUFFER_SIZE = len(image_paths)
 
-EPOCHS = 100
+EPOCHS = 400
 #print(BUFFER_SIZE)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
@@ -339,10 +339,8 @@ def generate_and_save_images(model, epoch, test_input):
       os.makedirs(folder_name)
 
 
-  if epoch % 10 == 0:
+  if epoch % 20 == 0:
       plt.savefig(os.path.join(folder_name, 'image_at_epoch_{:04d}.png'.format(epoch)))
-
-      #plt.savefig(os.path.join(folder_name, 'image_at_epoch_{:04d}.png'.format(epoch)))
       print('fig closed')
       plt.close("all")
   #plt.show() plot for hver epoch
