@@ -20,10 +20,11 @@ train_set_path = pathlib.Path("train")
 """
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
-BATCH_SIZE = 50
+BATCH_SIZE = 400
 #image_type = '*rock_RGB.jpg'
 image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
+EPOCHS = 400
 
 
 # Opprett en liste over bildestier som strenger
@@ -48,7 +49,6 @@ def load_and_preprocess_image(path):
 
 BUFFER_SIZE = len(image_paths)
 
-EPOCHS = 400
 #print(BUFFER_SIZE)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
