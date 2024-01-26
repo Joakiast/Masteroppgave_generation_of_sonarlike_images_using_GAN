@@ -30,8 +30,8 @@ image_type = '*oil_drum_RGB.jpg'
 image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 40
-resize_y = 40
+resize_x = 100
+resize_y = 100
 
 """
 increase the dataset used for "rock and oil"
@@ -54,6 +54,7 @@ flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
 random_rotated = []
 random_cropped_images = []
+
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
     if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
@@ -177,7 +178,7 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     tensor_size_x = tensor_size_x
     tensor_size_y = tensor_size_y
     depth_feature_map = 256
-    noise_vector = 100
+    noise_vector = 200
 
     #convolution parameter
     conv1_filters = 128 # A filter is a matrice of numbers
@@ -245,7 +246,7 @@ def make_discriminator_model(input_x,input_y):
 
 generator = make_generator_model(resize_x//4,resize_y//4) #deler på 4 fordi vi har strides 2 to steder
 
-noise = tf.random.normal([1, 100]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
+noise = tf.random.normal([1, 200]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
 generated_image = generator(noise, training=False)
 
 plt.imshow(generated_image[0, :, :, 0])#,cmap="gray")# cmap='gray'
@@ -280,6 +281,7 @@ def generator_loss(fake_output):
     return cross_entropy(tf.ones_like(fake_output), fake_output) #Generator loss bruker barte fake output
 
 
+
 generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
@@ -292,7 +294,7 @@ checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
 
 # You will reuse this seed overtime (so it's easier)
 # to visualize progress in the animated GIF)
-noise_dim = 100
+noise_dim = 200
 num_examples_to_generate = 16
 seed = tf.random.normal([num_examples_to_generate, noise_dim])
 
