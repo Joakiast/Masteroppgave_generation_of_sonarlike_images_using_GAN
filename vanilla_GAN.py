@@ -99,7 +99,7 @@ if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
 print(f"dataset shape 7: {len(train_dataset)}")
-train_dataset = train_dataset.batch(BATCH_SIZE)  # Velg en batch-størrelse som passer for din maskin
+train_dataset = train_dataset.batch(BATCH_SIZE)
 print(f"dataset shape 8: {len(train_dataset)}")
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
 print(f"dataset shape 9: {len(train_dataset)}")
