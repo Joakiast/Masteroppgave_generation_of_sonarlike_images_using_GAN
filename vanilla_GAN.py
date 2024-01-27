@@ -13,6 +13,9 @@ from IPython import display
 import datetime
 
 
+log_dir = "logs/"  # Spesifiser ønsket katalog for loggfiler
+summary_writer = tf.summary.create_file_writer(log_dir)
+
 start_time = time.time()
 # Sti til mappen der bildene dine er plassert
 train_set_path = pathlib.Path("train")
@@ -20,11 +23,11 @@ train_set_path = pathlib.Path("train")
 """
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
-BATCH_SIZE = 10
-#image_type = '*rock_RGB.jpg'
-image_type = '*oil_drum_RGB.jpg'
+BATCH_SIZE = 3
+image_type = '*rock_RGB.jpg'
+#image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
-EPOCHS = 400
+EPOCHS = 800
 
 
 # Opprett en liste over bildestier som strenger
@@ -321,6 +324,11 @@ def train_step(images):
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
+    with summary_writer.as_default():
+        tf.summary.scalar('gen_loss', gen_loss, step=generator_optimizer.iterations)
+        tf.summary.scalar('disc_loss', disc_loss, step=discriminator_optimizer.iterations)
+
+
 def generate_and_save_images(model, epoch, test_input):
   # Notice `training` is set to False.
   # This is so all layers run in inference mode (batchnorm).
@@ -383,7 +391,7 @@ elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
 # Display a single image using the epoch number (display as gif)
-def display_image(epoch_no):
+def display_image(epoch_no,image_type):
   return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no,image_type))
 
-display_image(EPOCHS)
+display_image(EPOCHS,image_type)
