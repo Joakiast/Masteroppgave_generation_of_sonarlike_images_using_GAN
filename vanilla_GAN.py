@@ -24,8 +24,8 @@ train_set_path = pathlib.Path("train")
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
 BATCH_SIZE = 3
-image_type = '*rock_RGB.jpg'
-#image_type = '*oil_drum_RGB.jpg'
+#image_type = '*rock_RGB.jpg'
+image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
 EPOCHS = 800
 
@@ -34,8 +34,8 @@ EPOCHS = 800
 image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 100
-resize_y = 100
+resize_x = 120
+resize_y = 120
 
 """
 increase the dataset used for "rock and oil"
@@ -288,7 +288,7 @@ def generator_loss(fake_output):
 generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
-checkpoint_dir = './training_checkpoints'
+checkpoint_dir = "/media/joakim/Random Stuff/UbuntuFiles/pythonFiles/chk/masteroppgave_data_fra_trening"#'./training_checkpoints'
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                  discriminator_optimizer=discriminator_optimizer,
@@ -350,7 +350,7 @@ def generate_and_save_images(model, epoch, test_input):
 
 
   if epoch % 20 == 0:
-      plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch,image_type)))
+      plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
       print('fig closed')
       plt.close("all")
   #plt.show() plot for hver epoch
@@ -390,8 +390,12 @@ elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
 print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
-# Display a single image using the epoch number (display as gif)
-def display_image(epoch_no,image_type):
-  return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no,image_type))
+generator.save('my_generator_model_oil_drum.h5')
+discriminator.save('my_discriminator_model_oildrum_800epoch.h5')
 
-display_image(EPOCHS,image_type)
+
+# Display a single image using the epoch number (display as gif)
+def display_image(epoch_no):
+  return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no))
+
+display_image(EPOCHS)
