@@ -20,7 +20,7 @@ train_set_path = pathlib.Path("train")
 """
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
-BATCH_SIZE = 400
+BATCH_SIZE = 10
 #image_type = '*rock_RGB.jpg'
 image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
@@ -342,7 +342,7 @@ def generate_and_save_images(model, epoch, test_input):
 
 
   if epoch % 20 == 0:
-      plt.savefig(os.path.join(folder_name, 'image_at_epoch_{:04d}.png'.format(epoch)))
+      plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch,image_type)))
       print('fig closed')
       plt.close("all")
   #plt.show() plot for hver epoch
@@ -384,6 +384,6 @@ print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
 # Display a single image using the epoch number (display as gif)
 def display_image(epoch_no):
-  return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no))
+  return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no,image_type))
 
 display_image(EPOCHS)
