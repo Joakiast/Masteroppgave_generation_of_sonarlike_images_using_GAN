@@ -24,8 +24,8 @@ train_set_path = pathlib.Path("train")
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
 BATCH_SIZE = 3
-image_type = '*rock_RGB.jpg'
-#image_type = '*oil_drum_RGB.jpg'
+#image_type = '*rock_RGB.jpg'
+image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
 EPOCHS = 800
 
