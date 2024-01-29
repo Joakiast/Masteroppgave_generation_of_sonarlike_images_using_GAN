@@ -24,10 +24,12 @@ train_set_path = pathlib.Path("train")
 Dersom jeg ønsker rock så kommenter ut de 2 andre
 """
 BATCH_SIZE = 3
-#image_type = '*rock_RGB.jpg'
-image_type = '*oil_drum_RGB.jpg'
+image_type = '*rock_RGB.jpg'
+#image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
 EPOCHS = 30
+
+print(f"image_type[1:]: {image_type[1:-8]}")
 
 
 # Opprett en liste over bildestier som strenger
@@ -390,8 +392,9 @@ elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
 print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
-#generator.save('my_generator_model_oil_drum.h5')
-#discriminator.save('my_discriminator_model_oildrum_800epoch.h5')
+generator.save(f'saved_model/{image_type[1:-8]}/my_generator.h5')
+discriminator.save(f'saved_model/{image_type[1:-8]}/my_discriminator.h5')
+#print(f"image_type[1:]: {image_type[1:-8]}")
 
 #
 # # Display a single image using the epoch number (display as gif)
