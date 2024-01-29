@@ -27,7 +27,7 @@ BATCH_SIZE = 3
 image_type = '*rock_RGB.jpg'
 #image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
-EPOCHS = 30
+EPOCHS = 800
 
 print(f"image_type[1:]: {image_type[1:-8]}")
 
@@ -36,8 +36,8 @@ print(f"image_type[1:]: {image_type[1:-8]}")
 image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 28
-resize_y = 28
+resize_x = 100
+resize_y = 100
 
 """
 increase the dataset used for "rock and oil"
@@ -341,7 +341,9 @@ def generate_and_save_images(model, epoch, test_input):
 
   for i in range(predictions.shape[0]):
       plt.subplot(4, 4, i+1)
-      plt.imshow((predictions[i, :, :, 0] * 127.5) + 127.5)#, cmap='rgb') #kommentere ut cmap=gray???
+      image = predictions[i]
+      image = (image-np.min(image))/(np.max(image)-np.min(image))
+      plt.imshow(image)#(predictions[i, :, :, :] * 127.5) + 127.5)#, cmap='hot') #kommentere ut cmap=gray???
       plt.axis('off')
   plt.suptitle(image_type)
 
