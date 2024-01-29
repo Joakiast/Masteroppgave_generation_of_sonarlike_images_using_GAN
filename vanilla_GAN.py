@@ -392,8 +392,8 @@ elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
 print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
-generator.save(f'saved_model/{image_type[1:-8]}/my_generator.h5')
-discriminator.save(f'saved_model/{image_type[1:-8]}/my_discriminator.h5')
+generator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_generator.h5')
+discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
 #print(f"image_type[1:]: {image_type[1:-8]}")
 
 #
