@@ -27,15 +27,15 @@ BATCH_SIZE = 3
 #image_type = '*rock_RGB.jpg'
 image_type = '*oil_drum_RGB.jpg'
 #image_type = '*clutter_RGB.jpg'
-EPOCHS = 800
+EPOCHS = 30
 
 
 # Opprett en liste over bildestier som strenger
 image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
 # Funksjon for å lese og forbehandle bildene
-resize_x = 120
-resize_y = 120
+resize_x = 28
+resize_y = 28
 
 """
 increase the dataset used for "rock and oil"
@@ -288,12 +288,12 @@ def generator_loss(fake_output):
 generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
-checkpoint_dir = "/media/joakim/Random Stuff/UbuntuFiles/pythonFiles/chk/masteroppgave_data_fra_trening"#'./training_checkpoints'
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
-                                 discriminator_optimizer=discriminator_optimizer,
-                                 generator=generator,
-                                 discriminator=discriminator)
+# checkpoint_dir = "/media/joakim/Random Stuff/UbuntuFiles/pythonFiles/chk/masteroppgave_data_fra_trening"#'./training_checkpoints'
+# checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+# checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
+#                                  discriminator_optimizer=discriminator_optimizer,
+#                                  generator=generator,
+#                                  discriminator=discriminator)
 
 # You will reuse this seed overtime (so it's easier)
 # to visualize progress in the animated GIF)
@@ -371,8 +371,8 @@ def train(dataset, epochs):
                              seed)
 
     # Save the model every 15 epochs
-    if (epoch + 1) % 15 == 0:
-      checkpoint.save(file_prefix = checkpoint_prefix)
+    #if (epoch + 1) % 15 == 0:
+     # checkpoint.save(file_prefix = checkpoint_prefix)
 
     print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start), " number of epochs: ", EPOCHS)
 
@@ -383,19 +383,19 @@ def train(dataset, epochs):
                            seed)
 
 train(train_dataset, EPOCHS)
-checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+#checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
 end_time = time.time()  # Lagrer slutttiden
 elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
 print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 
-generator.save('my_generator_model_oil_drum.h5')
-discriminator.save('my_discriminator_model_oildrum_800epoch.h5')
+#generator.save('my_generator_model_oil_drum.h5')
+#discriminator.save('my_discriminator_model_oildrum_800epoch.h5')
 
-
-# Display a single image using the epoch number (display as gif)
-def display_image(epoch_no):
-  return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no))
-
-display_image(EPOCHS)
+#
+# # Display a single image using the epoch number (display as gif)
+# def display_image(epoch_no):
+#   return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no))
+#
+# display_image(EPOCHS)
