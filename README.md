@@ -19,3 +19,12 @@ ls -1 | wc -l  lister ut antall objeker i current dir
 scp -J joakiast@login.uio.no -r train/ joakiast@ml9.hpc.uio.no:
 
 login til mlnode ssh -J joakiast@gothmog.uio.no  joakiast@ml9.hpc.uio.no
+
+tmux ubuntu mlnode brukes for å kunne kjøre trening selvom pc er av, fremgangsmåte: 
+
+tmuc new -s [navn på session] 
+ctrl+B D 
+Nå er det trygt å logge av, prosessen kjører. 
+
+for å komme til prosessen igjen: 
+tmux attach -t [navn på session]
