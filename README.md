@@ -18,4 +18,4 @@ ls -1 | wc -l  lister ut antall objeker i current dir
 
 scp -J joakiast@login.uio.no -r train/ joakiast@ml9.hpc.uio.no:
 
-ssh -J joakiast@gothmog.uio.no  joakiast@ml9.hpc.uio.no
+login til mlnode ssh -J joakiast@gothmog.uio.no  joakiast@ml9.hpc.uio.no
