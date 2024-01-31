@@ -22,7 +22,7 @@ login til mlnode ssh -J joakiast@gothmog.uio.no  joakiast@ml9.hpc.uio.no
 
 tmux ubuntu mlnode brukes for å kunne kjøre trening selvom pc er av, fremgangsmåte: 
 
-tmuc new -s [navn på session] 
+tmux new -s [navn på session] 
 ctrl+B D 
 Nå er det trygt å logge av, prosessen kjører. 
 
