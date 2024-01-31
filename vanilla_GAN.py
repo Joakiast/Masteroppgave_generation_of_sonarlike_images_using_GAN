@@ -11,6 +11,8 @@ import time
 import pathlib
 from IPython import display
 import datetime
+import cv2
+
 
 
 
@@ -21,38 +23,134 @@ summary_writer = tf.summary.create_file_writer(log_dir)
 start_time = time.time()
 # Sti til mappen der bildene dine er plassert
 train_set_path = pathlib.Path("train")
+train_set_label_path = pathlib.Path("train/Label")
 
 """
-Dersom jeg ønsker rock så kommenter ut de 2 andre
+Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 50
-#image_type = '*rock_RGB.jpg'
-#image_type = '*oil_drum_RGB.jpg'
-image_type = '*clutter_RGB.jpg'
+BATCH_SIZE = 3
+#image_type = '*rock_RGB'
+image_type = '*oil_drum_RGB'
+#image_type = '*clutter_RGB'
 EPOCHS = 800
 
-print(f"image_type[1:]: {image_type[1:-8]}")
+print(f"image_type[1:]: {image_type[1:-4]}")
 
 
 # Opprett en liste over bildestier som strenger
-image_paths = [str(path) for path in list(train_set_path.glob(image_type))]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths)}")
+label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 100
-resize_y = 100
+resize_x = 200
+resize_y = 200
+crop_size = resize_x / 2
+
+if image_type == '*oil_drum_RGB':
+    print(f"crop size: {crop_size}")
 
 """
 increase the dataset used for "rock and oil"
 """
 color_channel = 3
-def load_and_preprocess_image(path):
-    image = tf.io.read_file(path)
+
+
+def crop_image_around_POI(image, point_x, point_y, crop_size):
+
+
+    # Konverter punktkoordinater til heltall
+    point_x = tf.cast(point_x, tf.int32)
+    point_y = tf.cast(point_y, tf.int32)
+    crop_size = tf.cast(crop_size, tf.int32)
+
+    # Beregn øvre venstre hjørne av beskjæringsboksen
+    start_y = tf.maximum(0, point_y - crop_size // 2)
+    start_x = tf.maximum(0, point_x - crop_size // 2)
+
+    # Sørg for at beskjæringsboksen ikke går utenfor bildet
+    image_height, image_width, _ = image.shape
+    image_height = tf.cast(image_height, tf.int32)
+    image_width = tf.cast(image_width, tf.int32)
+
+    if start_x + crop_size > image_width:
+        start_x = tf.maximum(0, image_width - crop_size)
+    if start_y + crop_size > image_height:
+        start_y = tf.maximum(0, image_height - crop_size)
+
+    # Beskjær bildet
+    image = tf.image.resize(image, [resize_y*2, resize_x*2],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
+
+    cropped_image = tf.image.crop_to_bounding_box(image, start_y, start_x, crop_size, crop_size)
+
+    #print(f"crop by {crop_size}")
+    return cropped_image
+# #========================test crop==============================================
+# image_path1= "/home/joakim/Documents/masteroppgave/Masteroppgave_generation_of_sonarlike_images_using_GAN/train/20090106-105237_06403_1088_2_26_032_24_48_00_oil_drum_RGB.jpg"
+#
+# # Lese bildet
+# image1 = tf.io.read_file(image_path1)
+# image1 = tf.image.decode_jpeg(image1, channels=3)
+#
+# # Plotte bildet
+# plt.imshow(image1)
+# plt.axis('off')  # Fjerne aksene for et renere bilde
+# plt.title("Original Image før crop")
+# plt.show()
+#
+#
+# cropped = crop_image_around_POI(image1,294,125,crop_size)
+# # Plotte bildet
+# plt.imshow(cropped)
+# plt.axis('off')  # Fjerne aksene for et renere bilde
+# plt.title(" Image etter crop")
+# plt.show()
+# #========================test crop==============================================
+
+
+def load_and_preprocess_image(path_image):
+
+    image = tf.io.read_file(path_image)
     image = tf.image.decode_jpeg(image, channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
-    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
     image = tf.cast(image, tf.float32)
     #print(f"image shape: {image.shape}")
     image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
+    if "oil_drum" in image_type:
+        try:
+            label_path = path_image[6:-4]  # Anta at dette gir riktig filnavn
+            label_path = "train/Label/" + label_path + ".txt"
+            label_content = tf.io.read_file(label_path)
+
+            # Dekode innholdet til en streng
+            label_str = label_content.numpy().decode('utf-8')  # Anta at det er en tekstfil med utf-8-koding
+
+            # Initialiser x og y til None
+            x, y = None, None
+
+            # Sjekk hver linje for 'oil_drum'
+            for line in label_str.split('\n'):  # Deler opp teksten i linjer
+                parts = line.split()
+                if parts and parts[0] == 'oil_drum':  # Sjekker om første del er 'oil_drum'
+                    # Konverter de gjenværende delene til flyttall
+                    x, y = map(float, parts[1:3])
+                    print(f"Label: {parts[0]}, x: {x}, y: {y}")
+                    break  # Avslutter loopen etter å ha funnet 'oil_drum'
+
+            if x is None or y is None:
+                print("Ingen 'oil_drum' etikett funnet i filen.")
+
+            image = crop_image_around_POI(image, x, y, crop_size)
+
+
+
+
+        except Exception as e:
+            print("Error:", e)
+            print(f"path image {path_image}")
+    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
+
+
     return image
+
 
 BUFFER_SIZE = len(image_paths)
 
@@ -64,19 +162,19 @@ random_cropped_images = []
 
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
-    if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
+    if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
         #print("Det er rock, gjør noe")
         flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
         flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
         random_rotate = tf.image.rot90(load_and_preprocess_image(image_path), k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
-        random_cropped_image = tf.image.random_crop(load_and_preprocess_image(image_path), size=(tf.shape(load_and_preprocess_image(image_path))[0], tf.shape(load_and_preprocess_image(image_path))[1], tf.shape(load_and_preprocess_image(image_path))[2]))
+        #random_cropped_image = tf.image.random_crop(load_and_preprocess_image(image_path), size=(tf.shape(load_and_preprocess_image(image_path))[0], tf.shape(load_and_preprocess_image(image_path))[1], tf.shape(load_and_preprocess_image(image_path))[2]))
 
         flipped_images_left_to_right.append(flip_image_left_right)
         flipped_images_up_down.append(flip_image_up_down)
         random_rotated.append(random_rotate)
-        random_cropped_images.append(random_cropped_image)
+        #random_cropped_images.append(random_cropped_image)
        # print(f" augmented_images.shape {len(flipped_images_left_to_right)}")
-    else:
+    elif "clutter" in image_type:
         pass
 
 # Opprett en tf.data.Dataset
@@ -85,7 +183,7 @@ print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image)
 print(f"dataset shape 2: {len(train_dataset)}")
 
-if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
+if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
 
     flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
     train_dataset = train_dataset.concatenate(flipped_images_left_right)
@@ -102,6 +200,8 @@ if "rock_RGB" in image_type or "*oil_drum_RGB.jpg" in image_type:
     random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
     train_dataset = train_dataset.concatenate(random_cropped)
     print(f"dataset shape 6: {len(train_dataset)}")
+else:
+    pass
 
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
