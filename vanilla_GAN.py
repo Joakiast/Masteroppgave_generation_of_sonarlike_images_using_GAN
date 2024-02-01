@@ -22,8 +22,8 @@ start_time = time.time()
 
 
 
-train_set_path = pathlib.Path("train1")
-train_set_label_path = pathlib.Path("train1/Label")
+train_set_path = pathlib.Path("train")
+train_set_label_path = pathlib.Path("train/Label")
 
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
@@ -119,7 +119,7 @@ def load_and_preprocess_image(path_image):
     if "oil_drum" in image_type:
         try:
             label_path = path_image[6:-4]  # Anta at dette gir riktig filnavn
-            label_path = "train1/Label/" + label_path + ".txt"
+            label_path = "train/Label/" + label_path + ".txt"
             label_content = tf.io.read_file(label_path)
 
             # Dekode innholdet til en streng
@@ -137,8 +137,10 @@ def load_and_preprocess_image(path_image):
                     print(f"Label: {parts[0]}, x: {x}, y: {y}")
                     print(f"image path {path_image}")
                     #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
-                    print(f"image shape før crop {image.shape}")
-                    image = crop_image_around_POI(image, x, y, crop_size)
+                    print(f"image shape før oppsampling før crop {image.shape}")
+                    image = tf.image.resize(image, [image.shape[0]*2,image.shape[1]*2], method=tf.image.ResizeMethod.LANCZOS5)
+                    print(f"image shape etter oppsampling før crop {image.shape}")
+                    image = crop_image_around_POI(image, 2*x, 2*y, crop_size)
                     print(f"image.shape etter crop {image.shape}")
                     break  # Avslutter loopen etter å ha funnet 'oil_drum'
                 else:
@@ -157,7 +159,7 @@ def load_and_preprocess_image(path_image):
     else:
         pass
         #print(f"else?? path_image: {path_image} image_type: {image_type}")
-    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.LANCZOS3) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
+    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.NEAREST_NEIGHBOR) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
 
     print(f"image.shape etter resize {image.shape}")
