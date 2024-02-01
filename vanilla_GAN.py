@@ -12,23 +12,23 @@ import pathlib
 from IPython import display
 import datetime
 import cv2
-
-
-
-
+from sklearn.cluster import KMeans
 
 log_dir = "logs/"  # Spesifiser ønsket katalog for loggfiler
 summary_writer = tf.summary.create_file_writer(log_dir)
 
 start_time = time.time()
 # Sti til mappen der bildene dine er plassert
-train_set_path = pathlib.Path("train")
-train_set_label_path = pathlib.Path("train/Label")
+
+
+
+train_set_path = pathlib.Path("train1")
+train_set_label_path = pathlib.Path("train1/Label")
 
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 3
+BATCH_SIZE = 8
 #image_type = '*rock_RGB'
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
@@ -44,7 +44,7 @@ label_path = [str(path) for path in list(train_set_label_path.glob(image_type +"
 # Funksjon for å lese og forbehandle bildene
 resize_x = 200
 resize_y = 200
-crop_size = resize_x / 2
+crop_size = 100#resize_x / 2
 
 if image_type == '*oil_drum_RGB':
     print(f"crop size: {crop_size}")
@@ -53,7 +53,6 @@ if image_type == '*oil_drum_RGB':
 increase the dataset used for "rock and oil"
 """
 color_channel = 3
-
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
 
@@ -78,12 +77,12 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
         start_y = tf.maximum(0, image_height - crop_size)
 
     # Beskjær bildet
-    image = tf.image.resize(image, [resize_y*2, resize_x*2],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
     cropped_image = tf.image.crop_to_bounding_box(image, start_y, start_x, crop_size, crop_size)
 
     #print(f"crop by {crop_size}")
     return cropped_image
+#beginregion testplot
 # #========================test crop==============================================
 # image_path1= "/home/joakim/Documents/masteroppgave/Masteroppgave_generation_of_sonarlike_images_using_GAN/train/20090106-105237_06403_1088_2_26_032_24_48_00_oil_drum_RGB.jpg"
 #
@@ -106,18 +105,21 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 # plt.show()
 # #========================test crop==============================================
 
-
+#endregion
 def load_and_preprocess_image(path_image):
 
     image = tf.io.read_file(path_image)
     image = tf.image.decode_jpeg(image, channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
     image = tf.cast(image, tf.float32)
-    #print(f"image shape: {image.shape}")
     image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
+    print(f"image shape før resize: {image.shape}")
+
+
+    #lister ut posisjonen til x og y for oil drum som skal brukes til crop
     if "oil_drum" in image_type:
         try:
             label_path = path_image[6:-4]  # Anta at dette gir riktig filnavn
-            label_path = "train/Label/" + label_path + ".txt"
+            label_path = "train1/Label/" + label_path + ".txt"
             label_content = tf.io.read_file(label_path)
 
             # Dekode innholdet til en streng
@@ -133,21 +135,32 @@ def load_and_preprocess_image(path_image):
                     # Konverter de gjenværende delene til flyttall
                     x, y = map(float, parts[1:3])
                     print(f"Label: {parts[0]}, x: {x}, y: {y}")
+                    print(f"image path {path_image}")
+                    #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
+                    print(f"image shape før crop {image.shape}")
+                    image = crop_image_around_POI(image, x, y, crop_size)
+                    print(f"image.shape etter crop {image.shape}")
                     break  # Avslutter loopen etter å ha funnet 'oil_drum'
-
+                else:
+                    print("else: 1 =========================================================")
             if x is None or y is None:
                 print("Ingen 'oil_drum' etikett funnet i filen.")
+            #image = tf.image.resize(image, [resize_y * 2, resize_x * 2], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
-            image = crop_image_around_POI(image, x, y, crop_size)
 
-
+            #image = tf.image.resize(image, [resize_y, resize_x], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
 
         except Exception as e:
             print("Error:", e)
-            print(f"path image {path_image}")
-    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.AREA) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
+            #print(f"path image {path_image}")
+    else:
+        pass
+        #print(f"else?? path_image: {path_image} image_type: {image_type}")
+    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.LANCZOS3) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
+
+    print(f"image.shape etter resize {image.shape}")
 
     return image
 
@@ -167,13 +180,10 @@ for image_path in image_paths:
         flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
         flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
         random_rotate = tf.image.rot90(load_and_preprocess_image(image_path), k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
-        #random_cropped_image = tf.image.random_crop(load_and_preprocess_image(image_path), size=(tf.shape(load_and_preprocess_image(image_path))[0], tf.shape(load_and_preprocess_image(image_path))[1], tf.shape(load_and_preprocess_image(image_path))[2]))
 
         flipped_images_left_to_right.append(flip_image_left_right)
         flipped_images_up_down.append(flip_image_up_down)
         random_rotated.append(random_rotate)
-        #random_cropped_images.append(random_cropped_image)
-       # print(f" augmented_images.shape {len(flipped_images_left_to_right)}")
     elif "clutter" in image_type:
         pass
 
@@ -197,8 +207,8 @@ if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
     train_dataset = train_dataset.concatenate(random_rotated)
     print(f"dataset shape 5: {len(train_dataset)}")
 
-    random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
-    train_dataset = train_dataset.concatenate(random_cropped)
+    #random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
+    #train_dataset = train_dataset.concatenate(random_cropped)
     print(f"dataset shape 6: {len(train_dataset)}")
 else:
     pass
@@ -215,7 +225,7 @@ num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 2
+number_of_samples_show = 8
 for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
