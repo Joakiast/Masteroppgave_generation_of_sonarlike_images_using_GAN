@@ -172,7 +172,7 @@ random_rotated = []
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
     plt.figure()
-    plt.title("lastet bilde joakim")
+    plt.title("Croppet bilde")
     plt.imshow(original_image)
     plt.show()
 
