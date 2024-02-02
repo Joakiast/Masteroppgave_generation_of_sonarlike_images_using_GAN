@@ -109,15 +109,15 @@ def find_coordinates_for_cropping(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     print(f"label file {label_file}")
 
-    label_path = os.path.join("train1/Label", label_file)  # Konstruer full sti til etikettfilen
+    label_path = os.path.join("train1/Label", label_file)  # Konstruer full sti
     print(f"label_path {label_path}")
     x, y = None, None
     try:
-        # Les etikettfilen som en vanlig tekstfil
+
         with open(label_path, 'r') as file:
             label_content = file.read()
 
-        # Prosesser innholdet for å finne koordinater
+
         for line in label_content.split('\n'):
             parts = line.split()
             if parts and parts[0] == 'oil_drum':
