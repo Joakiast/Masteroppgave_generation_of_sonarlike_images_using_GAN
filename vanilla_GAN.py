@@ -22,8 +22,8 @@ start_time = time.time()
 
 
 
-train_set_path = pathlib.Path("train")
-train_set_label_path = pathlib.Path("train/Label")
+train_set_path = pathlib.Path("train1")
+train_set_label_path = pathlib.Path("train1/Label")
 
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
@@ -42,8 +42,8 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 200
-resize_y = 200
+resize_x = 300
+resize_y = 300
 crop_size = 100#resize_x / 2
 
 if image_type == '*oil_drum_RGB':
@@ -76,12 +76,10 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
     if start_y + crop_size > image_height:
         start_y = tf.maximum(0, image_height - crop_size)
 
-    # Beskjær bildet
-
-    cropped_image = tf.image.crop_to_bounding_box(image, start_y, start_x, crop_size, crop_size)
+    image = tf.image.crop_to_bounding_box(image, start_y, start_x, crop_size, crop_size)
 
     #print(f"crop by {crop_size}")
-    return cropped_image
+    return image
 #beginregion testplot
 # #========================test crop==============================================
 # image_path1= "/home/joakim/Documents/masteroppgave/Masteroppgave_generation_of_sonarlike_images_using_GAN/train/20090106-105237_06403_1088_2_26_032_24_48_00_oil_drum_RGB.jpg"
@@ -107,19 +105,19 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 
 #endregion
 def load_and_preprocess_image(path_image):
-
+    print("===================start load and preprocess image============================================")
     image = tf.io.read_file(path_image)
     image = tf.image.decode_jpeg(image, channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
     image = tf.cast(image, tf.float32)
     image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
-    print(f"image shape før resize: {image.shape}")
+    print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
 
 
     #lister ut posisjonen til x og y for oil drum som skal brukes til crop
     if "oil_drum" in image_type:
         try:
             label_path = path_image[6:-4]  # Anta at dette gir riktig filnavn
-            label_path = "train/Label/" + label_path + ".txt"
+            label_path = "train1/Label/" + label_path + ".txt"
             label_content = tf.io.read_file(label_path)
 
             # Dekode innholdet til en streng
@@ -134,21 +132,25 @@ def load_and_preprocess_image(path_image):
                 if parts and parts[0] == 'oil_drum':  # Sjekker om første del er 'oil_drum'
                     # Konverter de gjenværende delene til flyttall
                     x, y = map(float, parts[1:3])
-                    print(f"Label: {parts[0]}, x: {x}, y: {y}")
-                    print(f"image path {path_image}")
+                    #print(f"Label: {parts[0]}, x: {x}, y: {y}")
+                    #print(f"image path {path_image}")
                     #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
                     print(f"image shape før oppsampling før crop {image.shape}")
-                    image = tf.image.resize(image, [image.shape[0]*2,image.shape[1]*2], method=tf.image.ResizeMethod.LANCZOS5)
-                    print(f"image shape etter oppsampling før crop {image.shape}")
-                    image = crop_image_around_POI(image, 2*x, 2*y, crop_size)
-                    print(f"image.shape etter crop {image.shape}")
+                    #image = tf.image.resize(image, [image.shape[0]*2,image.shape[1]*2], method=tf.image.ResizeMethod.LANCZOS5)
+                    #print(f"image shape etter oppsampling før crop {image.shape}")
+                    image = crop_image_around_POI(image, x, y, crop_size)
+                    print(f"image shape etter crop {image.shape}, image: {path_image}")
+                    #print(f"image.shape etter crop {image.shape}")
                     break  # Avslutter loopen etter å ha funnet 'oil_drum'
                 else:
                     print("else: 1 =========================================================")
             if x is None or y is None:
                 print("Ingen 'oil_drum' etikett funnet i filen.")
             #image = tf.image.resize(image, [resize_y * 2, resize_x * 2], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
-
+            plt.figure()
+            plt.title(f"image {path_image}")
+            plt.imshow(image)
+            plt.show()
 
             #image = tf.image.resize(image, [resize_y, resize_x], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
@@ -159,6 +161,7 @@ def load_and_preprocess_image(path_image):
     else:
         pass
         #print(f"else?? path_image: {path_image} image_type: {image_type}")
+
     image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.NEAREST_NEIGHBOR) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
 
 
@@ -173,16 +176,22 @@ BUFFER_SIZE = len(image_paths)
 flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
 flipped_images_up_down = []
 random_rotated = []
-random_cropped_images = []
+#random_cropped_images = []
 
 for image_path in image_paths:
     original_image = load_and_preprocess_image(image_path)
-    if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
-        #print("Det er rock, gjør noe")
-        flip_image_left_right = tf.image.flip_left_right(load_and_preprocess_image(image_path))
-        flip_image_up_down = tf.image.flip_up_down(load_and_preprocess_image(image_path))
-        random_rotate = tf.image.rot90(load_and_preprocess_image(image_path), k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+    plt.figure()
+    plt.title("lastet bilde joakim")
+    plt.imshow(original_image)
+    plt.show()
 
+    if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
+        # Påfør transformasjoner direkte på `original_image`
+        flip_image_left_right = tf.image.flip_left_right(original_image)
+        flip_image_up_down = tf.image.flip_up_down(original_image)
+        random_rotate = tf.image.rot90(original_image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+
+        # Legg til de transformerte bildene i de respektive listene
         flipped_images_left_to_right.append(flip_image_left_right)
         flipped_images_up_down.append(flip_image_up_down)
         random_rotated.append(random_rotate)
