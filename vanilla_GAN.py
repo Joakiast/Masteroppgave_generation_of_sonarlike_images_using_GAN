@@ -14,12 +14,10 @@ import datetime
 import cv2
 from sklearn.cluster import KMeans
 
-log_dir = "logs/"  # Spesifiser ønsket katalog for loggfiler
+log_dir = "logs/"
 summary_writer = tf.summary.create_file_writer(log_dir)
 
 start_time = time.time()
-# Sti til mappen der bildene dine er plassert
-
 
 
 train_set_path = pathlib.Path("train1")
@@ -90,7 +88,7 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 #
 # # Plotte bildet
 # plt.imshow(image1)
-# plt.axis('off')  # Fjerne aksene for et renere bilde
+# plt.axis('off')
 # plt.title("Original Image før crop")
 # plt.show()
 #
@@ -98,25 +96,24 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 # cropped = crop_image_around_POI(image1,294,125,crop_size)
 # # Plotte bildet
 # plt.imshow(cropped)
-# plt.axis('off')  # Fjerne aksene for et renere bilde
+# plt.axis('off')
 # plt.title(" Image etter crop")
 # plt.show()
 # #========================test crop==============================================
 def find_coordinates_for_cropping(path_image):
-    # Anta at path_image er en streng og bruk den direkte
-    base_name = os.path.basename(path_image)  # Få filnavnet fra full sti
+
+    base_name = os.path.basename(path_image)
     print(f"base name {base_name}")
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     print(f"label file {label_file}")
 
-    label_path = os.path.join("train1/Label", label_file)  # Konstruer full sti
+    label_path = os.path.join("train1/Label", label_file)
     print(f"label_path {label_path}")
     x, y = None, None
     try:
 
         with open(label_path, 'r') as file:
             label_content = file.read()
-
 
         for line in label_content.split('\n'):
             parts = line.split()
@@ -127,7 +124,6 @@ def find_coordinates_for_cropping(path_image):
 
     except Exception as e:
         print(f"Error while processing label file {label_path}: {e}")
-
     return None, None
 
 
@@ -164,7 +160,7 @@ def load_and_preprocess_image(path_image):
 BUFFER_SIZE = len(image_paths)
 
 #print(BUFFER_SIZE)
-flipped_images_left_to_right = []  # Opprett en liste for de augmenterte bildene
+flipped_images_left_to_right = []
 flipped_images_up_down = []
 random_rotated = []
 #random_cropped_images = []
