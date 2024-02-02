@@ -150,15 +150,15 @@ def load_and_preprocess_image(path_image):
                                      channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-        if "oil_drum" in image_type:
-            x,y = find_coordinates_for_cropping(path_image)
-            image = crop_image_around_POI(image, x, y, crop_size)
-            image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
-            print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
-            image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-            return image
-        else:
-            return image
+        #if "oil_drum" in image_type:
+        x,y = find_coordinates_for_cropping(path_image)
+        image = crop_image_around_POI(image, x, y, crop_size)
+        image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
+        print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        return image
+        # else:
+        #     return image
 
 
 BUFFER_SIZE = len(image_paths)
