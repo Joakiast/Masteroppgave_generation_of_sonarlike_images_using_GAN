@@ -102,72 +102,63 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 # plt.title(" Image etter crop")
 # plt.show()
 # #========================test crop==============================================
+def find_coordinates_for_cropping(path_image):
+    # Anta at path_image er en streng og bruk den direkte
+    base_name = os.path.basename(path_image)  # Få filnavnet fra full sti
+    print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    print(f"label file {label_file}")
+
+    label_path = os.path.join("train1/Label", label_file)  # Konstruer full sti til etikettfilen
+    print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+        # Les etikettfilen som en vanlig tekstfil
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        # Prosesser innholdet for å finne koordinater
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] == 'oil_drum':
+                x, y = map(float, parts[1:3])
+                print(f"x: {x}, y: {y}")
+                return x, y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+
+    return None, None
+
 
 #endregion
 def load_and_preprocess_image(path_image):
-    print("===================start load and preprocess image============================================")
-    image = tf.io.read_file(path_image)
-    image = tf.image.decode_jpeg(image, channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
-    image = tf.cast(image, tf.float32)
-    image = (image - 127.5) /127.5  # Normaliser bildene til [-1, 1] området
-    print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
-
-
-    #lister ut posisjonen til x og y for oil drum som skal brukes til crop
-    if "oil_drum" in image_type:
-        try:
-            label_path = path_image[6:-4]  # Anta at dette gir riktig filnavn
-            label_path = "train1/Label/" + label_path + ".txt"
-            label_content = tf.io.read_file(label_path)
-
-            # Dekode innholdet til en streng
-            label_str = label_content.numpy().decode('utf-8')  # Anta at det er en tekstfil med utf-8-koding
-
-            # Initialiser x og y til None
-            x, y = None, None
-
-            # Sjekk hver linje for 'oil_drum'
-            for line in label_str.split('\n'):  # Deler opp teksten i linjer
-                parts = line.split()
-                if parts and parts[0] == 'oil_drum':  # Sjekker om første del er 'oil_drum'
-                    # Konverter de gjenværende delene til flyttall
-                    x, y = map(float, parts[1:3])
-                    #print(f"Label: {parts[0]}, x: {x}, y: {y}")
-                    #print(f"image path {path_image}")
-                    #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
-                    print(f"image shape før oppsampling før crop {image.shape}")
-                    #image = tf.image.resize(image, [image.shape[0]*2,image.shape[1]*2], method=tf.image.ResizeMethod.LANCZOS5)
-                    #print(f"image shape etter oppsampling før crop {image.shape}")
-                    image = crop_image_around_POI(image, x, y, crop_size)
-                    print(f"image shape etter crop {image.shape}, image: {path_image}")
-                    #print(f"image.shape etter crop {image.shape}")
-                    break  # Avslutter loopen etter å ha funnet 'oil_drum'
-                else:
-                    print("else: 1 =========================================================")
-            if x is None or y is None:
-                print("Ingen 'oil_drum' etikett funnet i filen.")
-            #image = tf.image.resize(image, [resize_y * 2, resize_x * 2], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
-            plt.figure()
-            plt.title(f"image {path_image}")
-            plt.imshow(image)
-            plt.show()
-
-            #image = tf.image.resize(image, [resize_y, resize_x], method=tf.image.ResizeMethod.AREA)  # ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
-
-
-        except Exception as e:
-            print("Error:", e)
-            #print(f"path image {path_image}")
+    if isinstance(path_image, tf.Tensor):
+        print("===================start load and preprocess image============================================")
+        image = tf.io.read_file(path_image)
+        image = tf.image.decode_jpeg(image,
+                                     channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        image = tf.cast(image, tf.float32)
+        image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        return image
     else:
-        pass
-        #print(f"else?? path_image: {path_image} image_type: {image_type}")
-
-    image = tf.image.resize(image, [resize_y, resize_x],method=tf.image.ResizeMethod.NEAREST_NEIGHBOR) #ønsket resize størrelse, jo mindre jo raskere og dårligere kvalitet
-
-
-    print(f"image.shape etter resize {image.shape}")
-
-    return image
+        print("===================start load and preprocess image============================================")
+        image = tf.io.read_file(path_image)
+        image = tf.image.decode_jpeg(image,
+                                     channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        image = tf.cast(image, tf.float32)
+        image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        if "oil_drum" in image_type:
+            x,y = find_coordinates_for_cropping(path_image)
+            image = crop_image_around_POI(image, x, y, crop_size)
+            image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
+            print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+            image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+            return image
+        else:
+            return image
 
 
 BUFFER_SIZE = len(image_paths)
@@ -185,18 +176,18 @@ for image_path in image_paths:
     plt.imshow(original_image)
     plt.show()
 
-    if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
-        # Påfør transformasjoner direkte på `original_image`
-        flip_image_left_right = tf.image.flip_left_right(original_image)
-        flip_image_up_down = tf.image.flip_up_down(original_image)
-        random_rotate = tf.image.rot90(original_image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
-
-        # Legg til de transformerte bildene i de respektive listene
-        flipped_images_left_to_right.append(flip_image_left_right)
-        flipped_images_up_down.append(flip_image_up_down)
-        random_rotated.append(random_rotate)
-    elif "clutter" in image_type:
-        pass
+    # if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
+    #     # Påfør transformasjoner direkte på `original_image`
+    #     flip_image_left_right = tf.image.flip_left_right(original_image)
+    #     flip_image_up_down = tf.image.flip_up_down(original_image)
+    #     random_rotate = tf.image.rot90(original_image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+    #
+    #     # Legg til de transformerte bildene i de respektive listene
+    #     flipped_images_left_to_right.append(flip_image_left_right)
+    #     flipped_images_up_down.append(flip_image_up_down)
+    #     random_rotated.append(random_rotate)
+    # elif "clutter" in image_type:
+    #     pass
 
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
@@ -204,25 +195,25 @@ print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image)
 print(f"dataset shape 2: {len(train_dataset)}")
 
-if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
-
-    flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
-    train_dataset = train_dataset.concatenate(flipped_images_left_right)
-
-    print(f"dataset shape 3: {len(train_dataset)}")
-    flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
-    train_dataset = train_dataset.concatenate(flipped_images_up_down)
-    print(f"dataset shape 4: {len(train_dataset)}")
-
-    random_rotated = tf.data.Dataset.from_tensor_slices(random_rotated)
-    train_dataset = train_dataset.concatenate(random_rotated)
-    print(f"dataset shape 5: {len(train_dataset)}")
-
-    #random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
-    #train_dataset = train_dataset.concatenate(random_cropped)
-    print(f"dataset shape 6: {len(train_dataset)}")
-else:
-    pass
+# if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
+#
+#     flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
+#     train_dataset = train_dataset.concatenate(flipped_images_left_right)
+#
+#     print(f"dataset shape 3: {len(train_dataset)}")
+#     flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
+#     train_dataset = train_dataset.concatenate(flipped_images_up_down)
+#     print(f"dataset shape 4: {len(train_dataset)}")
+#
+#     random_rotated = tf.data.Dataset.from_tensor_slices(random_rotated)
+#     train_dataset = train_dataset.concatenate(random_rotated)
+#     print(f"dataset shape 5: {len(train_dataset)}")
+#
+#     #random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
+#     #train_dataset = train_dataset.concatenate(random_cropped)
+#     print(f"dataset shape 6: {len(train_dataset)}")
+# else:
+#     pass
 
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
@@ -231,12 +222,11 @@ train_dataset = train_dataset.batch(BATCH_SIZE)
 print(f"dataset shape 8: {len(train_dataset)}")
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)  # For ytelsesoptimalisering
 print(f"dataset shape 9: {len(train_dataset)}")
-
 num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 8
+number_of_samples_show = 2
 for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
@@ -287,8 +277,6 @@ plt.show()
 # resize_y = 28
 # #====================================
 #=======================================med mnist dataset husk å endre size_of_last_filter_in_generator til 1 og conv3_filters til 1
-
-
 
 
 """
