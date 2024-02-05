@@ -313,6 +313,8 @@ def generate_images(model, test_input, tar):
     plt.axis('off')
   plt.show()
 
+
+
 for example_input, example_target in test_dataset.take(1):
   generate_images(generator, example_input, example_target)
 #endregion
@@ -366,6 +368,17 @@ def fit(train_ds, test_ds, steps):
 
       generate_images(generator, example_input, example_target)
       print(f"Step: {step//1000}k")
+
+      folder_name = 'generated_images'
+      if not os.path.exists(folder_name):
+          os.makedirs(folder_name)
+
+
+      plt.savefig(os.path.join(folder_name, ' image_at_step_{:04d}.png'.format(step//1000)))
+      print('fig closed')
+      plt.close("all")
+      # plt.show() plot for hver epoch
+      # plt.savefig(‘din_fig.png’)
 
     train_step(input_image, target, step)
 
