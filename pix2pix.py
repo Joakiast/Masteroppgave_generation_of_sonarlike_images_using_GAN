@@ -102,18 +102,17 @@ number_of_samples_to_show = 2  # Antall eksempler du ønsker å vise
 
 # Tar en batch fra datasettet
 for real_imgs, input_imgs in train_dataset.take(1):
-    plt.figure(figsize=(10, 5))  # Juster størrelsen etter behov
+    plt.figure(figsize=(10, 5))
     for i in range(number_of_samples_to_show):
         # Plotter input_img
-        ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)  # Beregner indeksen for subplot
+        ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)
         plt.title("Input Image")
-        plt.imshow(input_imgs[i].numpy() )#* 0.5 + 0.5)  # Antar normalisering til [-1, 1], juster dette etter dine bilder
-        plt.axis('on')
+        plt.imshow(input_imgs[i].numpy() )
 
         # Plotter real_img
-        ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)  # Neste subplot i samme rad
+        ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)
         plt.title("Real Image")
-        plt.imshow(real_imgs[i].numpy() )#* 0.5 + 0.5)  # Antar normalisering til [-1, 1], juster dette etter dine bilder
+        plt.imshow(real_imgs[i].numpy())
         plt.axis('on')
 
 plt.tight_layout()
