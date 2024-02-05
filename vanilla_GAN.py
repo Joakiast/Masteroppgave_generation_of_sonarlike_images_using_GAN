@@ -81,7 +81,7 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
     return image
 
 def find_coordinates_for_cropping_tensor(path_image):
-    #base_name = tf.cast(path_image, str)
+    #base_name = str[path_image]#tf.cast(path_image, str)
     base_name = os.path.basename(path_image.numpy())
     print(f"base name {base_name}")
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
@@ -164,6 +164,7 @@ def load_and_preprocess_image(path_image):
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         #path_image = path_image.numpy().decode('utf-8')
+        print(f"path image i tensor: {path_image}")
         x,y = find_coordinates_for_cropping_tensor(path_image)
         #image = crop_image_around_POI(image, x, y, crop_size)
         print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
