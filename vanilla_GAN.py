@@ -14,6 +14,7 @@ import datetime
 import cv2
 from sklearn.cluster import KMeans
 
+
 log_dir = "logs/"
 summary_writer = tf.summary.create_file_writer(log_dir)
 
@@ -78,6 +79,32 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 
     #print(f"crop by {crop_size}")
     return image
+
+def find_coordinates_for_cropping_tensor(path_image):
+    #base_name = tf.cast(path_image, str)
+    base_name = os.path.basename(path_image.numpy())
+    print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    print(f"label file {label_file}")
+
+    label_path = os.path.join("train1/Label", label_file)
+    print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] == 'oil_drum':
+                x, y = map(float, parts[1:3])
+                print(f"x: {x}, y: {y}")
+                return x, y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
 #beginregion testplot
 # #========================test crop==============================================
 # image_path1= "/home/joakim/Documents/masteroppgave/Masteroppgave_generation_of_sonarlike_images_using_GAN/train/20090106-105237_06403_1088_2_26_032_24_48_00_oil_drum_RGB.jpg"
@@ -102,7 +129,7 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 # #========================test crop==============================================
 def find_coordinates_for_cropping(path_image):
 
-    base_name = os.path.basename(path_image)
+    base_name = os.path.basename(path_image)#.numpy())
     print(f"base name {base_name}")
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     print(f"label file {label_file}")
@@ -136,6 +163,9 @@ def load_and_preprocess_image(path_image):
                                      channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        #path_image = path_image.numpy().decode('utf-8')
+        x,y = find_coordinates_for_cropping_tensor(path_image)
+        #image = crop_image_around_POI(image, x, y, crop_size)
         print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
@@ -212,7 +242,7 @@ print(f"dataset shape 2: {len(train_dataset)}")
 #     pass
 
 
-train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig
+train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig, med størrelesn lik antal bilder
 print(f"dataset shape 7: {len(train_dataset)}")
 train_dataset = train_dataset.batch(BATCH_SIZE)
 print(f"dataset shape 8: {len(train_dataset)}")
@@ -227,6 +257,7 @@ for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
         plt.subplot(1, number_of_samples_show, i + 1)
+        plt.title("plot of images in dataset")
         plt.imshow(images[i])
         plt.axis('on')
         #plt.title(images[i])
