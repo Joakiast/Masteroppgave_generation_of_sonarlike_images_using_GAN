@@ -106,13 +106,13 @@ for input_imgs, real_imgs in train_dataset.take(1):
         # Plotter input_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)  # Beregner indeksen for subplot
         plt.title("Input Image")
-        plt.imshow(input_imgs[i].numpy() * 0.5 + 0.5)  # Antar normalisering til [-1, 1], juster dette etter dine bilder
+        plt.imshow(input_imgs[i].numpy() )#* 0.5 + 0.5)  # Antar normalisering til [-1, 1], juster dette etter dine bilder
         plt.axis('on')
 
         # Plotter real_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)  # Neste subplot i samme rad
         plt.title("Real Image")
-        plt.imshow(real_imgs[i].numpy() * 0.5 + 0.5)  # Antar normalisering til [-1, 1], juster dette etter dine bilder
+        plt.imshow(real_imgs[i].numpy() )#* 0.5 + 0.5)  # Antar normalisering til [-1, 1], juster dette etter dine bilder
         plt.axis('on')
 
 plt.tight_layout()
