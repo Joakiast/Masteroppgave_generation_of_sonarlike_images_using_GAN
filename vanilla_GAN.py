@@ -257,7 +257,7 @@ num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 2
+number_of_samples_show = 3
 for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
