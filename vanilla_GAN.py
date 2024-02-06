@@ -27,7 +27,7 @@ train_set_label_path = pathlib.Path("train/Label")
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 10
+BATCH_SIZE = 3
 #image_type = '*rock_RGB'
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
@@ -257,7 +257,7 @@ num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 10
+number_of_samples_show = 3
 for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
