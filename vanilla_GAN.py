@@ -41,8 +41,8 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 200
-resize_y = 200
+resize_x = 64
+resize_y = 64
 crop_size = 150#resize_x / 2
 noise_vector_for_gen = 512 #husk å endre inni generator
 
@@ -157,7 +157,7 @@ def load_and_preprocess_image(path_image):
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         assert image.shape == (400, 600, 3)
-        image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
+        #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
 
         #if "oil_drum" in image_type:
         x,y = find_coordinates_for_cropping(path_image)
@@ -303,14 +303,14 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     #noise parameters
     tensor_size_x = tensor_size_x
     tensor_size_y = tensor_size_y
-    depth_feature_map = 256
+    depth_feature_map = 256*2
     noise_vector = 512
 
     #convolution parameter
-    conv1_filters = 128 # A filter is a matrice of numbers
+    conv1_filters = 128*2 # A filter is a matrice of numbers
     conv1_kernel_size = (5,5) # the kernel size is the size of that filter.
 
-    conv2_filters = 64
+    conv2_filters = 64*2
     conv2_kernel_size = (5, 5)
 
     conv3_filters = color_channel
