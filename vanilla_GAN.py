@@ -41,9 +41,10 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 348
-resize_y = 348
+resize_x = 200
+resize_y = 200
 crop_size = 150#resize_x / 2
+noise_vector_for_gen = 512 #husk å endre inni generator
 
 if image_type == '*oil_drum_RGB':
     print(f"crop size: {crop_size}")
@@ -303,7 +304,7 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     tensor_size_x = tensor_size_x
     tensor_size_y = tensor_size_y
     depth_feature_map = 256
-    noise_vector = 200
+    noise_vector = 512
 
     #convolution parameter
     conv1_filters = 128 # A filter is a matrice of numbers
@@ -371,12 +372,14 @@ def make_discriminator_model(input_x,input_y):
 
 generator = make_generator_model(resize_x//4,resize_y//4) #deler på 4 fordi vi har strides 2 to steder
 
-noise = tf.random.normal([1, 200]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
+noise = tf.random.normal([BATCH_SIZE, noise_vector_for_gen]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
 generated_image = generator(noise, training=False)
 print(f"generated image generator: {generated_image.shape}")
-plt.imshow(generated_image[0, :, :, 0])#,cmap="gray")# cmap='gray'
+generated_image = (generated_image - np.min(generated_image)) / (np.max(generated_image) - np.min(generated_image))
+plt.imshow(generated_image[0, :, :, :])#,cmap="gray")# cmap='gray'
 plt.title("Generated image")
 plt.show()
+
 
 noise_output_shape = generated_image.shape
 print(f"=====================================noise output shape: {noise_output_shape}========================================")
@@ -419,7 +422,7 @@ discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 # You will reuse this seed overtime (so it's easier)
 # to visualize progress in the animated GIF)
-noise_dim = 200
+noise_dim = noise_vector_for_gen#200
 num_examples_to_generate = 16
 seed = tf.random.normal([num_examples_to_generate, noise_dim])
 
