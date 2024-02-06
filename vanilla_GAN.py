@@ -21,13 +21,13 @@ summary_writer = tf.summary.create_file_writer(log_dir)
 start_time = time.time()
 
 
-train_set_path = pathlib.Path("train1")
-train_set_label_path = pathlib.Path("train1/Label")
+train_set_path = pathlib.Path("train")
+train_set_label_path = pathlib.Path("train/Label")
 
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 8
+BATCH_SIZE = 3
 #image_type = '*rock_RGB'
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
@@ -84,12 +84,12 @@ def find_coordinates_for_cropping_tensor(path_image):
     #base_name = str[path_image]#tf.cast(path_image, str)
     base_name_b = os.path.basename(path_image.numpy())
     base_name = base_name_b.decode("utf-8")
-    print(f"base name {base_name}")
+    #print(f"base name {base_name}")
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
-    print(f"label file {label_file}")
+    #print(f"label file {label_file}")
 
-    label_path = os.path.join("train1/Label", label_file)
-    print(f"label_path {label_path}")
+    label_path = os.path.join("train/Label", label_file)
+    #print(f"label_path {label_path}")
     x, y = None, None
     try:
 
@@ -100,7 +100,7 @@ def find_coordinates_for_cropping_tensor(path_image):
             parts = line.split()
             if parts and parts[0] == 'oil_drum':
                 x, y = map(float, parts[1:3])
-                print(f"x: {x}, y: {y}")
+                #print(f"x: {x}, y: {y}")
                 return x, y
 
     except Exception as e:
@@ -131,12 +131,12 @@ def find_coordinates_for_cropping_tensor(path_image):
 def find_coordinates_for_cropping(path_image):
 
     base_name = os.path.basename(path_image)#.numpy())
-    print(f"base name {base_name}")
+    #print(f"base name {base_name}")
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
-    print(f"label file {label_file}")
+    #print(f"label file {label_file}")
 
-    label_path = os.path.join("train1/Label", label_file)
-    print(f"label_path {label_path}")
+    label_path = os.path.join("train/Label", label_file)
+    #print(f"label_path {label_path}")
     x, y = None, None
     try:
 
@@ -147,7 +147,7 @@ def find_coordinates_for_cropping(path_image):
             parts = line.split()
             if parts and parts[0] == 'oil_drum':
                 x, y = map(float, parts[1:3])
-                print(f"x: {x}, y: {y}")
+                #print(f"x: {x}, y: {y}")
                 return x, y
 
     except Exception as e:
@@ -165,11 +165,11 @@ def load_and_preprocess_image(path_image):
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         #path_image = path_image.numpy().decode('utf-8')
-        print(f"path image i tensor: {path_image}")
+        #print(f"path image i tensor: {path_image}")
         x,y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
         image.set_shape([400, 600, 3])
         image = crop_image_around_POI(image, x, y, crop_size)
-        print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
     else:
@@ -179,11 +179,13 @@ def load_and_preprocess_image(path_image):
                                      channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
+
         #if "oil_drum" in image_type:
         x,y = find_coordinates_for_cropping(path_image)
         image = crop_image_around_POI(image, x, y, crop_size)
         #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
-        print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
         # else:
@@ -198,12 +200,12 @@ flipped_images_up_down = []
 random_rotated = []
 #random_cropped_images = []
 
-for image_path in image_paths:
-    original_image = load_and_preprocess_image(image_path)
-    plt.figure()
-    plt.title("Croppet bilde")
-    plt.imshow(original_image)
-    plt.show()
+# for image_path in image_paths:
+#     original_image = load_and_preprocess_image(image_path)
+#     plt.figure()
+#     plt.title("Croppet bilde")
+#     plt.imshow(original_image)
+#     plt.show()
 
     # if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
     #     # Påfør transformasjoner direkte på `original_image`
