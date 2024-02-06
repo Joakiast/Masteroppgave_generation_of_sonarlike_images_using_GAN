@@ -41,9 +41,9 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 300
-resize_y = 300
-crop_size = 100#resize_x / 2
+resize_x = 348
+resize_y = 348
+crop_size = 150#resize_x / 2
 
 if image_type == '*oil_drum_RGB':
     print(f"crop size: {crop_size}")
@@ -106,28 +106,7 @@ def find_coordinates_for_cropping_tensor(path_image):
     except Exception as e:
         print(f"Error while processing label file {label_path}: {e}")
     return None, None
-#beginregion testplot
-# #========================test crop==============================================
-# image_path1= "/home/joakim/Documents/masteroppgave/Masteroppgave_generation_of_sonarlike_images_using_GAN/train/20090106-105237_06403_1088_2_26_032_24_48_00_oil_drum_RGB.jpg"
-#
-# # Lese bildet
-# image1 = tf.io.read_file(image_path1)
-# image1 = tf.image.decode_jpeg(image1, channels=3)
-#
-# # Plotte bildet
-# plt.imshow(image1)
-# plt.axis('off')
-# plt.title("Original Image før crop")
-# plt.show()
-#
-#
-# cropped = crop_image_around_POI(image1,294,125,crop_size)
-# # Plotte bildet
-# plt.imshow(cropped)
-# plt.axis('off')
-# plt.title(" Image etter crop")
-# plt.show()
-# #========================test crop==============================================
+
 def find_coordinates_for_cropping(path_image):
 
     base_name = os.path.basename(path_image)#.numpy())
@@ -158,27 +137,25 @@ def find_coordinates_for_cropping(path_image):
 #endregion
 def load_and_preprocess_image(path_image):
     if isinstance(path_image, tf.Tensor):
-        print("===================start load and preprocess image============================================")
+        #print("===================start load and preprocess image============================================")
         image = tf.io.read_file(path_image)
         image = tf.image.decode_jpeg(image,
                                      channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-        #path_image = path_image.numpy().decode('utf-8')
-        #print(f"path image i tensor: {path_image}")
         x,y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
         image.set_shape([400, 600, 3])
         image = crop_image_around_POI(image, x, y, crop_size)
-        #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
     else:
-        print("===================start load and preprocess image============================================")
+        #print("===================start load and preprocess image============================================")
         image = tf.io.read_file(path_image)
         image = tf.image.decode_jpeg(image,
                                      channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        assert image.shape == (400, 600, 3)
         image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
 
         #if "oil_drum" in image_type:
