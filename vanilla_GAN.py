@@ -82,7 +82,8 @@ def crop_image_around_POI(image, point_x, point_y, crop_size):
 
 def find_coordinates_for_cropping_tensor(path_image):
     #base_name = str[path_image]#tf.cast(path_image, str)
-    base_name = os.path.basename(path_image.numpy())
+    base_name_b = os.path.basename(path_image.numpy())
+    base_name = base_name_b.decode("utf-8")
     print(f"base name {base_name}")
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     print(f"label file {label_file}")
@@ -165,8 +166,9 @@ def load_and_preprocess_image(path_image):
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         #path_image = path_image.numpy().decode('utf-8')
         print(f"path image i tensor: {path_image}")
-        x,y = find_coordinates_for_cropping_tensor(path_image)
-        #image = crop_image_around_POI(image, x, y, crop_size)
+        x,y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
+        image.set_shape([400, 600, 3])
+        image = crop_image_around_POI(image, x, y, crop_size)
         print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
@@ -180,7 +182,7 @@ def load_and_preprocess_image(path_image):
         #if "oil_drum" in image_type:
         x,y = find_coordinates_for_cropping(path_image)
         image = crop_image_around_POI(image, x, y, crop_size)
-        image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
+        #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
         print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
@@ -392,7 +394,7 @@ generator = make_generator_model(resize_x//4,resize_y//4) #deler på 4 fordi vi 
 
 noise = tf.random.normal([1, 200]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
 generated_image = generator(noise, training=False)
-
+print(f"generated image generator: {generated_image.shape}")
 plt.imshow(generated_image[0, :, :, 0])#,cmap="gray")# cmap='gray'
 plt.title("Generated image")
 plt.show()
