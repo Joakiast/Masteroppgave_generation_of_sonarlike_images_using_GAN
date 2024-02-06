@@ -11,8 +11,8 @@ import time
 import pathlib
 from IPython import display
 import datetime
-import cv2
-from sklearn.cluster import KMeans
+#import cv2
+#from sklearn.cluster import KMeans
 
 
 log_dir = "logs/"
@@ -27,7 +27,7 @@ train_set_label_path = pathlib.Path("train/Label")
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 3
+BATCH_SIZE = 10
 #image_type = '*rock_RGB'
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
@@ -200,25 +200,25 @@ flipped_images_up_down = []
 random_rotated = []
 #random_cropped_images = []
 
-# for image_path in image_paths:
-#     original_image = load_and_preprocess_image(image_path)
+for image_path in image_paths:
+    original_image = load_and_preprocess_image(image_path)
 #     plt.figure()
 #     plt.title("Croppet bilde")
 #     plt.imshow(original_image)
 #     plt.show()
 
-    # if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
-    #     # Påfør transformasjoner direkte på `original_image`
-    #     flip_image_left_right = tf.image.flip_left_right(original_image)
-    #     flip_image_up_down = tf.image.flip_up_down(original_image)
-    #     random_rotate = tf.image.rot90(original_image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
-    #
-    #     # Legg til de transformerte bildene i de respektive listene
-    #     flipped_images_left_to_right.append(flip_image_left_right)
-    #     flipped_images_up_down.append(flip_image_up_down)
-    #     random_rotated.append(random_rotate)
-    # elif "clutter" in image_type:
-    #     pass
+    if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
+        # Påfør transformasjoner direkte på `original_image`
+        flip_image_left_right = tf.image.flip_left_right(original_image)
+        flip_image_up_down = tf.image.flip_up_down(original_image)
+        random_rotate = tf.image.rot90(original_image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+
+        # Legg til de transformerte bildene i de respektive listene
+        flipped_images_left_to_right.append(flip_image_left_right)
+        flipped_images_up_down.append(flip_image_up_down)
+        random_rotated.append(random_rotate)
+    elif "clutter" in image_type:
+        pass
 
 # Opprett en tf.data.Dataset
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
@@ -226,25 +226,25 @@ print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image)
 print(f"dataset shape 2: {len(train_dataset)}")
 
-# if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
-#
-#     flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
-#     train_dataset = train_dataset.concatenate(flipped_images_left_right)
-#
-#     print(f"dataset shape 3: {len(train_dataset)}")
-#     flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
-#     train_dataset = train_dataset.concatenate(flipped_images_up_down)
-#     print(f"dataset shape 4: {len(train_dataset)}")
-#
-#     random_rotated = tf.data.Dataset.from_tensor_slices(random_rotated)
-#     train_dataset = train_dataset.concatenate(random_rotated)
-#     print(f"dataset shape 5: {len(train_dataset)}")
-#
-#     #random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
-#     #train_dataset = train_dataset.concatenate(random_cropped)
-#     print(f"dataset shape 6: {len(train_dataset)}")
-# else:
-#     pass
+if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
+
+    flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
+    train_dataset = train_dataset.concatenate(flipped_images_left_right)
+
+    print(f"dataset shape 3: {len(train_dataset)}")
+    flipped_images_up_down = tf.data.Dataset.from_tensor_slices(flipped_images_up_down)
+    train_dataset = train_dataset.concatenate(flipped_images_up_down)
+    print(f"dataset shape 4: {len(train_dataset)}")
+
+    random_rotated = tf.data.Dataset.from_tensor_slices(random_rotated)
+    train_dataset = train_dataset.concatenate(random_rotated)
+    print(f"dataset shape 5: {len(train_dataset)}")
+
+    #random_cropped = tf.data.Dataset.from_tensor_slices(random_cropped_images)
+    #train_dataset = train_dataset.concatenate(random_cropped)
+    print(f"dataset shape 6: {len(train_dataset)}")
+else:
+    pass
 
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)  # Bland datasettet, hvis ønskelig, med størrelesn lik antal bilder
@@ -257,7 +257,7 @@ num_batches = len(list(train_dataset))
 
 print("Antall batcher i datasettet:", num_batches)
 # Du kan nå iterere over train_dataset i din treningsloop
-number_of_samples_show = 3
+number_of_samples_show = 10
 for images in train_dataset.take(1):  # Ta bare en batch for visning
     plt.figure(figsize=(10, 10))
     for i in range(number_of_samples_show):
