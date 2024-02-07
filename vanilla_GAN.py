@@ -27,10 +27,10 @@ train_set_label_path = pathlib.Path("train/Label")
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 3
+BATCH_SIZE = 50
 #image_type = '*rock_RGB'
-image_type = '*oil_drum_RGB'
-#image_type = '*clutter_RGB'
+#image_type = '*oil_drum_RGB'
+image_type = '*clutter_RGB'
 EPOCHS = 800
 
 print(f"image_type[1:]: {image_type[1:-4]}")
@@ -99,7 +99,7 @@ def find_coordinates_for_cropping_tensor(path_image):
 
         for line in label_content.split('\n'):
             parts = line.split()
-            if parts and parts[0] == 'oil_drum':
+            if parts and parts[0] != 'clutter':
                 x, y = map(float, parts[1:3])
                 #print(f"x: {x}, y: {y}")
                 return x, y
@@ -125,10 +125,13 @@ def find_coordinates_for_cropping(path_image):
 
         for line in label_content.split('\n'):
             parts = line.split()
-            if parts and parts[0] == 'oil_drum':
+            if parts and parts[0] != 'clutter':
                 x, y = map(float, parts[1:3])
                 #print(f"x: {x}, y: {y}")
                 return x, y
+            # elif parts and parts[0] == 'rock':
+            #     x, y = map(float, parts[1:3])
+            #     return x,y
 
     except Exception as e:
         print(f"Error while processing label file {label_path}: {e}")
@@ -142,11 +145,13 @@ def load_and_preprocess_image(path_image):
         image = tf.io.read_file(path_image)
         image = tf.image.decode_jpeg(image,
                                      channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-        x,y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
-        image.set_shape([400, 600, 3])
-        image = crop_image_around_POI(image, x, y, crop_size)
+        if not "clutter" in image_type:
+            x,y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
+            image.set_shape([400, 600, 3])
+            image = crop_image_around_POI(image, x, y, crop_size)
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
         return image
     else:
@@ -159,9 +164,9 @@ def load_and_preprocess_image(path_image):
         assert image.shape == (400, 600, 3)
         #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
 
-        #if "oil_drum" in image_type:
-        x,y = find_coordinates_for_cropping(path_image)
-        image = crop_image_around_POI(image, x, y, crop_size)
+        if not "clutter" in image_type:
+            x,y = find_coordinates_for_cropping(path_image)
+            image = crop_image_around_POI(image, x, y, crop_size)
         #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
         #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
