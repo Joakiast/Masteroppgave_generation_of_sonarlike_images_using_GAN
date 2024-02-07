@@ -10,7 +10,7 @@ pip install --user matplotlib==3.7.3
 
 ubuntu: 
 
-pww    path til current dir
+pwd    path til current dir
 
 ls |grep oil   lister ut alle objeter som heter noe med oil
 
