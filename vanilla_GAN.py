@@ -33,7 +33,7 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 EPOCHS = 800
 
-print(f"image_type[1:]: {image_type[1:-4]}")
+print(f"image_type[1:]: {image_type[1:-4]}" )
 
 
 # Opprett en liste over bildestier som strenger
