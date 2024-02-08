@@ -29,9 +29,10 @@ Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
 BATCH_SIZE = 3
 #image_type = '*rock_RGB'
-image_type = '*oil_drum_RGB'
+#image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
-EPOCHS = 800
+image_type = "*man_made_object_RGB"
+EPOCHS = 400
 
 print(f"image_type[1:]: {image_type[1:-4]}" )
 
@@ -41,13 +42,13 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 148
-resize_y = 148
+resize_x = 64
+resize_y = 64
 crop_size = 150#resize_x / 2
 noise_vector_for_gen = 512 #husk å endre inni generator
 
-if image_type == '*oil_drum_RGB':
-    print(f"crop size: {crop_size}")
+if image_type != 'clutter':
+    print(f"image_type: {image_type} crop size: {crop_size}")
 
 """
 increase the dataset used for "rock and oil"
@@ -190,7 +191,7 @@ for image_path in image_paths:
 #     plt.imshow(original_image)
 #     plt.show()
 
-    if "rock_RGB" in image_type or "oil_drum_RGB" in image_type:
+    if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
         # Påfør transformasjoner direkte på `original_image`
         flip_image_left_right = tf.image.flip_left_right(original_image)
         flip_image_up_down = tf.image.flip_up_down(original_image)
@@ -209,7 +210,7 @@ print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image)
 print(f"dataset shape 2: {len(train_dataset)}")
 
-if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type:
+if "rock_RGB" in image_type or "*oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
 
     flipped_images_left_right = tf.data.Dataset.from_tensor_slices(flipped_images_left_to_right)
     train_dataset = train_dataset.concatenate(flipped_images_left_right)
