@@ -27,7 +27,6 @@ train_set_label_path = pathlib.Path("train/Label")
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-#for å bytte mellom dataset
 BATCH_SIZE = 3
 #image_type = '*rock_RGB'
 image_type = '*oil_drum_RGB'
