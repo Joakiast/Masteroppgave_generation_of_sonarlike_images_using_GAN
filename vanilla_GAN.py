@@ -27,10 +27,10 @@ train_set_label_path = pathlib.Path("train/Label")
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
-BATCH_SIZE = 50
+BATCH_SIZE = 3
 #image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
-image_type = '*clutter_RGB'
+image_type = '*oil_drum_RGB'
+#image_type = '*clutter_RGB'
 EPOCHS = 800
 
 print(f"image_type[1:]: {image_type[1:-4]}")
@@ -41,8 +41,8 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 64
-resize_y = 64
+resize_x = 148
+resize_y = 148
 crop_size = 150#resize_x / 2
 noise_vector_for_gen = 512 #husk å endre inni generator
 
