@@ -29,9 +29,9 @@ Dersom jeg ønsker rock, så kommenter ut de 2 andre
 """
 BATCH_SIZE = 3
 #image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
+image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
-image_type = "*man_made_object_RGB"
+#image_type = "*man_made_object_RGB"
 EPOCHS = 400
 
 print(f"image_type[1:]: {image_type[1:-4]}" )
@@ -319,8 +319,11 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     conv2_filters = 64*2
     conv2_kernel_size = (5, 5)
 
-    conv3_filters = color_channel
+    conv3_filters = 32 *2
     conv3_kernel_size = (5,5)
+
+    last_layer_filter = color_channel
+    last_layer_kernel_size = (5,5)
 
     model = tf.keras.Sequential()
     model.add(layers.Dense(tensor_size_x * tensor_size_y * depth_feature_map, use_bias=True, input_shape=(noise_vector,)))
@@ -340,8 +343,16 @@ def make_generator_model(tensor_size_x, tensor_size_y):
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2DTranspose(conv3_filters, conv3_kernel_size, strides=(2, 2), padding='same', use_bias=True, activation='tanh')) # filter = 1 we want black white, rgb conv3 = 3
-    assert model.output_shape == (None, tensor_size_x * 2 * 2, tensor_size_y * 2 * 2, conv3_filters) #a test that our image has the expected shape
+    #======================ekstra layer for increased image size======================================
+    model.add(layers.Conv2DTranspose(conv3_filters, conv3_kernel_size, strides=(2, 2), padding='same', use_bias=True)) #filter reduce stride = 2
+    assert model.output_shape == (None, tensor_size_x * 2*2, tensor_size_y * 2*2, conv1_filters / 4) #strides increase the size (14,14,64)
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+    #======================ekstra layer for increased image size======================================
+    #husk å endre på size til input når det legges til et nytt lag.
+
+    model.add(layers.Conv2DTranspose(last_layer_filter, last_layer_kernel_size, strides=(2, 2), padding='same', use_bias=True, activation='tanh')) # filter = 1 we want black white, rgb conv3 = 3
+    assert model.output_shape == (None, tensor_size_x * 2 * 2 *2, tensor_size_y * 2 * 2 * 2, last_layer_filter) #a test that our image has the expected shape
 
     return model
 def make_discriminator_model(input_x,input_y):
@@ -376,7 +387,7 @@ def make_discriminator_model(input_x,input_y):
 
 #region test generator and discriminator
 
-generator = make_generator_model(resize_x//4,resize_y//4) #deler på 4 fordi vi har strides 2 to steder
+generator = make_generator_model(resize_x//8,resize_y//8) #deler på 4 fordi vi har strides 2 to steder
 
 noise = tf.random.normal([BATCH_SIZE, noise_vector_for_gen]) # kan økes fra 100 for å gi mer kompleksitet i trening, men vil kreve mer minne og beregning
 generated_image = generator(noise, training=False)
