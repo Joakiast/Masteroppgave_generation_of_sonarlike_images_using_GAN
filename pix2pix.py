@@ -18,16 +18,6 @@ from sklearn.cluster import KMeans
 
 #region load the dataset
 
-# dataset_name = "facades"
-# _URL = f"http://efrosgans.eecs.berkeley.edu/pix2pix/datasets/{dataset_name}.tar.gz"
-#
-# path_to_zip = tf.keras.utils.get_file(
-#     fname = f"{dataset_name}.tar.gz",
-#     origin=_URL,
-#     extract=True
-# )
-# # path_to_zip = pathlib.Path(path_to_zip)
-
 resize_x = 256
 resize_y = 256
 
@@ -41,10 +31,6 @@ def remove_part_of_image(image,radius):
     height, width, channels = image.shape
     center_y, center_x = height // 2, width // 2
 
-    # Definer sirkelens radius
-    #radius = 50  # Endre denne verdien for å endre sirkelens størrelse
-
-    # Opprett en maske for sirkelen
     y, x = np.ogrid[:height, :width]
     mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
     mask = np.repeat(mask[:, :, np.newaxis], channels, axis=2)
@@ -58,6 +44,7 @@ def remove_part_of_image(image,radius):
 #image_type = '*rock_RGB'
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
+#image_type = "*man_made_object_RGB"
 
 train_set_path = pathlib.Path("train1")  # path_to_zip.parent/dataset_name
 test_set_path = pathlib.Path("test1")
@@ -99,6 +86,7 @@ for image_path_test in image_paths_test:
 
 #======================
 # Opprett et tf.data.Dataset fra bildestier
+# the dataset consist of both inp and re images.
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train)
 train_dataset = train_dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)
@@ -133,7 +121,7 @@ plt.tight_layout()
 plt.show()
 
 #======================
-
+#endregion
 
 #region Createing the generator
 
@@ -231,6 +219,7 @@ tf.keras.utils.plot_model(generator, show_shapes=True, dpi=64)
 
 gen_output = generator(inp[tf.newaxis, ...], training=False)
 plt.imshow(gen_output[0, ...])
+plt.title("testing the generated output ")
 plt.show()
 
 LAMBDA = 100
@@ -391,34 +380,5 @@ def fit(train_ds, test_ds, steps):
     # if (step + 1) % 5000 == 0:
     #   checkpoint.save(file_prefix=checkpoint_prefix)
 
-def fit(train_ds, test_ds, steps):
-  example_input, example_target = next(iter(test_ds.take(1)))
-  start = time.time()
-
-  for step, (input_image, target) in train_ds.repeat().take(steps).enumerate():
-    if (step) % 1000 == 0:
-      display.clear_output(wait=True)
-
-      if step != 0:
-        print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
-
-      start = time.time()
-
-      generate_images(generator, example_input, example_target)
-      print(f"Step: {step//1000}k")
-
-    train_step(input_image, target, step)
-
-    # Training step
-    if (step+1) % 10 == 0:
-      print('.', end='', flush=True)
-
-
-    # # Save (checkpoint) the model every 5k steps
-    # if (step + 1) % 5000 == 0:
-    #   checkpoint.save(file_prefix=checkpoint_prefix)
-
-#%load_ext tensorboard
-#%tensorboard --logdir {log_dir}
 
 fit(train_dataset, test_dataset, steps=40000)
