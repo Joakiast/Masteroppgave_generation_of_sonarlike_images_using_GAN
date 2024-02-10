@@ -17,7 +17,7 @@ import cv2
 from sklearn.cluster import KMeans
 
 #region load the dataset
-
+#test comment
 resize_x = 256
 resize_y = 256
 
