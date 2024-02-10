@@ -31,3 +31,5 @@ tmux attach -t [navn på session]
 
 kopiere filer fra ml nodes til min pc: scp -J joakiast@login.uio.no joakiast@ml9.hpc.uio.no:archive.tar.gz  .
 
+tar file: tar -czf archive_name.tar.gz generated_images/
+
