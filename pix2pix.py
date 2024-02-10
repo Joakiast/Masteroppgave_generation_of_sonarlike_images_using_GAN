@@ -287,7 +287,7 @@ discriminator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 #
 # #region generate images
 
-def generate_images(model, test_input, tar):
+def generate_images(model, test_input, tar,step):
   prediction = model(test_input, training=True)
   plt.figure(figsize=(15, 15))
 
@@ -300,12 +300,22 @@ def generate_images(model, test_input, tar):
     # Getting the pixel values in the [0, 1] range to plot.
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
+
+  folder_name = 'generated_images_pix2pix'
+  if not os.path.exists(folder_name):
+      os.makedirs(folder_name)
+
+  # Save the figure using the step number to keep track of progress
+  plt.savefig(f'{folder_name}/image_at_step_{step//1000:04d}.png')
+  #plt.close()  # Close the figure to free up memory
+  #print('Saved generated images at step '+ str(step))
   plt.show()
 
 
 
+
 for example_input, example_target in test_dataset.take(1):
-  generate_images(generator, example_input, example_target)
+  generate_images(generator, example_input, example_target,step=0)
 #endregion
 
 
@@ -355,7 +365,7 @@ def fit(train_ds, test_ds, steps):
 
       start = time.time()
 
-      generate_images(generator, example_input, example_target)
+      generate_images(generator, example_input, example_target,step)
       print(f"Step: {step//1000}k")
 
       folder_name = 'generated_images'
