@@ -13,8 +13,8 @@ import time
 import pathlib
 from IPython import display
 import datetime
-import cv2
-from sklearn.cluster import KMeans
+#import cv2
+#from sklearn.cluster import KMeans
 
 #region load the dataset
 #test comment
