@@ -46,8 +46,8 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-train_set_path = pathlib.Path("train1")  # path_to_zip.parent/dataset_name
-test_set_path = pathlib.Path("test1")
+train_set_path = pathlib.Path("train")  # path_to_zip.parent/dataset_name
+test_set_path = pathlib.Path("test")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
@@ -69,17 +69,17 @@ def load_and_preprocess_image(path_image):
     print(f"alle bilder kommer hit: image shape før resize: {real_img.shape} bilde: {path_image}")
     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
     input_img = remove_part_of_image(real_img,radius=70)
-    return real_img,input_img
+    return input_img, real_img
 
 
 
 for image_path in image_paths_train:
-    re,inp = load_and_preprocess_image(image_path)
-    plt.figure()
-    plt.title("bilde fra ds")
-    plt.title("re")
-    plt.imshow(re)
-    plt.show()
+    inp,re = load_and_preprocess_image(image_path)
+    # plt.figure()
+    # plt.title("bilde fra ds")
+    # plt.title("re")
+    # plt.imshow(re)
+    # plt.show()
 
 for image_path_test in image_paths_test:
     re_test,inp_test = load_and_preprocess_image(image_path_test)
@@ -103,17 +103,17 @@ test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 number_of_samples_to_show = 2  # Antall eksempler du ønsker å vise
 
 # Tar en batch fra datasettet
-for real_imgs, input_imgs in train_dataset.take(1):
+for input_imgs, real_imgs in train_dataset.take(1):
     plt.figure(figsize=(10, 5))
     for i in range(number_of_samples_to_show):
         # Plotter input_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)
-        plt.title("Input Image")
+        plt.title("Input Image åååå")
         plt.imshow(input_imgs[i].numpy() )
 
         # Plotter real_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)
-        plt.title("Real Image")
+        plt.title("Real Image åååå")
         plt.imshow(real_imgs[i].numpy())
         plt.axis('on')
 
