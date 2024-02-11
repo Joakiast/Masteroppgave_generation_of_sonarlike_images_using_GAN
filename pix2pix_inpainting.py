@@ -399,4 +399,8 @@ def fit(train_ds, test_ds, steps):
 
 fit(train_dataset, test_dataset, steps=40000)
 
+generator.save(f'saved_model_pix2pix_inpainting/{image_type[1:-8]}/my_generator.h5')
+discriminator.save(f'saved_model_pix2pix_inpainting/{image_type[1:-8]}/my_discriminator.h5')
+#print(f"image_type[1:]: {image_type[1:-8]}")
+
 print('Done!')
