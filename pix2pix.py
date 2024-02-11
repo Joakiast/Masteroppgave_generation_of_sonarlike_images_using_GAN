@@ -398,3 +398,5 @@ def fit(train_ds, test_ds, steps):
 
 
 fit(train_dataset, test_dataset, steps=40000)
+
+print('Done!')
