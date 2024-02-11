@@ -42,8 +42,8 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 240#64
-resize_y = 240#64
+resize_x = 240
+resize_y = 240
 crop_size = 150#resize_x / 2
 noise_vector_for_gen = 512 #husk å endre inni generator
 
@@ -488,7 +488,7 @@ def generate_and_save_images(model, epoch, test_input):
   plt.suptitle(image_type)
 
 
-  folder_name = 'generated_images'
+  folder_name = 'generated_images_vanilla_GAN'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
