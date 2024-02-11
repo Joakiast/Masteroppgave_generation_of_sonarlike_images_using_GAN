@@ -50,7 +50,6 @@ image_type = '*oil_drum_RGB'
 
 train_set_path = pathlib.Path("train")  # path_to_zip.parent/dataset_name
 test_set_path = pathlib.Path("test")
-input_set_path = pathlib.Path("image_translation_handdrawn_images")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
@@ -58,44 +57,165 @@ print(f"size of trainingset: {len(image_paths_train)}")
 image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
-input_paths_train = [str(path) for path in list(input_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
-print(f"size of trainingset: {len(input_paths_train)}")
-
-def load_and_preprocess_image(path_image):
-    print("===================start load and preprocess image============================================")
-    real_img = tf.io.read_file(path_image)
-    real_img = tf.image.decode_jpeg(real_img,
-                                 channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
-    real_img = tf.cast(real_img, tf.float32)
-    real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-    #path_image = path_image.numpy().decode('utf-8')
-    print(f"path image i tensor: {path_image}")
-    #x,y = find_coordinates_for_cropping_tensor(path_image)
-    #image = crop_image_around_POI(image, x, y, crop_size)
-    print(f"alle bilder kommer hit: image shape før resize: {real_img.shape} bilde: {path_image}")
-    real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-    #input_img = remove_part_of_image(real_img,radius=70)
-    return real_img
+# def load_and_preprocess_image(path_image):
+#     print("===================start load and preprocess image============================================")
+#     real_img = tf.io.read_file(path_image)
+#     real_img = tf.image.decode_jpeg(real_img,
+#                                  channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+#     real_img = tf.cast(real_img, tf.float32)
+#     real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+#     #path_image = path_image.numpy().decode('utf-8')
+#     print(f"path image i tensor: {path_image}")
+#     #x,y = find_coordinates_for_cropping_tensor(path_image)
+#     #image = crop_image_around_POI(image, x, y, crop_size)
+#     print(f"alle bilder kommer hit: image shape før resize: {real_img.shape} bilde: {path_image}")
+#     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+#     input_img = remove_part_of_image(real_img,radius=70)
+#     return input_img, real_img
 
 #==========================
 
+def crop_image_around_POI(image, point_x, point_y, crop_size):
 
+
+    # Konverter punktkoordinater til heltall
+    point_x = tf.cast(point_x, tf.int32)
+    point_y = tf.cast(point_y, tf.int32)
+    crop_size = tf.cast(crop_size, tf.int32)
+
+    # Beregn øvre venstre hjørne av beskjæringsboksen
+    start_y = tf.maximum(0, point_y - crop_size // 2)
+    start_x = tf.maximum(0, point_x - crop_size // 2)
+
+    # Sørg for at beskjæringsboksen ikke går utenfor bildet
+    image_height, image_width, _ = image.shape
+    image_height = tf.cast(image_height, tf.int32)
+    image_width = tf.cast(image_width, tf.int32)
+
+    if start_x + crop_size > image_width:
+        start_x = tf.maximum(0, image_width - crop_size)
+    if start_y + crop_size > image_height:
+        start_y = tf.maximum(0, image_height - crop_size)
+
+    image = tf.image.crop_to_bounding_box(image, start_y, start_x, crop_size, crop_size)
+
+    #print(f"crop by {crop_size}")
+    return image
+
+def find_coordinates_for_cropping_tensor(path_image):
+    #base_name = str[path_image]#tf.cast(path_image, str)
+    base_name_b = os.path.basename(path_image.numpy())
+    base_name = base_name_b.decode("utf-8")
+    #print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    #print(f"label file {label_file}")
+
+    label_path = os.path.join("train/Label", label_file)
+    #print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] != 'clutter':
+                x, y = map(float, parts[1:3])
+                #print(f"x: {x}, y: {y}")
+                return x, y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
+
+def find_coordinates_for_cropping(path_image):
+
+    base_name = os.path.basename(path_image)#.numpy())
+    #print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    #print(f"label file {label_file}")
+
+    label_path = os.path.join("train/Label", label_file)
+    #print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] != 'clutter':
+                x, y = map(float, parts[1:3])
+                #print(f"x: {x}, y: {y}")
+                return x, y
+            # elif parts and parts[0] == 'rock':
+            #     x, y = map(float, parts[1:3])
+            #     return x,y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
+
+
+#endregion
+def load_and_preprocess_image(path_image):
+    if isinstance(path_image, tf.Tensor):
+        #print("===================start load and preprocess image============================================")
+        image = tf.io.read_file(path_image)
+        image = tf.image.decode_jpeg(image,
+                                     channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+
+        image = tf.cast(image, tf.float32)
+        image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        if not "clutter" in image_type:
+            x,y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
+            image.set_shape([400, 600, 3])
+            #image = crop_image_around_POI(image, x, y, crop_size)
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        input_img = crop_image_around_POI(image, x, y, crop_size)
+        input_img = tf.image.resize(input_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+
+        return input_img, image
+
+        return image
+    else:
+        #print("===================start load and preprocess image============================================")
+        image = tf.io.read_file(path_image)
+        image = tf.image.decode_jpeg(image,
+                                     channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        image = tf.cast(image, tf.float32)
+        image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        assert image.shape == (400, 600, 3)
+        #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
+
+        if not "clutter" in image_type:
+            x,y = find_coordinates_for_cropping(path_image)
+            #image = crop_image_around_POI(image, x, y, crop_size)
+        #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
+        #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        input_img = crop_image_around_POI(image, x, y, crop_size)
+        input_img = tf.image.resize(input_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+
+        return input_img, image
+
+        #return image
+        # else:
 #========================
 
 
 for image_path in image_paths_train:
-    re = load_and_preprocess_image(image_path)
+    inp,re = load_and_preprocess_image(image_path)
     # plt.figure()
     # plt.title("bilde fra ds")
     # plt.title("re")
     # plt.imshow(re)
     # plt.show()
 
-#for image_path_test in image_paths_test:
- #   re_test,inp_test = load_and_preprocess_image(image_path_test)
-
-for image_path_test in input_paths_train:
-    inp = load_and_preprocess_image(image_path_test)
+for image_path_test in image_paths_test:
+    re_test,inp_test = load_and_preprocess_image(image_path_test)
 
 #======================
 # Opprett et tf.data.Dataset fra bildestier
@@ -314,7 +434,7 @@ def generate_images(model, test_input, tar,step):
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
 
-  folder_name = 'generated_images_pix2pix'
+  folder_name = 'generated_images_pix2pix_inpainting'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
