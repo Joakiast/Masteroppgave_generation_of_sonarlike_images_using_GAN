@@ -17,7 +17,7 @@ import datetime
 #from sklearn.cluster import KMeans
 
 #region load the dataset
-#test comment
+#test comment 1
 resize_x = 256
 resize_y = 256
 
