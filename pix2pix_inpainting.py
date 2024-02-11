@@ -307,7 +307,7 @@ def generate_images(model, test_input, tar,step):
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
 
-  folder_name = 'generated_images_pix2pix'
+  folder_name = 'generated_images_pix2pix_inpainting'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 

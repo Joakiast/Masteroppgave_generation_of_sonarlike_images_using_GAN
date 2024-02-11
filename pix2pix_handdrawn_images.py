@@ -50,12 +50,16 @@ image_type = '*oil_drum_RGB'
 
 train_set_path = pathlib.Path("train")  # path_to_zip.parent/dataset_name
 test_set_path = pathlib.Path("test")
+input_set_path = pathlib.Path("image_translation_handdrawn_images")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
 image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
+
+input_paths_train = [str(path) for path in list(input_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
+print(f"size of trainingset: {len(input_paths_train)}")
 
 def load_and_preprocess_image(path_image):
     print("===================start load and preprocess image============================================")
@@ -70,8 +74,8 @@ def load_and_preprocess_image(path_image):
     #image = crop_image_around_POI(image, x, y, crop_size)
     print(f"alle bilder kommer hit: image shape før resize: {real_img.shape} bilde: {path_image}")
     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-    input_img = remove_part_of_image(real_img,radius=70)
-    return input_img, real_img
+    #input_img = remove_part_of_image(real_img,radius=70)
+    return real_img
 
 #==========================
 
@@ -80,15 +84,18 @@ def load_and_preprocess_image(path_image):
 
 
 for image_path in image_paths_train:
-    inp,re = load_and_preprocess_image(image_path)
+    re = load_and_preprocess_image(image_path)
     # plt.figure()
     # plt.title("bilde fra ds")
     # plt.title("re")
     # plt.imshow(re)
     # plt.show()
 
-for image_path_test in image_paths_test:
-    re_test,inp_test = load_and_preprocess_image(image_path_test)
+#for image_path_test in image_paths_test:
+ #   re_test,inp_test = load_and_preprocess_image(image_path_test)
+
+for image_path_test in input_paths_train:
+    inp = load_and_preprocess_image(image_path_test)
 
 #======================
 # Opprett et tf.data.Dataset fra bildestier
