@@ -26,6 +26,8 @@ BUFFER_SIZE = 400
 BATCH_SIZE = 2
 EPOCHS = 200
 color_channel = 3
+crop_size = 150#resize_x / 2
+
 
 def remove_part_of_image(image,radius):
     height, width, channels = image.shape
@@ -71,6 +73,10 @@ def load_and_preprocess_image(path_image):
     input_img = remove_part_of_image(real_img,radius=70)
     return input_img, real_img
 
+#==========================
+
+
+#========================
 
 
 for image_path in image_paths_train:
@@ -108,12 +114,12 @@ for input_imgs, real_imgs in train_dataset.take(1):
     for i in range(number_of_samples_to_show):
         # Plotter input_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)
-        plt.title("Input Image åååå")
+        plt.title("Input Image")
         plt.imshow(input_imgs[i].numpy() )
 
         # Plotter real_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)
-        plt.title("Real Image åååå")
+        plt.title("Real Image")
         plt.imshow(real_imgs[i].numpy())
         plt.axis('on')
 
@@ -292,7 +298,7 @@ def generate_images(model, test_input, tar,step):
   plt.figure(figsize=(15, 15))
 
   display_list = [test_input[0], tar[0], prediction[0]]
-  title = ['Input Image', 'Ground Truth', 'Predicted Image']
+  title = ['Input Image', 'Real Image', 'Generated Image']
 
   for i in range(3):
     plt.subplot(1, 3, i+1)
@@ -314,9 +320,9 @@ def generate_images(model, test_input, tar,step):
 
 
 
-for example_input, example_target in test_dataset.take(1):
-  generate_images(generator, example_input, example_target,step=0)
-#endregion
+# for example_input, example_target in test_dataset.take(1):
+#   generate_images(generator, example_input, example_target,step=0)
+# #endregion
 
 
 log_dir="logs/"
@@ -353,7 +359,7 @@ def train_step(input_image, target, step):
     tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
 
 def fit(train_ds, test_ds, steps):
-  example_input, example_target = next(iter(test_ds.take(1)))
+  # example_input, example_target = next(iter(test_ds.take(1)))
   start = time.time()
 
   for step, (input_image, target) in train_ds.repeat().take(steps).enumerate():
@@ -364,20 +370,20 @@ def fit(train_ds, test_ds, steps):
         print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
 
       start = time.time()
-
-      generate_images(generator, example_input, example_target,step)
+      #
+      generate_images(generator, input_image, target,step)
       print(f"Step: {step//1000}k")
-
-      folder_name = 'generated_images'
-      if not os.path.exists(folder_name):
-          os.makedirs(folder_name)
-
-
-      plt.savefig(os.path.join(folder_name, ' image_at_step_{:04d}.png'.format(step//1000)))
-      print('fig closed')
-      plt.close("all")
-      # plt.show() plot for hver epoch
-      # plt.savefig(‘din_fig.png’)
+      #
+      # folder_name = 'generated_images'
+      # if not os.path.exists(folder_name):
+      #     os.makedirs(folder_name)
+      #
+      #
+      # plt.savefig(os.path.join(folder_name, ' image_at_step_{:04d}.png'.format(step//1000)))
+      # print('fig closed')
+      # plt.close("all")
+      # # plt.show() plot for hver epoch
+      # # plt.savefig(‘din_fig.png’)
 
     train_step(input_image, target, step)
 
