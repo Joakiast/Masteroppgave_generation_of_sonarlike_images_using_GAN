@@ -30,7 +30,7 @@ crop_size = 150#resize_x / 2
 
 
 def remove_part_of_image(image):
-    radius = np.random.uniform(low=resize_x //6, high=resize_x//2)
+    radius = np.random.uniform(low=resize_x //5, high=resize_x//3)
 
 
     height, width, channels = image.shape
@@ -38,7 +38,7 @@ def remove_part_of_image(image):
     center_x = np.random.randint(margin, width - margin)
     center_y = np.random.randint(margin, height - margin)
 
-    print(f"center_x, center_y = {center_x}, {center_y}")
+    #print(f"center_x, center_y = {center_x}, {center_y}")
 
     y, x = np.ogrid[:height, :width]
     mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
@@ -70,7 +70,6 @@ def load_and_preprocess_image(path_image):
     real_img = tf.cast(real_img, tf.float32)
     real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-#    input_img = remove_part_of_image(real_img,radius=remove_radius)
     input_img = tf.py_function(func = remove_part_of_image, inp = [real_img], Tout=tf.float32)
 
 
@@ -114,7 +113,7 @@ test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
 # Tar en batch fra datasettet
-for input_imgs, real_imgs in train_dataset.take(4):
+for input_imgs, real_imgs in train_dataset.take(1):
     plt.figure(figsize=(10, 5))
     for i in range(number_of_samples_to_show):
         # Plotter input_img
