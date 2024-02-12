@@ -148,7 +148,7 @@ OUTPUT_CHANNELS = 3
 def downsample(filters,size,apply_batchnorm = True):
     initializer = tf.random_normal_initializer(0., 0.02)
     result = tf.keras.Sequential()
-    result.add(tf.keras.layers.Conv2D(filters,size,strides=2,padding='same',kernel_initializer=initializer,use_bias=False))
+    result.add(tf.keras.layers.Conv2D(filters,size,strides=2,padding='same',kernel_initializer=initializer,use_bias=True))
     if apply_batchnorm:
         result.add(tf.keras.layers.BatchNormalization())
     result.add(tf.keras.layers.LeakyReLU())
@@ -162,7 +162,7 @@ def upsample(filters,size,apply_dropout = False):
     initializer = tf.random_normal_initializer(0., 0.02)
     result = tf.keras.Sequential()
     result.add(tf.keras.layers.Conv2DTranspose(filters,size,strides=2,padding='same'
-                                               ,kernel_initializer=initializer,use_bias=False))
+                                               ,kernel_initializer=initializer,use_bias=True))
     result.add(tf.keras.layers.BatchNormalization())
     if apply_dropout:
         result.add(tf.keras.layers.Dropout(0.5))
@@ -258,7 +258,7 @@ def Discriminator():
     down3 = downsample(256,4)(down2) #batch size ,32,32,256
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
-    conv = tf.keras.layers.Conv2D(512,4,strides=1, kernel_initializer=initializer,use_bias=False)(zero_pad1) #batch size ,31,31,512
+    conv = tf.keras.layers.Conv2D(512,4,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
     batchnorm1 = tf.keras.layers.BatchNormalization()(conv)
     leaky_relu = tf.keras.layers.LeakyReLU()(batchnorm1)
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
