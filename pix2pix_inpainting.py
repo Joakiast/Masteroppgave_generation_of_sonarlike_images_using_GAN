@@ -29,9 +29,13 @@ color_channel = 3
 crop_size = 150#resize_x / 2
 
 
-def remove_part_of_image(image,radius):
+def remove_part_of_image(image, radius):
     height, width, channels = image.shape
-    center_y, center_x = height // 2, width // 2
+
+    # Generer tilfeldige sentrumspunkter for sirkelen, sikrer at sirkelen er helt innenfor bildets grenser
+    margin = radius  # For å unngå at sirkelen går utenfor bildet
+    center_x = np.random.randint(margin, width - margin)
+    center_y = np.random.randint(margin, height - margin)
 
     y, x = np.ogrid[:height, :width]
     mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
@@ -70,7 +74,8 @@ def load_and_preprocess_image(path_image):
     #image = crop_image_around_POI(image, x, y, crop_size)
     print(f"alle bilder kommer hit: image shape før resize: {real_img.shape} bilde: {path_image}")
     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-    input_img = remove_part_of_image(real_img,radius=70)
+    remove_radius = np.random.uniform(low=resize_x //6, high=resize_x//3)
+    input_img = remove_part_of_image(real_img,radius=remove_radius)
     return input_img, real_img
 
 #==========================
