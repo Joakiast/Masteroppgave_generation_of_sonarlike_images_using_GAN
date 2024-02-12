@@ -23,23 +23,26 @@ resize_y = 256
 
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 1
+BATCH_SIZE = 2
 EPOCHS = 200
 color_channel = 3
 crop_size = 150#resize_x / 2
 
 
-def remove_part_of_image(image, radius):
-    height, width, channels = image.shape
+def remove_part_of_image(image):
+    radius = np.random.uniform(low=resize_x //6, high=resize_x//2)
 
+
+    height, width, channels = image.shape
     margin = radius
     center_x = np.random.randint(margin, width - margin)
     center_y = np.random.randint(margin, height - margin)
 
+    print(f"center_x, center_y = {center_x}, {center_y}")
+
     y, x = np.ogrid[:height, :width]
     mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
     mask = np.repeat(mask[:, :, np.newaxis], channels, axis=2)
-
     image_with_circle_removed = tf.where(mask, image, tf.zeros_like(image))
 
     return image_with_circle_removed
@@ -60,20 +63,17 @@ image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + "
 print(f"size of testset: {len(image_paths_test)}")
 
 def load_and_preprocess_image(path_image):
-    print("===================start load and preprocess image============================================")
+    #print("===================start load and preprocess image============================================")
     real_img = tf.io.read_file(path_image)
     real_img = tf.image.decode_jpeg(real_img,
                                  channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
     real_img = tf.cast(real_img, tf.float32)
     real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-    #path_image = path_image.numpy().decode('utf-8')
-    print(f"path image i tensor: {path_image}")
-    #x,y = find_coordinates_for_cropping_tensor(path_image)
-    #image = crop_image_around_POI(image, x, y, crop_size)
-    print(f"alle bilder kommer hit: image shape før resize: {real_img.shape} bilde: {path_image}")
     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-    remove_radius = np.random.uniform(low=resize_x //6, high=resize_x//3)
-    input_img = remove_part_of_image(real_img,radius=remove_radius)
+#    input_img = remove_part_of_image(real_img,radius=remove_radius)
+    input_img = tf.py_function(func = remove_part_of_image, inp = [real_img], Tout=tf.float32)
+
+
     return input_img, real_img
 
 #==========================
@@ -88,8 +88,8 @@ for image_path in image_paths_train:
     inp,re = load_and_preprocess_image(image_path)
     # plt.figure()
     # plt.title("bilde fra ds")
-    # plt.title("re")
-    # plt.imshow(re)
+    # plt.title("inp")
+    # plt.imshow(inp)
     # plt.show()
 
 for image_path_test in image_paths_test:
@@ -114,7 +114,7 @@ test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
 # Tar en batch fra datasettet
-for input_imgs, real_imgs in train_dataset.take(1):
+for input_imgs, real_imgs in train_dataset.take(4):
     plt.figure(figsize=(10, 5))
     for i in range(number_of_samples_to_show):
         # Plotter input_img
@@ -301,12 +301,14 @@ discriminator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 def generate_images(model, test_input, tar,step):
   prediction = model(test_input, training=True)
   plt.figure(figsize=(15, 15))
+  diff = prediction - tar
+  display_list = [test_input[0], tar[0], prediction[0], diff[0]]
+  title = ['Input Image', 'Real Image', 'Generated Image', 'Difference']
 
-  display_list = [test_input[0], tar[0], prediction[0]]
-  title = ['Input Image', 'Real Image', 'Generated Image']
+  num_elem = len(display_list)
 
-  for i in range(3):
-    plt.subplot(1, 3, i+1)
+  for i in range(num_elem):
+    plt.subplot(1, num_elem, i+1)
     plt.title(title[i])
     # Getting the pixel values in the [0, 1] range to plot.
     plt.imshow(display_list[i] * 0.5 + 0.5)
