@@ -32,8 +32,7 @@ crop_size = 150#resize_x / 2
 def remove_part_of_image(image, radius):
     height, width, channels = image.shape
 
-    # Generer tilfeldige sentrumspunkter for sirkelen, sikrer at sirkelen er helt innenfor bildets grenser
-    margin = radius  # For å unngå at sirkelen går utenfor bildet
+    margin = radius
     center_x = np.random.randint(margin, width - margin)
     center_y = np.random.randint(margin, height - margin)
 
@@ -41,7 +40,6 @@ def remove_part_of_image(image, radius):
     mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
     mask = np.repeat(mask[:, :, np.newaxis], channels, axis=2)
 
-    # Bruk masken for å fjerne delen av bildet
     image_with_circle_removed = tf.where(mask, image, tf.zeros_like(image))
 
     return image_with_circle_removed
@@ -52,7 +50,7 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-train_set_path = pathlib.Path("train")  # path_to_zip.parent/dataset_name
+train_set_path = pathlib.Path("train")
 test_set_path = pathlib.Path("test")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
