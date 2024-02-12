@@ -17,13 +17,13 @@ import datetime
 #from sklearn.cluster import KMeans
 
 #region load the dataset
-#test
+#test 2
 resize_x = 256
 resize_y = 256
 
-BUFFER_SIZE = 400
+
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 EPOCHS = 200
 color_channel = 3
 crop_size = 150#resize_x / 2
@@ -78,6 +78,8 @@ def load_and_preprocess_image(path_image):
 
 #==========================
 
+BUFFER_SIZE = len(image_paths_train)
+print(f"BUFFER_SIZE: {BUFFER_SIZE}")
 
 #========================
 
@@ -109,7 +111,7 @@ test_dataset = test_dataset.shuffle(BUFFER_SIZE)
 test_dataset = test_dataset.batch(BATCH_SIZE)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
-number_of_samples_to_show = 2  # Antall eksempler du ønsker å vise
+number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
 # Tar en batch fra datasettet
 for input_imgs, real_imgs in train_dataset.take(1):
