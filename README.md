@@ -33,3 +33,4 @@ kopiere filer fra ml nodes til min pc: scp -J joakiast@login.uio.no joakiast@ml9
 
 tar file: tar -czf archive_name.tar.gz generated_images/
 
+ssh <educloud-username>@fox.educloud.no     : ec-joakims
