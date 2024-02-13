@@ -103,9 +103,11 @@ for image_path in image_paths_train:
     # plt.title("bilde fra ds")
     # plt.title("inp")
     # plt.imshow(inp)
+
+    # tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
     # plt.show()
     if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
-        flipped_left_right, flipped_up_down, rotate = augmentation(inp, re)
+        flipped_left_right, flipped_up_down, rotate = augmentation(inp,re)#tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
         augmented_training_data_flip_left_right.append(flipped_left_right)#, flipped_up_down, rotate])
         augmented_training_data_flip_up_down.append(flipped_up_down)
         augmented_training_data_rotate.append(rotate)
@@ -122,12 +124,16 @@ for image_path in image_paths_train:
 # Opprett et tf.data.Dataset fra bildestier
 # the dataset consist of both inp and re images.
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train)
+print(image_paths_train[0])
 print(f"dataset shape 1: {len(train_dataset)}")
+
 train_dataset = train_dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
-
-#augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(augmented_training_data_flip_left_right)
-#train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_left_right)
-
+print(train_dataset)
+for i in train_dataset.take(1):
+    print(i[0].shape)
+    print(f"Element type tuple len: {len(i)}")
+augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(augmented_training_data_flip_left_right)
+train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_left_right)
 print(f"dataset shape 2: {len(train_dataset)}")
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)
 print(f"dataset shape 3: {len(train_dataset)}")
