@@ -48,8 +48,8 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-train_set_path = pathlib.Path("train")  # path_to_zip.parent/dataset_name
-test_set_path = pathlib.Path("test")
+train_set_path = pathlib.Path("datasets/train")  # path_to_zip.parent/dataset_name
+test_set_path = pathlib.Path("datasets/test")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
@@ -110,7 +110,7 @@ def find_coordinates_for_cropping_tensor(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     #print(f"label file {label_file}")
 
-    label_path = os.path.join("train/Label", label_file)
+    label_path = os.path.join("datasets/train/Label", label_file)
     #print(f"label_path {label_path}")
     x, y = None, None
     try:
@@ -136,7 +136,7 @@ def find_coordinates_for_cropping(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     #print(f"label file {label_file}")
 
-    label_path = os.path.join("train/Label", label_file)
+    label_path = os.path.join("datasets/train/Label", label_file)
     #print(f"label_path {label_path}")
     x, y = None, None
     try:

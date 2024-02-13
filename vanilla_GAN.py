@@ -21,8 +21,8 @@ summary_writer = tf.summary.create_file_writer(log_dir)
 start_time = time.time()
 
 
-train_set_path = pathlib.Path("train")
-train_set_label_path = pathlib.Path("train/Label")
+train_set_path = pathlib.Path("datasets/train")
+train_set_label_path = pathlib.Path("datasets/train/Label")
 
 """
 Dersom jeg ønsker rock, så kommenter ut de 2 andre
@@ -90,7 +90,7 @@ def find_coordinates_for_cropping_tensor(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     #print(f"label file {label_file}")
 
-    label_path = os.path.join("train/Label", label_file)
+    label_path = os.path.join("datasets/train/Label", label_file)
     #print(f"label_path {label_path}")
     x, y = None, None
     try:
@@ -116,7 +116,7 @@ def find_coordinates_for_cropping(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     #print(f"label file {label_file}")
 
-    label_path = os.path.join("train/Label", label_file)
+    label_path = os.path.join("datasets/train/Label", label_file)
     #print(f"label_path {label_path}")
     x, y = None, None
     try:

@@ -2,8 +2,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 
-generator = tf.keras.models.load_model('saved_model_vanilla_GAN/oil_/my_generator.h5')
-discriminator = tf.keras.models.load_model('saved_model_vanilla_GAN/oil_/my_discriminator.h5')
+generator = tf.keras.models.load_model('saved_models/saved_model_vanilla_GAN/oil_/my_generator.h5')
+discriminator = tf.keras.models.load_model('saved_models/saved_model_vanilla_GAN/oil_/my_discriminator.h5')
 
 num_examples_to_generate=16
 noise_dim = 512

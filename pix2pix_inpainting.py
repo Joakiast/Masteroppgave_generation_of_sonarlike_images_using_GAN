@@ -53,8 +53,8 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-train_set_path = pathlib.Path("train")
-test_set_path = pathlib.Path("test")
+train_set_path = pathlib.Path("datasets/train")
+test_set_path = pathlib.Path("datasets/test")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
