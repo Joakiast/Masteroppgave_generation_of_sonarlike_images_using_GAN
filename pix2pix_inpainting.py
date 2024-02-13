@@ -81,6 +81,20 @@ BUFFER_SIZE = len(image_paths_train)
 print(f"BUFFER_SIZE: {BUFFER_SIZE}")
 
 #========================
+#============================================================================
+
+
+def augmentation(input_img, real_img):
+    # Anta at denne funksjonen returnerer transformerte versjoner av input_img sammen med real_img
+    flipped_left_right = (tf.image.flip_left_right(input_img), tf.image.flip_left_right(real_img))
+    flipped_up_down = (tf.image.flip_up_down(input_img), tf.image.flip_up_down(real_img))
+    rotate = (tf.image.rot90(input_img), tf.image.rot90(real_img))
+
+    return flipped_left_right, flipped_up_down, rotate
+
+augmented_training_data_flip_left_right = []
+augmented_training_data_flip_up_down = []
+augmented_training_data_rotate = []
 
 
 for image_path in image_paths_train:
@@ -90,17 +104,35 @@ for image_path in image_paths_train:
     # plt.title("inp")
     # plt.imshow(inp)
     # plt.show()
+    if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
+        flipped_left_right, flipped_up_down, rotate = augmentation(inp, re)
+        augmented_training_data_flip_left_right.append(flipped_left_right)#, flipped_up_down, rotate])
+        augmented_training_data_flip_up_down.append(flipped_up_down)
+        augmented_training_data_rotate.append(rotate)
 
-for image_path_test in image_paths_test:
-    re_test,inp_test = load_and_preprocess_image(image_path_test)
+    elif "clutter" in image_type:
+        pass
+
+# for image_path_test in image_paths_test:
+#     re_test,inp_test = load_and_preprocess_image(image_path_test)
+
+
 
 #======================
 # Opprett et tf.data.Dataset fra bildestier
 # the dataset consist of both inp and re images.
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train)
+print(f"dataset shape 1: {len(train_dataset)}")
 train_dataset = train_dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
+
+#augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(augmented_training_data_flip_left_right)
+#train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_left_right)
+
+print(f"dataset shape 2: {len(train_dataset)}")
 train_dataset = train_dataset.shuffle(BUFFER_SIZE)
+print(f"dataset shape 3: {len(train_dataset)}")
 train_dataset = train_dataset.batch(BATCH_SIZE)
+print(f"dataset shape 4: {len(train_dataset)}")
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 
 
@@ -110,7 +142,16 @@ test_dataset = test_dataset.shuffle(BUFFER_SIZE)
 test_dataset = test_dataset.batch(BATCH_SIZE)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
+#============================================================================
+
+
+
+
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
+
+
+for i in train_dataset.take(1):
+    print(f"Element type tuple len: {len(i)}")
 
 # Tar en batch fra datasettet
 for input_imgs, real_imgs in train_dataset.take(1):
@@ -155,7 +196,7 @@ def downsample(filters,size,apply_batchnorm = True):
     return result
 
 down_model = downsample(3,4)
-down_result = down_model(tf.expand_dims(inp,0))
+down_result = down_model(tf.expand_dims(inp, 0))
 print(down_result.shape)
 
 def upsample(filters,size,apply_dropout = False):
