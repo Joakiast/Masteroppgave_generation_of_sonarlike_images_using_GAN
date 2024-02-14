@@ -6,6 +6,9 @@ ls |grep oil
 
 MLnode kjøring:  module load TensorFlow/2.6.0-foss-2021a-CUDA-11.3.1
 
+fox: module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0
+
+
 pip install --user matplotlib==3.7.3
 
 ubuntu: 
@@ -35,3 +38,9 @@ tar file: tar -czf archive_name.tar.gz generated_images/
 
 ssh ec-joakims@fox.educloud.no     
 brukernavnet er ec-joakims
+
+overføre filer til fox
+scp test1.tar.gz ec-joakims@fox.educloud.no:
+
+fox info: https://documentation.sigma2.no/training/events/2023-04-hpc-on-boarding.html
+
