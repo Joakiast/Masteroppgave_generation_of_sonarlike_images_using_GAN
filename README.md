@@ -35,3 +35,7 @@ tar file: tar -czf archive_name.tar.gz generated_images/
 
 ssh ec-joakims@fox.educloud.no     
 brukernavnet er ec-joakims
+
+overføre filer til fox
+scp test1.tar.gz ec-joakims@fox.educloud.no:
+
