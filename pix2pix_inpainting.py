@@ -85,7 +85,7 @@ print(f"BUFFER_SIZE: {BUFFER_SIZE}")
 
 
 def augmentation(input_img, real_img):
-    # Anta at denne funksjonen returnerer transformerte versjoner av input_img sammen med real_img
+
     flipped_left_right = (tf.image.flip_left_right(input_img), tf.image.flip_left_right(real_img))
     flipped_up_down = (tf.image.flip_up_down(input_img), tf.image.flip_up_down(real_img))
     rotate = (tf.image.rot90(input_img), tf.image.rot90(real_img))
