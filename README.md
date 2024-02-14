@@ -39,3 +39,5 @@ brukernavnet er ec-joakims
 overføre filer til fox
 scp test1.tar.gz ec-joakims@fox.educloud.no:
 
+fox info: https://documentation.sigma2.no/training/events/2023-04-hpc-on-boarding.html
+
