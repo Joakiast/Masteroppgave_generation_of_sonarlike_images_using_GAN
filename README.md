@@ -6,7 +6,7 @@ ls |grep oil
 
 MLnode kjøring:  module load TensorFlow/2.6.0-foss-2021a-CUDA-11.3.1
 
-fox: module load TensorFlow/2.2.0-fosscuda-2019b-Python-3.7.4
+
 
 pip install --user matplotlib==3.7.3
 
