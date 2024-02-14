@@ -21,7 +21,6 @@ import datetime
 resize_x = 256
 resize_y = 256
 
-
 #The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 2
 EPOCHS = 200
@@ -73,6 +72,7 @@ def load_and_preprocess_image(path_image):
     input_img = tf.py_function(func = remove_part_of_image, inp = [real_img], Tout=tf.float32)
 
 
+
     return input_img, real_img
 
 #==========================
@@ -92,9 +92,15 @@ def augmentation(input_img, real_img):
 
     return flipped_left_right, flipped_up_down, rotate
 
-augmented_training_data_flip_left_right = []
-augmented_training_data_flip_up_down = []
-augmented_training_data_rotate = []
+
+inp_augmented_training_data_flip_left_right = []
+real_augmented_training_data_flip_left_right = []
+
+inp_augmented_training_data_flip_up_down = []
+real_augmented_training_data_flip_up_down = []
+
+inp_augmented_training_data_rotate = []
+real_augmented_training_data_rotate = []
 
 
 for image_path in image_paths_train:
@@ -108,16 +114,24 @@ for image_path in image_paths_train:
     # plt.show()
     if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
         flipped_left_right, flipped_up_down, rotate = augmentation(inp,re)#tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
-        augmented_training_data_flip_left_right.append(flipped_left_right)#, flipped_up_down, rotate])
-        augmented_training_data_flip_up_down.append(flipped_up_down)
-        augmented_training_data_rotate.append(rotate)
+
+        flipped_left_right_inp, flipped_left_right_real = flipped_left_right
+        inp_augmented_training_data_flip_left_right.append(flipped_left_right_inp)  # , flipped_up_down, rotate])
+        real_augmented_training_data_flip_left_right.append(flipped_left_right_real)  # , flipped_up_down, rotate])
+
+        flipped_up_down_inp, flipped_up_down_real = flipped_up_down
+        inp_augmented_training_data_flip_up_down.append(flipped_up_down_inp)
+        real_augmented_training_data_flip_up_down.append(flipped_up_down_real)
+
+        rotate_inp, rotate_real = rotate
+        inp_augmented_training_data_rotate.append(rotate_inp)
+        real_augmented_training_data_rotate.append(rotate_real)
 
     elif "clutter" in image_type:
         pass
 
 # for image_path_test in image_paths_test:
 #     re_test,inp_test = load_and_preprocess_image(image_path_test)
-
 
 
 #======================
@@ -129,16 +143,23 @@ print(f"dataset shape 1: {len(train_dataset)}")
 
 train_dataset = train_dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
 print(train_dataset)
-for i in train_dataset.take(1):
-    print(i[0].shape)
-    print(f"Element type tuple len: {len(i)}")
-augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(augmented_training_data_flip_left_right)
+
+augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices((inp_augmented_training_data_flip_left_right, real_augmented_training_data_flip_left_right))
 train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_left_right)
 print(f"dataset shape 2: {len(train_dataset)}")
-train_dataset = train_dataset.shuffle(BUFFER_SIZE)
+
+augmented_training_dataset_flip_up_down = tf.data.Dataset.from_tensor_slices((inp_augmented_training_data_flip_up_down, real_augmented_training_data_flip_up_down))
+train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_up_down)
 print(f"dataset shape 3: {len(train_dataset)}")
-train_dataset = train_dataset.batch(BATCH_SIZE)
+
+augmented_training_dataset_rotate = tf.data.Dataset.from_tensor_slices((inp_augmented_training_data_rotate, real_augmented_training_data_rotate))
+train_dataset = train_dataset.concatenate(augmented_training_dataset_rotate)
 print(f"dataset shape 4: {len(train_dataset)}")
+
+train_dataset = train_dataset.shuffle(BUFFER_SIZE)
+print(f"dataset shape 5: {len(train_dataset)}")
+train_dataset = train_dataset.batch(BATCH_SIZE)
+print(f"dataset shape 6: {len(train_dataset)}")
 train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 
 
@@ -360,7 +381,7 @@ def generate_images(model, test_input, tar,step):
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
 
-  folder_name = 'generated_images_pix2pix_inpainting'
+  folder_name = 'generated_data/generated_images_pix2pix_inpainting'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
