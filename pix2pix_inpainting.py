@@ -25,17 +25,72 @@ resize_y = 256
 BATCH_SIZE = 2
 EPOCHS = 200
 color_channel = 3
-crop_size = 150#resize_x / 2
+#crop_size = 150#resize_x / 2
+
+def find_coordinates_for_circle_tensor(path_image):
+    #base_name = str[path_image]#tf.cast(path_image, str)
+    base_name_b = os.path.basename(path_image.numpy())
+    base_name = base_name_b.decode("utf-8")
+    #print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    #print(f"label file {label_file}")
+
+    label_path = os.path.join("datasets/train/Label", label_file)
+    #print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] != 'clutter':
+                x, y = map(float, parts[1:3])
+                #print(f"x: {x}, y: {y}")
+                return x, y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
+
+def find_coordinates_for_circle(path_image):
+
+    base_name = os.path.basename(path_image)#.numpy())
+    #print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    #print(f"label file {label_file}")
+
+    label_path = os.path.join("datasets/train/Label", label_file)
+    #print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] != 'clutter':
+                x, y = map(float, parts[1:3])
+                #print(f"x: {x}, y: {y}")
+                return x, y
 
 
-def remove_part_of_image(image):
-    radius = np.random.uniform(low=resize_x //5, high=resize_x//3)
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
+
+
+
+def remove_part_of_image(image, point_x, point_y):
+    radius = 80# np.random.uniform(low=resize_x //5, high=resize_x//3)
 
 
     height, width, channels = image.shape
     margin = radius
-    center_x = np.random.randint(margin, width - margin)
-    center_y = np.random.randint(margin, height - margin)
+    center_x = point_x #np.random.randint(margin, width - margin)
+    center_y = point_y #np.random.randint(margin, height - margin)
 
     #print(f"center_x, center_y = {center_x}, {center_y}")
 
@@ -61,21 +116,67 @@ print(f"size of trainingset: {len(image_paths_train)}")
 image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
-def load_and_preprocess_image(path_image):
-    #print("===================start load and preprocess image============================================")
-    real_img = tf.io.read_file(path_image)
-    real_img = tf.image.decode_jpeg(real_img,
-                                 channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
-    real_img = tf.cast(real_img, tf.float32)
-    real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-    real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-    input_img = tf.py_function(func = remove_part_of_image, inp = [real_img], Tout=tf.float32)
-
-
-
-    return input_img, real_img
+# def load_and_preprocess_image(path_image):
+#     #print("===================start load and preprocess image============================================")
+#     real_img = tf.io.read_file(path_image)
+#     real_img = tf.image.decode_jpeg(real_img,
+#                                  channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+#     real_img = tf.cast(real_img, tf.float32)
+#     real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+#     x,y = tf.py_function(func = find_coordinates_for_circle, inp = path_image, Tout = (tf.float32, tf.float32))
+#
+#     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+#     input_img = tf.py_function(func = remove_part_of_image, inp = [real_img,x,y], Tout=tf.float32)
+#
+#     return input_img, real_img
 
 #==========================
+def load_and_preprocess_image(path_image):
+    if isinstance(path_image, tf.Tensor):
+        #print("===================start load and preprocess image============================================")
+        image = tf.io.read_file(path_image)
+        image = tf.image.decode_jpeg(image,
+                                     channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+
+        image = tf.cast(image, tf.float32)
+        image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        if not "clutter" in image_type:
+            x,y = tf.py_function(func=find_coordinates_for_circle_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
+            image.set_shape([400, 600, 3])
+            inp_image = tf.py_function(func = remove_part_of_image, inp = [image,x,y], Tout = tf.float32)#remove_part_of_image(image,x,y)#crop_image_around_POI(image, x, y, crop_size)
+            inp_image.set_shape([400, 600, 3])
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        inp_image = tf.image.resize(inp_image , [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        return inp_image, image
+    else:
+        #print("===================start load and preprocess image============================================")
+        image = tf.io.read_file(path_image)
+        image = tf.image.decode_jpeg(image,
+                                     channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        image = tf.cast(image, tf.float32)
+        image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
+        assert image.shape == (400, 600, 3)
+        #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
+
+        #if not "clutter" in image_type:
+        x,y = find_coordinates_for_circle(path_image)
+        inp_image = remove_part_of_image(image,x,y)#crop_image_around_POI(image, x, y, crop_size)
+        #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
+        #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        inp_image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+
+        return inp_image, image
+        # else:
+        #     return image
+
+
+
+
+
+
+
+
 
 BUFFER_SIZE = len(image_paths_train)
 print(f"BUFFER_SIZE: {BUFFER_SIZE}")
