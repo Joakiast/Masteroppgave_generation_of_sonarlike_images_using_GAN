@@ -84,8 +84,7 @@ def find_coordinates_for_circle(path_image):
 
 
 def remove_part_of_image(image, point_x, point_y):
-    radius = 80# np.random.uniform(low=resize_x //5, high=resize_x//3)
-
+    radius = 50# np.random.uniform(low=resize_x //5, high=resize_x//3)
 
     height, width, channels = image.shape
     margin = radius
@@ -145,8 +144,8 @@ def load_and_preprocess_image(path_image):
             image.set_shape([400, 600, 3])
             inp_image = tf.py_function(func = remove_part_of_image, inp = [image,x,y], Tout = tf.float32)#remove_part_of_image(image,x,y)#crop_image_around_POI(image, x, y, crop_size)
             inp_image.set_shape([400, 600, 3])
-        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-        inp_image = tf.image.resize(inp_image , [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
+        inp_image = tf.image.resize(inp_image , [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
         return inp_image, image
     else:
         #print("===================start load and preprocess image============================================")
@@ -163,20 +162,12 @@ def load_and_preprocess_image(path_image):
         inp_image = remove_part_of_image(image,x,y)#crop_image_around_POI(image, x, y, crop_size)
         #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
         #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
-        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-        inp_image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
+        image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
+        inp_image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
 
         return inp_image, image
         # else:
         #     return image
-
-
-
-
-
-
-
-
 
 BUFFER_SIZE = len(image_paths_train)
 print(f"BUFFER_SIZE: {BUFFER_SIZE}")
@@ -205,11 +196,18 @@ real_augmented_training_data_rotate = []
 
 
 for image_path in image_paths_train:
-    inp,re = load_and_preprocess_image(image_path)
+    inp, re = load_and_preprocess_image(image_path)
+    #
+    # # Konverterer tensor til uint8 ved å bruke tf.cast etter å ha skalert den
+    # inp_uint8 = tf.cast(inp * 255, tf.uint8)
+    #
+    # # Konverterer tensor til numpy-array for å kunne vises med matplotlib
+    # inp_numpy = inp_uint8.numpy()
+    #
     # plt.figure()
-    # plt.title("bilde fra ds")
     # plt.title("inp")
-    # plt.imshow(inp)
+    # plt.imshow(inp_numpy)
+    # plt.show()  # Viser bildet
 
     # tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
     # plt.show()
