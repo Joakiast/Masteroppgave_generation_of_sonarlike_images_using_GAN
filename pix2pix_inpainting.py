@@ -199,29 +199,29 @@ i = 0
 for image_path in image_paths_train:
     inp, re = load_and_preprocess_image(image_path)
 
-    # Konverterer begge tensorer til uint8 ved å bruke tf.cast etter å ha skalert dem
-    inp_uint8 = tf.cast(inp * 255, tf.uint8)
-    re_uint8 = tf.cast(re * 255, tf.uint8)
-
-    # Konverterer tensorer til numpy-arrays for å kunne vises med matplotlib
-    inp_numpy = inp_uint8.numpy()
-    re_numpy = re_uint8.numpy()
-
-    plt.figure(figsize=(10, 5))
-
-    plt.subplot(1, 2, 1)
-    plt.title("inp")
-    plt.imshow(inp_numpy)
-
-    plt.subplot(1, 2, 2)
-    plt.title("re")
-    plt.imshow(re_numpy)
-
-    plt.show()
-
-    i += 1  # Øker telleren for hver iterasjon
-    if i > 9:
-        sys.exit()
+    # # Konverterer begge tensorer til uint8 ved å bruke tf.cast etter å ha skalert dem
+    # inp_uint8 = tf.cast(inp * 255, tf.uint8)
+    # re_uint8 = tf.cast(re * 255, tf.uint8)
+    #
+    # # Konverterer tensorer til numpy-arrays for å kunne vises med matplotlib
+    # inp_numpy = inp_uint8.numpy()
+    # re_numpy = re_uint8.numpy()
+    #
+    # plt.figure(figsize=(10, 5))
+    #
+    # plt.subplot(1, 2, 1)
+    # plt.title("inp")
+    # plt.imshow(inp_numpy)
+    #
+    # plt.subplot(1, 2, 2)
+    # plt.title("re")
+    # plt.imshow(re_numpy)
+    #
+    # plt.show()
+    #
+    # i += 1  # Øker telleren for hver iterasjon
+    # if i > 9:
+    #     sys.exit()
     # tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
     # plt.show()
     if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
