@@ -414,7 +414,7 @@ plt.imshow(gen_output[0, ...])
 plt.title("testing the generated output ")
 plt.show()
 
-LAMBDA = 400 # jo større lambda er jo høyere skal likheten mellom treningsdataene og det genererte bilde være.
+LAMBDA = 200 # jo større lambda er jo høyere skal likheten mellom treningsdataene og det genererte bilde være.
 loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 def generator_loss(disc_genrerated_output,get_output, target):
