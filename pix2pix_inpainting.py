@@ -17,6 +17,8 @@ import sys
 #import cv2
 #from sklearn.cluster import KMeans
 
+
+start_time = time.time()
 #region load the dataset
 #test 0
 resize_x = 256
@@ -589,4 +591,8 @@ generator.save(f'saved_model_pix2pix_inpainting/{image_type[1:-8]}/my_generator.
 discriminator.save(f'saved_model_pix2pix_inpainting/{image_type[1:-8]}/my_discriminator.h5')
 #print(f"image_type[1:]: {image_type[1:-8]}")
 
+end_time = time.time()  # Lagrer slutttiden
+elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
+
+print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 print('Done!')
