@@ -3,7 +3,7 @@ from unittest import result
 import tensorflow as tf
 tf.__version__
 import glob
-import imageio
+#import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 import os
