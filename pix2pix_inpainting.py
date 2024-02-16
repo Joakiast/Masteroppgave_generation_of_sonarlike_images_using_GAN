@@ -358,24 +358,24 @@ def Generator():
   inputs = tf.keras.layers.Input(shape=[256, 256, 3])
 
   down_stack = [
-    downsample(64, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
-    downsample(128, 4),  # (batch_size, 64, 64, 128)
-    downsample(256, 4),  # (batch_size, 32, 32, 256)
-    downsample(512, 4),  # (batch_size, 16, 16, 512)
-    downsample(512, 4),  # (batch_size, 8, 8, 512)
-    downsample(512, 4),  # (batch_size, 4, 4, 512)
-    downsample(512, 4),  # (batch_size, 2, 2, 512)
-    downsample(512, 4),  # (batch_size, 1, 1, 512)
+    downsample(128, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
+    downsample(256, 4),  # (batch_size, 64, 64, 128)
+    downsample(512, 4),  # (batch_size, 32, 32, 256)
+    downsample(1024, 4),  # (batch_size, 16, 16, 512)
+    downsample(1024, 4),  # (batch_size, 8, 8, 512)
+    downsample(1024, 4),  # (batch_size, 4, 4, 512)
+    downsample(1024, 4),  # (batch_size, 2, 2, 512)
+    downsample(1024, 4),  # (batch_size, 1, 1, 512)
   ]
 
   up_stack = [
-    upsample(512, 4, apply_dropout=True),  # (batch_size, 2, 2, 1024)
-    upsample(512, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
-    upsample(512, 4, apply_dropout=True),  # (batch_size, 8, 8, 1024)
-    upsample(512, 4),  # (batch_size, 16, 16, 1024)
-    upsample(256, 4),  # (batch_size, 32, 32, 512)
-    upsample(128, 4),  # (batch_size, 64, 64, 256)
-    upsample(64, 4),  # (batch_size, 128, 128, 128)
+    upsample(1024, 4, apply_dropout=True),  # (batch_size, 2, 2, 1024)
+    upsample(1024, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
+    upsample(1024, 4, apply_dropout=True),  # (batch_size, 8, 8, 1024)
+    upsample(1024, 4),  # (batch_size, 16, 16, 1024)
+    upsample(512, 4),  # (batch_size, 32, 32, 512)
+    upsample(256, 4),  # (batch_size, 64, 64, 256)
+    upsample(128, 4),  # (batch_size, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -412,7 +412,7 @@ plt.imshow(gen_output[0, ...])
 plt.title("testing the generated output ")
 plt.show()
 
-LAMBDA = 100
+LAMBDA = 400 # jo større lambda er jo høyere skal likheten mellom treningsdataene og det genererte bilde være.
 loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 def generator_loss(disc_genrerated_output,get_output, target):
@@ -583,7 +583,7 @@ def fit(train_ds, test_ds, steps):
     #   checkpoint.save(file_prefix=checkpoint_prefix)
 
 
-fit(train_dataset, test_dataset, steps=40000)
+fit(train_dataset, test_dataset, steps=100000)
 
 generator.save(f'saved_model_pix2pix_inpainting/{image_type[1:-8]}/my_generator.h5')
 discriminator.save(f'saved_model_pix2pix_inpainting/{image_type[1:-8]}/my_discriminator.h5')
