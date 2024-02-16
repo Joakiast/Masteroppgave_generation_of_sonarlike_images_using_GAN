@@ -467,8 +467,8 @@ def discriminator_loss(disc_real_output,disc_generated_output):
 
 #region Optimizer and checkpoint saver
 
-generator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-discriminator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+generator_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
+discriminator_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
 #
 # ckeckpoint_dir = "./training_checkpoints"
 # checkpoint_prefix = os.path.join(ckeckpoint_dir, "ckpt")
