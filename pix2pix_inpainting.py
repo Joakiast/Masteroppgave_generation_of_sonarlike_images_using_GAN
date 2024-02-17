@@ -435,12 +435,12 @@ def Discriminator():
     inp = tf.keras.layers.Input(shape=[256,256,3], name='input_image')
     tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])
-    down1 = downsample(64,2,False)(x) # fordi vi har en batch size på 128,128,64
-    down2 = downsample(128,2)(down1) #batch size 64,64,128
-    down3 = downsample(256,2)(down2) #batch size ,32,32,256
+    down1 = downsample(128,2,False)(x) # fordi vi har en batch size på 128,128,64
+    down2 = downsample(256,2)(down1) #batch size 64,64,128
+    down3 = downsample(512,2)(down2) #batch size ,32,32,256
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
-    conv = tf.keras.layers.Conv2D(512,2,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
+    conv = tf.keras.layers.Conv2D(1024,2,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
     batchnorm1 = tf.keras.layers.BatchNormalization()(conv)
     leaky_relu = tf.keras.layers.LeakyReLU()(batchnorm1)
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
