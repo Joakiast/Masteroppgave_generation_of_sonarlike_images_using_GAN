@@ -366,8 +366,8 @@ def Generator():
     downsample(1024, 10),  # (batch_size, 16, 16, 512)
     downsample(1024, 10),  # (batch_size, 8, 8, 512)
     downsample(1024, 10),  # (batch_size, 4, 4, 512)
-    downsample(1024, 12),  # (batch_size, 2, 2, 512)
-    downsample(1024, 12),  # (batch_size, 1, 1, 512)
+    downsample(1024, 5),  # (batch_size, 2, 2, 512)
+    downsample(1024, 5),  # (batch_size, 1, 1, 512)
   ]
 
   up_stack = [
@@ -377,8 +377,8 @@ def Generator():
     upsample(1024, 10, apply_dropout=True),  # (batch_size, 8, 8, 1024)
     upsample(1024, 10, apply_dropout=True),  # (batch_size, 16, 16, 1024)
     upsample(512, 10),  # (batch_size, 32, 32, 512)
-    upsample(256, 12),  # (batch_size, 64, 64, 256)
-    upsample(128, 12),  # (batch_size, 128, 128, 128)
+    upsample(256, 5),  # (batch_size, 64, 64, 256)
+    upsample(128, 5),  # (batch_size, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -438,7 +438,7 @@ def Discriminator():
     x = tf.keras.layers.concatenate([inp, tar])
     down1 = downsample(128,4,False)(x) # fordi vi har en batch size på 128,128,64
     down2 = downsample(256,10)(down1) #batch size 64,64,128
-    down3 = downsample(512,12)(down2) #batch size ,32,32,256
+    down3 = downsample(512,5)(down2) #batch size ,32,32,256
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
     conv = tf.keras.layers.Conv2D(1024,2,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
