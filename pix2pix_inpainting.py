@@ -362,23 +362,23 @@ def Generator():
   down_stack = [
     downsample(128, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
     downsample(256, 4),  # (batch_size, 64, 64, 128)
-    downsample(512, 10),  # (batch_size, 32, 32, 256)
-    downsample(1024, 10),  # (batch_size, 16, 16, 512)
-    downsample(1024, 10),  # (batch_size, 8, 8, 512)
-    downsample(1024, 10),  # (batch_size, 4, 4, 512)
-    downsample(1024, 5),  # (batch_size, 2, 2, 512)
-    downsample(1024, 5),  # (batch_size, 1, 1, 512)
+    downsample(512, 3),  # (batch_size, 32, 32, 256)
+    downsample(1024, 3),  # (batch_size, 16, 16, 512)
+    downsample(1024, 3),  # (batch_size, 8, 8, 512)
+    downsample(1024, 3),  # (batch_size, 4, 4, 512)
+    downsample(1024, 3),  # (batch_size, 2, 2, 512)
+    downsample(1024, 3),  # (batch_size, 1, 1, 512)
   ]
 
   up_stack = [
     upsample(1024, 4, apply_dropout=True),  # (batch_size, 2, 2, 1024)
     upsample(1024, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
-    upsample(1024, 10, apply_dropout=True),  # (batch_size, 8, 8, 1024)
-    upsample(1024, 10, apply_dropout=True),  # (batch_size, 8, 8, 1024)
-    upsample(1024, 10, apply_dropout=True),  # (batch_size, 16, 16, 1024)
-    upsample(512, 10),  # (batch_size, 32, 32, 512)
+    upsample(1024, 3, apply_dropout=True),  # (batch_size, 8, 8, 1024)
+    upsample(1024, 3, apply_dropout=True),  # (batch_size, 8, 8, 1024)
+    upsample(1024, 3, apply_dropout=True),  # (batch_size, 16, 16, 1024)
+    upsample(512, 3),  # (batch_size, 32, 32, 512)
     upsample(256, 5),  # (batch_size, 64, 64, 256)
-    upsample(128, 5),  # (batch_size, 128, 128, 128)
+    upsample(128, 3),  # (batch_size, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -437,8 +437,8 @@ def Discriminator():
     tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])
     down1 = downsample(128,4,False)(x) # fordi vi har en batch size på 128,128,64
-    down2 = downsample(256,10)(down1) #batch size 64,64,128
-    down3 = downsample(512,5)(down2) #batch size ,32,32,256
+    down2 = downsample(256,3)(down1) #batch size 64,64,128
+    down3 = downsample(512,3)(down2) #batch size ,32,32,256
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
     conv = tf.keras.layers.Conv2D(1024,2,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
