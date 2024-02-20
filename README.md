@@ -44,3 +44,13 @@ scp test1.tar.gz ec-joakims@fox.educloud.no:
 
 fox info: https://documentation.sigma2.no/training/events/2023-04-hpc-on-boarding.html
 
+#=============================================== i fox 
+
+
+module load Python/3.10.4-GCCcore-11.3.0
+
+source tensor_env/bin/activate
+
+module load CUDA/12.2.2
+
+module load cuDNN/8.4.1.50-CUDA-11.7.0
