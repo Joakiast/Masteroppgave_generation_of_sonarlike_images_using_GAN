@@ -17,7 +17,7 @@ import sys
 #import cv2
 #from sklearn.cluster import KMeans
 
-
+print(datetime.datetime.now())
 start_time = time.time()
 #region load the dataset
 #test 0
