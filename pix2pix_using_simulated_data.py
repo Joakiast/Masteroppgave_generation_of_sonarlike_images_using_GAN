@@ -28,80 +28,80 @@ resize_y = 256
 BATCH_SIZE = 1
 EPOCHS = 200
 color_channel = 3
-#crop_size = 150#resize_x / 2
+crop_size = 150#resize_x / 2
 
-def find_coordinates_for_circle_tensor(path_image):
-    #base_name = str[path_image]#tf.cast(path_image, str)
-    base_name_b = os.path.basename(path_image.numpy())
-    base_name = base_name_b.decode("utf-8")
-    #print(f"base name {base_name}")
-    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
-    #print(f"label file {label_file}")
-
-    label_path = os.path.join("datasets/train/Label", label_file)
-    #print(f"label_path {label_path}")
-    x, y = None, None
-    try:
-
-        with open(label_path, 'r') as file:
-            label_content = file.read()
-
-        for line in label_content.split('\n'):
-            parts = line.split()
-            if parts and parts[0] != 'clutter':
-                x, y = map(float, parts[1:3])
-                #print(f"x: {x}, y: {y}")
-                return x, y
-
-    except Exception as e:
-        print(f"Error while processing label file {label_path}: {e}")
-    return None, None
-
-def find_coordinates_for_circle(path_image):
-
-    base_name = os.path.basename(path_image)#.numpy())
-    #print(f"base name {base_name}")
-    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
-    #print(f"label file {label_file}")
-
-    label_path = os.path.join("datasets/train/Label", label_file)
-    #print(f"label_path {label_path}")
-    x, y = None, None
-    try:
-
-        with open(label_path, 'r') as file:
-            label_content = file.read()
-
-        for line in label_content.split('\n'):
-            parts = line.split()
-            if parts and parts[0] != 'clutter':
-                x, y = map(float, parts[1:3])
-                #print(f"x: {x}, y: {y}")
-                return x, y
-
-
-    except Exception as e:
-        print(f"Error while processing label file {label_path}: {e}")
-    return None, None
-
-
-
-def remove_part_of_image(image, point_x, point_y):
-    radius = 50# np.random.uniform(low=resize_x //5, high=resize_x//3)
-
-    height, width, channels = image.shape
-    margin = radius
-    center_x = point_x #np.random.randint(margin, width - margin)
-    center_y = point_y #np.random.randint(margin, height - margin)
-
-    #print(f"center_x, center_y = {center_x}, {center_y}")
-
-    y, x = np.ogrid[:height, :width]
-    mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
-    mask = np.repeat(mask[:, :, np.newaxis], channels, axis=2)
-    image_with_circle_removed = tf.where(mask, image, tf.zeros_like(image))
-
-    return image_with_circle_removed
+# def find_coordinates_for_circle_tensor(path_image):
+#     #base_name = str[path_image]#tf.cast(path_image, str)
+#     base_name_b = os.path.basename(path_image.numpy())
+#     base_name = base_name_b.decode("utf-8")
+#     #print(f"base name {base_name}")
+#     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+#     #print(f"label file {label_file}")
+#
+#     label_path = os.path.join("datasets/train/Label", label_file)
+#     #print(f"label_path {label_path}")
+#     x, y = None, None
+#     try:
+#
+#         with open(label_path, 'r') as file:
+#             label_content = file.read()
+#
+#         for line in label_content.split('\n'):
+#             parts = line.split()
+#             if parts and parts[0] != 'clutter':
+#                 x, y = map(float, parts[1:3])
+#                 #print(f"x: {x}, y: {y}")
+#                 return x, y
+#
+#     except Exception as e:
+#         print(f"Error while processing label file {label_path}: {e}")
+#     return None, None
+#
+# def find_coordinates_for_circle(path_image):
+#
+#     base_name = os.path.basename(path_image)#.numpy())
+#     #print(f"base name {base_name}")
+#     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+#     #print(f"label file {label_file}")
+#
+#     label_path = os.path.join("datasets/train/Label", label_file)
+#     #print(f"label_path {label_path}")
+#     x, y = None, None
+#     try:
+#
+#         with open(label_path, 'r') as file:
+#             label_content = file.read()
+#
+#         for line in label_content.split('\n'):
+#             parts = line.split()
+#             if parts and parts[0] != 'clutter':
+#                 x, y = map(float, parts[1:3])
+#                 #print(f"x: {x}, y: {y}")
+#                 return x, y
+#
+#
+#     except Exception as e:
+#         print(f"Error while processing label file {label_path}: {e}")
+#     return None, None
+#
+#
+#
+# def remove_part_of_image(image, point_x, point_y):
+#     radius = 50# np.random.uniform(low=resize_x //5, high=resize_x//3)
+#
+#     height, width, channels = image.shape
+#     margin = radius
+#     center_x = point_x #np.random.randint(margin, width - margin)
+#     center_y = point_y #np.random.randint(margin, height - margin)
+#
+#     #print(f"center_x, center_y = {center_x}, {center_y}")
+#
+#     y, x = np.ogrid[:height, :width]
+#     mask = (x - center_x) ** 2 + (y - center_y) ** 2 > radius ** 2
+#     mask = np.repeat(mask[:, :, np.newaxis], channels, axis=2)
+#     image_with_circle_removed = tf.where(mask, image, tf.zeros_like(image))
+#
+#     return image_with_circle_removed
 
 
 #image_type = '*rock_RGB'
@@ -136,6 +136,94 @@ print(f"size of testset: {len(image_paths_test)}")
 #
 #     return input_img, real_img
 
+
+def crop_image_around_POI(image, point_x, point_y, crop_size):
+
+
+    # Konverter punktkoordinater til heltall
+    point_x = tf.cast(point_x, tf.int32)
+    point_y = tf.cast(point_y, tf.int32)
+    crop_size = tf.cast(crop_size, tf.int32)
+
+    # Beregn øvre venstre hjørne av beskjæringsboksen
+    start_y = tf.maximum(0, point_y - crop_size // 2)
+    start_x = tf.maximum(0, point_x - crop_size // 2)
+
+    # Sørg for at beskjæringsboksen ikke går utenfor bildet
+    image_height, image_width, _ = image.shape
+    image_height = tf.cast(image_height, tf.int32)
+    image_width = tf.cast(image_width, tf.int32)
+
+    if start_x + crop_size > image_width:
+        start_x = tf.maximum(0, image_width - crop_size)
+    if start_y + crop_size > image_height:
+        start_y = tf.maximum(0, image_height - crop_size)
+
+    image = tf.image.crop_to_bounding_box(image, start_y, start_x, crop_size, crop_size)
+
+    #print(f"crop by {crop_size}")
+    return image
+
+def find_coordinates_for_cropping_tensor(path_image):
+    #base_name = str[path_image]#tf.cast(path_image, str)
+    base_name_b = os.path.basename(path_image.numpy())
+    base_name = base_name_b.decode("utf-8")
+    #print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    #print(f"label file {label_file}")
+
+    label_path = os.path.join("datasets/train/Label", label_file)
+    #print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] != 'clutter':
+                x, y = map(float, parts[1:3])
+                #print(f"x: {x}, y: {y}")
+                return x, y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
+
+def find_coordinates_for_cropping(path_image):
+
+    base_name = os.path.basename(path_image)#.numpy())
+    #print(f"base name {base_name}")
+    label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
+    #print(f"label file {label_file}")
+
+    label_path = os.path.join("datasets/train/Label", label_file)
+    #print(f"label_path {label_path}")
+    x, y = None, None
+    try:
+
+        with open(label_path, 'r') as file:
+            label_content = file.read()
+
+        for line in label_content.split('\n'):
+            parts = line.split()
+            if parts and parts[0] != 'clutter':
+                x, y = map(float, parts[1:3])
+                #print(f"x: {x}, y: {y}")
+                return x, y
+            # elif parts and parts[0] == 'rock':
+            #     x, y = map(float, parts[1:3])
+            #     return x,y
+
+    except Exception as e:
+        print(f"Error while processing label file {label_path}: {e}")
+    return None, None
+
+
+#endregion
+
+
 #==========================
 def load_and_preprocess_image(path_image_trainset, path_simulated_image_trainset):
 
@@ -150,7 +238,10 @@ def load_and_preprocess_image(path_image_trainset, path_simulated_image_trainset
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         if not "clutter" in image_type:
             #x,y = tf.py_function(func=find_coordinates_for_circle_tensor, inp=[path_image_trainset], Tout=[tf.float32, tf.float32])
+            x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],
+                                  Tout=[tf.float32, tf.float32])
             image.set_shape([400, 600, 3])
+            image = crop_image_around_POI(image, x, y, crop_size)
             #inp_image = tf.py_function(func = remove_part_of_image, inp = [image,x,y], Tout = tf.float32)#remove_part_of_image(image,x,y)#crop_image_around_POI(image, x, y, crop_size)
             #inp_image.set_shape([400, 600, 3])
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
@@ -179,14 +270,12 @@ def load_and_preprocess_image(path_image_trainset, path_simulated_image_trainset
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         assert image.shape == (400, 600, 3)
         #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
-
-        #if not "clutter" in image_type:
-        #x,y = find_coordinates_for_circle(path_image_trainset)
-        #inp_image = remove_part_of_image(image,x,y) #crop_image_around_POI(image, x, y, crop_size)
-        #image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
-        #print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
+        if not "clutter" in image_type:
+            x, y = find_coordinates_for_cropping(path_image_trainset)
+            image = crop_image_around_POI(image, x, y, crop_size)
+            # image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
+            # print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
-        #inp_image = tf.image.resize(inp_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
 
         #=================================for inp image======================================================
         inp_image = tf.io.read_file(path_simulated_image_trainset)
