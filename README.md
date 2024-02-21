@@ -42,6 +42,10 @@ brukernavnet er ec-joakims
 overføre filer til fox
 scp test1.tar.gz ec-joakims@fox.educloud.no:
 
+
+overføre filer fra fox: im@joakim-System-Product-Name:~/Documents/masteroppgave/Masteroppgave_generation_of_sonarlike_images_using_GAN/random/sample22$ scp ec-joakims@fox.educloud.no:~/Documents/kernel_size_fox_med_filter_15_i_slutten.tar.gz ~/Documents/
+
+
 fox info: https://documentation.sigma2.no/training/events/2023-04-hpc-on-boarding.html
 
 #=============================================== i fox 
