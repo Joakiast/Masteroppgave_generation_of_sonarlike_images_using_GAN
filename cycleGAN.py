@@ -599,20 +599,31 @@ Training
 
 EPOCHS = 10
 
-def generate_images(model, test_input):
+def generate_images(model, test_input, epoch_num):
   prediction = model(test_input)
 
   plt.figure(figsize=(12, 12))
 
   display_list = [test_input[0], prediction[0]]
   title = ['Input Image', 'Predicted Image']
+  num_elem = len(display_list)
 
-  for i in range(2):
+
+  for i in range(num_elem):
     plt.subplot(1, 2, i+1)
     plt.title(title[i])
     # getting the pixel values between [0, 1] to plot it.
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
+
+  folder_name = 'generated_data/generated_images_cycle_GAN_simulated_dataset'
+  if not os.path.exists(folder_name):
+      os.makedirs(folder_name)
+
+  # Save the figure using the step number to keep track of progress
+  plt.savefig(f'{folder_name}/image_at_step_{epoch_num // 1000:04d}.png')
+  # plt.close()  # Close the figure to free up memory
+  # print('Saved generated images at step '+ str(step))
   plt.show()
 
 
@@ -692,7 +703,7 @@ for epoch in range(EPOCHS):
   clear_output(wait=True)
   # Using a consistent image (sample_horse) so that the progress of the model
   # is clearly visible.
-  generate_images(generator_g, sample_simulated)
+  generate_images(generator_g, sample_simulated, epoch)
 
   if (epoch + 1) % 5 == 0:
     ckpt_save_path = ckpt_manager.save()
