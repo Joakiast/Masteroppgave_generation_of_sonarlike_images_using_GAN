@@ -58,3 +58,7 @@ source tensor_env/bin/activate
 module load CUDA/12.2.2
 
 module load cuDNN/8.4.1.50-CUDA-11.7.0
+
+
+
+se på for cycleGAN: https://github.com/tensorflow/examples/blob/master/tensorflow_examples/models/pix2pix/pix2pix.py
