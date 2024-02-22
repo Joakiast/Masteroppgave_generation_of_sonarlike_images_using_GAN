@@ -4,107 +4,6 @@ The CycleGAN paper uses a modified resnet
 based generator. This tutorial is using a modified unet generator for simplicity.
 """
 
-#
-# import tensorflow as tf
-# import tensorflow_datasets as tfds
-# import os
-# import time
-# import matplotlib.pyplot as plt
-# from IPython.display import clear_output
-#
-# #pip install git+https://github.com/tensorflow/examples.git
-# #from tensorflow_examples.models.pix2pix import pix2pix
-#
-# AUTOTUNE = tf.data.AUTOTUNE
-#
-# dataset, metadata = tfds.load('cycle_gan/horse2zebra',
-#                               with_info=True, as_supervised=True)
-#
-# input_set, train_zebras = dataset['trainA'], dataset['trainB']
-# test_horses, test_zebras = dataset['testA'], dataset['testB']
-#
-# BUFFER_SIZE = 1000
-# BATCH_SIZE = 1
-# IMG_WIDTH = 256
-# IMG_HEIGHT = 256
-#
-# def random_crop(image):
-#   cropped_image = tf.image.random_crop(
-#       image, size=[IMG_HEIGHT, IMG_WIDTH, 3])
-#
-#   return cropped_image
-#
-# # normalizing the images to [-1, 1]
-# def normalize(image):
-#   image = tf.cast(image, tf.float32)
-#   image = (image / 127.5) - 1
-#   return image
-#
-# def random_jitter(image):
-#   # resizing to 286 x 286 x 3
-#   image = tf.image.resize(image, [286, 286],
-#                           method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-#
-#   # randomly cropping to 256 x 256 x 3
-#   image = random_crop(image)
-#
-#   # random mirroring
-#   image = tf.image.random_flip_left_right(image)
-#
-#   return image
-#
-# def preprocess_image_train(image, label):
-#   image = random_jitter(image)
-#   image = normalize(image)
-#   return image
-#
-# def preprocess_image_test(image, label):
-#   image = normalize(image)
-#   return image
-#
-#
-# input_set = input_set.cache().map(
-#     preprocess_image_train, num_parallel_calls=AUTOTUNE).shuffle(
-#     BUFFER_SIZE).batch(BATCH_SIZE)
-#
-# train_zebras = train_zebras.cache().map(
-#     preprocess_image_train, num_parallel_calls=AUTOTUNE).shuffle(
-#     BUFFER_SIZE).batch(BATCH_SIZE)
-#
-# test_horses = test_horses.map(
-#     preprocess_image_test, num_parallel_calls=AUTOTUNE).cache().shuffle(
-#     BUFFER_SIZE).batch(BATCH_SIZE)
-#
-# test_zebras = test_zebras.map(
-#     preprocess_image_test, num_parallel_calls=AUTOTUNE).cache().shuffle(
-#     BUFFER_SIZE).batch(BATCH_SIZE)
-#
-#
-# sample_horse = next(iter(input_set))
-# sample_zebra = next(iter(train_zebras))
-#
-#
-# plt.subplot(121)
-# plt.title('Horse')
-# plt.imshow(sample_horse[0] * 0.5 + 0.5)
-#
-#
-# plt.subplot(122)
-# plt.title('Horse with random jitter')
-# plt.imshow(random_jitter(sample_horse[0]) * 0.5 + 0.5)
-# plt.show()
-#
-# plt.subplot(121)
-# plt.title('Zebra')
-# plt.imshow(sample_zebra[0] * 0.5 + 0.5)
-#
-#
-# plt.subplot(122)
-# plt.title('zebra with random jitter')
-# plt.imshow(random_jitter(sample_zebra[0]) * 0.5 + 0.5)
-# #plt.savefig('sample.png')
-
-
 
 #==============================================================================
 
@@ -119,7 +18,9 @@ import PIL
 from tensorflow.keras import layers
 import time
 import pathlib
+import tensorflow_addons as tfa
 from IPython import display
+from IPython.display import clear_output
 import datetime
 import sys
 #import cv2
@@ -155,22 +56,6 @@ print(f"size of trainingset: {len(image_paths_train_simulated)}")
 
 image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
-
-# def load_and_preprocess_image(path_image):
-#     #print("===================start load and preprocess image============================================")
-#     real_img = tf.io.read_file(path_image)
-#     real_img = tf.image.decode_jpeg(real_img,
-#                                  channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
-#     real_img = tf.cast(real_img, tf.float32)
-#     real_img = (real_img - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-#     x,y = tf.py_function(func = find_coordinates_for_circle, inp = path_image, Tout = (tf.float32, tf.float32))
-#
-#     real_img = tf.image.resize(real_img, [resize_x, resize_y], method=tf.image.ResizeMethod.AREA)
-#     input_img = tf.py_function(func = remove_part_of_image, inp = [real_img,x,y], Tout=tf.float32)
-#
-#     return input_img, real_img
-
-#==========================
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
 
@@ -327,13 +212,11 @@ def load_and_preprocess_image_simulated_set(path_simulated_image_trainset):
         #print(f" inp_image.shape: {inp_image.shape}")
         inp_image = tf.cast(inp_image, tf.float32)
         inp_image = (inp_image - 127.5) / 127.5
-        assert inp_image.shape == (369,496,3)
-        inp_image = tf.image.resize(inp_image, [resize_x,resize_y], method=tf.image.ResizeMethod.LANCZOS5)
+        assert inp_image.shape == (369, 496, 3)
+        inp_image = tf.image.resize(inp_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
 
         return inp_image
 
-#========================
-#============================================================================
 
 BUFFER_SIZE_trainset = len(image_paths_train)
 print(f"BUFFER_SIZE train set:: {BUFFER_SIZE_trainset}")
@@ -422,7 +305,7 @@ for image_path, image_path_simulated in zip(image_paths_train, image_paths_train
 #======================
 # Opprett et tf.data.Dataset fra bildestier
 # the dataset consist of both inp and re images.
-#begion oppretter dataset
+#region oppretter dataset for trening og inp
 train_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train)
 print(image_paths_train[0])
 print(f"dataset train shape 1: {len(train_dataset)}")
@@ -477,15 +360,14 @@ test_dataset = test_dataset.batch(BATCH_SIZE)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
 #============================================================================
-
+#endregion gggggggggg))))))))))
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
-
 
 for i in train_dataset.take(1):
     print(f"Element type tuple len: {len(i)}")
 
 # Tar en batch fra datasettet
-for real_imgs in train_dataset.take(1):
+for real_imgs in train_dataset.take(2):
     plt.figure(figsize=(10, 5))
     for i in range(number_of_samples_to_show):
         # Plotter input_img
@@ -495,7 +377,7 @@ for real_imgs in train_dataset.take(1):
 plt.tight_layout()
 plt.show()
 
-for inp_imgs in simulated_dataset.take(1):
+for inp_imgs in simulated_dataset.take(2):
     plt.figure(figsize=(10, 5))
     for i in range(number_of_samples_to_show):
         # Plotter input_img
@@ -505,6 +387,8 @@ for inp_imgs in simulated_dataset.take(1):
 plt.tight_layout()
 plt.show()
 
+sample_simulated = next(iter(simulated_dataset))
+sample_train = next(iter(train_dataset))
 
 #==============================================================================
 
@@ -522,12 +406,12 @@ OUTPUT_CHANNELS = 3
 #===========================================================================================
 #region generator
 
-def downsample(filters,size,apply_batchnorm = True):
+def downsample(filters,size,apply_instancenorm = True):
     initializer = tf.random_normal_initializer(0., 0.02)
     result = tf.keras.Sequential()
     result.add(tf.keras.layers.Conv2D(filters,size,strides=2,padding='same',kernel_initializer=initializer,use_bias=True))
-    if apply_batchnorm:
-        result.add(tf.keras.layers.BatchNormalization())
+    if apply_instancenorm:
+        result.add(tfa.layers.InstanceNormalization())
     result.add(tf.keras.layers.LeakyReLU())
     return result
 
@@ -540,7 +424,7 @@ def upsample(filters,size,apply_dropout = False):
     result = tf.keras.Sequential()
     result.add(tf.keras.layers.Conv2DTranspose(filters,size,strides=2,padding='same'
                                                ,kernel_initializer=initializer,use_bias=True))
-    result.add(tf.keras.layers.BatchNormalization())
+    result.add(tfa.layers.InstanceNormalization())
     if apply_dropout:
         result.add(tf.keras.layers.Dropout(0.5))
     result.add(tf.keras.layers.ReLU())
@@ -555,7 +439,7 @@ def Generator():
   inputs = tf.keras.layers.Input(shape=[256, 256, 3])
 
   down_stack = [
-    downsample(128, 6, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
+    downsample(128, 6, apply_instancenorm=True),  # (batch_size, 128, 128, 64)
     downsample(256, 6),  # (batch_size, 64, 64, 128)
     downsample(512, 8),  # (batch_size, 32, 32, 256)
     downsample(1024, 8),  # (batch_size, 16, 16, 512)
@@ -606,14 +490,14 @@ def Discriminator():
     inp = tf.keras.layers.Input(shape=[256,256,3], name='input_image')
     tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])
-    down1 = downsample(128,4,False)(x) # fordi vi har en batch size på 128,128,64
+    down1 = downsample(128,4,True)(x) # fordi vi har en batch size på 128,128,64
     down2 = downsample(256,10)(down1) #batch size 64,64,128
     down3 = downsample(512,10)(down2) #batch size ,32,32,256
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
     conv = tf.keras.layers.Conv2D(1024,2,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
-    batchnorm1 = tf.keras.layers.BatchNormalization()(conv)
-    leaky_relu = tf.keras.layers.LeakyReLU()(batchnorm1)
+    instancenorm = tfa.layers.InstanceNormalization()(conv)
+    leaky_relu = tf.keras.layers.LeakyReLU()(instancenorm)
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
     last = tf.keras.layers.Conv2D(1,2,strides=1, kernel_initializer=initializer)(zero_pad2) #batch size 30,30,1
     return tf.keras.Model(inputs=[inp,tar], outputs=[last])
@@ -629,12 +513,12 @@ generator_f = Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='i
 discriminator_x = Discriminator()#pix2pix.discriminator(norm_type='instancenorm', target=False)
 discriminator_y = Discriminator()#pix2pix.discriminator(norm_type='instancenorm', target=False)
 
-to_zebra = generator_g(sample_horse)
-to_horse = generator_f(sample_zebra)
+to_training_image = generator_g(sample_simulated)
+to_simulated = generator_f(sample_train)
 plt.figure(figsize=(8, 8))
 contrast = 8
 
-imgs = [sample_horse, to_zebra, sample_zebra, to_horse]
+imgs = [sample_simulated, to_training_image, sample_train, to_simulated]
 title = ['Horse', 'To Zebra', 'Zebra', 'To Horse']
 
 for i in range(len(imgs)):
@@ -650,11 +534,11 @@ plt.figure(figsize=(8, 8))
 
 plt.subplot(121)
 plt.title('Is a real zebra?')
-plt.imshow(discriminator_y(sample_zebra)[0, ..., -1], cmap='RdBu_r')
+plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
 
 plt.subplot(122)
 plt.title('Is a real horse?')
-plt.imshow(discriminator_x(sample_horse)[0, ..., -1], cmap='RdBu_r')
+plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
 
 plt.show()
 
@@ -799,7 +683,7 @@ for epoch in range(EPOCHS):
   start = time.time()
 
   n = 0
-  for image_x, image_y in tf.data.Dataset.zip((input_set, train_zebras)):
+  for image_x, image_y in tf.data.Dataset.zip((simulated_dataset, train_dataset)):
     train_step(image_x, image_y)
     if n % 10 == 0:
       print ('.', end='')
@@ -808,7 +692,7 @@ for epoch in range(EPOCHS):
   clear_output(wait=True)
   # Using a consistent image (sample_horse) so that the progress of the model
   # is clearly visible.
-  generate_images(generator_g, sample_horse)
+  generate_images(generator_g, sample_simulated)
 
   if (epoch + 1) % 5 == 0:
     ckpt_save_path = ckpt_manager.save()
@@ -820,7 +704,7 @@ for epoch in range(EPOCHS):
 print("training done===============================================")
 print("Generate using test dataset")
 
-# Run the trained model on the test dataset
-for inp in test_horses.take(5):
-  generate_images(generator_g, inp)
+# # Run the trained model on the test dataset
+# for inp in test_horses.take(5):
+#   generate_images(generator_g, inp)
 
