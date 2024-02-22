@@ -217,7 +217,6 @@ def load_and_preprocess_image_simulated_set(path_simulated_image_trainset):
 
         return inp_image
 
-
 BUFFER_SIZE_trainset = len(image_paths_train)
 print(f"BUFFER_SIZE train set:: {BUFFER_SIZE_trainset}")
 
@@ -353,11 +352,11 @@ train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 
 
-test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
-test_dataset = test_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
-test_dataset = test_dataset.shuffle(BUFFER_SIZE_trainset)
-test_dataset = test_dataset.batch(BATCH_SIZE)
-test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
+# test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
+# test_dataset = test_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
+# test_dataset = test_dataset.shuffle(BUFFER_SIZE_trainset)
+# test_dataset = test_dataset.batch(BATCH_SIZE)
+# test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
 #============================================================================
 #endregion gggggggggg))))))))))
