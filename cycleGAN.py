@@ -34,7 +34,7 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 1
+BATCH_SIZE = 10
 EPOCHS = 200
 color_channel = 3
 crop_size = 150#resize_x / 2
@@ -675,24 +675,24 @@ def identity_loss(real_image, same_image):
   return LAMBDA * 0.5 * loss
 
 
-generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+generator_g_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
+generator_f_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
 
-discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+discriminator_x_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
+discriminator_y_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
 
-checkpoint_path = "./checkpoints/train"
-
-ckpt = tf.train.Checkpoint(generator_g=generator_g,
-                           generator_f=generator_f,
-                           discriminator_x=discriminator_x,
-                           discriminator_y=discriminator_y,
-                           generator_g_optimizer=generator_g_optimizer,
-                           generator_f_optimizer=generator_f_optimizer,
-                           discriminator_x_optimizer=discriminator_x_optimizer,
-                           discriminator_y_optimizer=discriminator_y_optimizer)
-
-ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
+# checkpoint_path = "./checkpoints/train"
+#
+# ckpt = tf.train.Checkpoint(generator_g=generator_g,
+#                            generator_f=generator_f,
+#                            discriminator_x=discriminator_x,
+#                            discriminator_y=discriminator_y,
+#                            generator_g_optimizer=generator_g_optimizer,
+#                            generator_f_optimizer=generator_f_optimizer,
+#                            discriminator_x_optimizer=discriminator_x_optimizer,
+#                            discriminator_y_optimizer=discriminator_y_optimizer)
+#
+# ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
 # if a checkpoint exists, restore the latest checkpoint.
 # if ckpt_manager.latest_checkpoint:
@@ -811,13 +811,18 @@ for epoch in range(EPOCHS):
   # is clearly visible.
   generate_images(generator_g, sample_simulated, epoch)
 
-  if (epoch + 1) % 5 == 0:
-    ckpt_save_path = ckpt_manager.save()
-    print ('Saving checkpoint for epoch {} at {}'.format(epoch+1,
-                                                         ckpt_save_path))
+  # if (epoch + 1) % 5 == 0:
+  #   ckpt_save_path = ckpt_manager.save()
+  #   print ('Saving checkpoint for epoch {} at {}'.format(epoch+1,
+  #                                                        ckpt_save_path))
 
   print ('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
                                                       time.time()-start))
+
+end_time = time.time()  # Lagrer slutttiden
+elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
+
+print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 print("training done===============================================")
 print("Generate using test dataset")
 
