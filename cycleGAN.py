@@ -613,24 +613,24 @@ def unet_generator(output_channels, norm_type='batchnorm'):
   """
 
   down_stack = [
-      downsample(64, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
-      downsample(128, 4, norm_type),  # (bs, 64, 64, 128)
-      downsample(256, 4, norm_type),  # (bs, 32, 32, 256)
-      downsample(512, 4, norm_type),  # (bs, 16, 16, 512)
-      downsample(512, 4, norm_type),  # (bs, 8, 8, 512)
-      downsample(512, 4, norm_type),  # (bs, 4, 4, 512)
-      downsample(512, 4, norm_type),  # (bs, 2, 2, 512)
-      downsample(512, 4, norm_type),  # (bs, 1, 1, 512)
+      downsample(128, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
+      downsample(256, 4, norm_type),  # (bs, 64, 64, 128)
+      downsample(512, 4, norm_type),  # (bs, 32, 32, 256)
+      downsample(1024, 4, norm_type),  # (bs, 16, 16, 512)
+      downsample(1024, 4, norm_type),  # (bs, 8, 8, 512)
+      downsample(1024, 4, norm_type),  # (bs, 4, 4, 512)
+      downsample(1024, 4, norm_type),  # (bs, 2, 2, 512)
+      downsample(1024, 4, norm_type),  # (bs, 1, 1, 512)
   ]
 
   up_stack = [
-      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-      upsample(512, 4, norm_type),  # (bs, 16, 16, 1024)
-      upsample(256, 4, norm_type),  # (bs, 32, 32, 512)
-      upsample(128, 4, norm_type),  # (bs, 64, 64, 256)
-      upsample(64, 4, norm_type),  # (bs, 128, 128, 128)
+      upsample(1024, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+      upsample(1024, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+      upsample(1024, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+      upsample(1024, 4, norm_type),  # (bs, 16, 16, 1024)
+      upsample(512, 4, norm_type),  # (bs, 32, 32, 512)
+      upsample(256, 4, norm_type),  # (bs, 64, 64, 256)
+      upsample(128, 4, norm_type),  # (bs, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -682,13 +682,13 @@ def discriminator(norm_type='batchnorm', target=True):
     tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])  # (bs, 256, 256, channels*2)
 
-  down1 = downsample(64, 4, norm_type, False)(x)  # (bs, 128, 128, 64)
-  down2 = downsample(128, 4, norm_type)(down1)  # (bs, 64, 64, 128)
-  down3 = downsample(256, 4, norm_type)(down2)  # (bs, 32, 32, 256)
+  down1 = downsample(128, 4, norm_type, False)(x)  # (bs, 128, 128, 64)
+  down2 = downsample(256, 4, norm_type)(down1)  # (bs, 64, 64, 128)
+  down3 = downsample(512, 4, norm_type)(down2)  # (bs, 32, 32, 256)
 
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
-      512, 4, strides=1, kernel_initializer=initializer,
+      1024, 4, strides=1, kernel_initializer=initializer,
       use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
 
   if norm_type.lower() == 'batchnorm':
@@ -795,15 +795,15 @@ ckpt = tf.train.Checkpoint(generator_g=generator_g,
 ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
 # if a checkpoint exists, restore the latest checkpoint.
-if ckpt_manager.latest_checkpoint:
-  ckpt.restore(ckpt_manager.latest_checkpoint)
-  print ('Latest checkpoint restored!!')
+# if ckpt_manager.latest_checkpoint:
+#   ckpt.restore(ckpt_manager.latest_checkpoint)
+#   print ('Latest checkpoint restored!!')
 
 """
 Training
 """
 
-EPOCHS = 10
+EPOCHS = 40
 
 def generate_images(model, test_input, epoch_num):
   prediction = model(test_input)
@@ -811,7 +811,7 @@ def generate_images(model, test_input, epoch_num):
   plt.figure(figsize=(12, 12))
 
   display_list = [test_input[0], prediction[0]]
-  title = ['Input Image', 'Predicted Image']
+  title = ['Input Image', 'Predicted Image ']
   num_elem = len(display_list)
 
 
@@ -827,7 +827,7 @@ def generate_images(model, test_input, epoch_num):
       os.makedirs(folder_name)
 
   # Save the figure using the step number to keep track of progress
-  plt.savefig(f'{folder_name}/image_at_step_{epoch_num // 1000:04d}.png')
+  plt.savefig(f'{folder_name}/test image_at_epoch_{epoch_num:04d}.png')
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
