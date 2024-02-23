@@ -703,7 +703,7 @@ discriminator_y_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
 Training
 """
 
-EPOCHS = 20
+EPOCHS = 100
 
 def generate_images(model, test_input, epoch_num):
   prediction = model(test_input)
