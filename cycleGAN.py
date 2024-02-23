@@ -40,15 +40,15 @@ color_channel = 3
 crop_size = 150#resize_x / 2
 
 #image_type = '*rock_RGB'
-image_type = '*oil_drum_RGB'
-#image_type = '*clutter_RGB'
+#image_type = '*oil_drum_RGB'
+image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
 test_set_path = pathlib.Path("datasets/test")
 
-image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))][:3000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
 image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
@@ -102,10 +102,10 @@ def find_coordinates_for_cropping_tensor(path_image):
 
         for line in label_content.split('\n'):
             parts = line.split()
-            if parts and parts[0] != 'clutter':
-                x, y = map(float, parts[1:3])
-                #print(f"x: {x}, y: {y}")
-                return x, y
+            #if parts and parts[0] != 'clutter':
+            x, y = map(float, parts[1:3])
+            #print(f"x: {x}, y: {y}")
+            return x, y
 
     except Exception as e:
         print(f"Error while processing label file {label_path}: {e}")
@@ -128,10 +128,10 @@ def find_coordinates_for_cropping(path_image):
 
         for line in label_content.split('\n'):
             parts = line.split()
-            if parts and parts[0] != 'clutter':
-                x, y = map(float, parts[1:3])
-                #print(f"x: {x}, y: {y}")
-                return x, y
+            #if parts and parts[0] != 'clutter':
+            x, y = map(float, parts[1:3])
+            #print(f"x: {x}, y: {y}")
+            return x, y
             # elif parts and parts[0] == 'rock':
             #     x, y = map(float, parts[1:3])
             #     return x,y
@@ -187,6 +187,7 @@ def load_and_preprocess_image_trainset(path_image_trainset):
         return image
 
 
+
 def load_and_preprocess_image_simulated_set(path_simulated_image_trainset):
 
     #path_simulated_image_trainset = pathlib.Path("datasets")
@@ -199,8 +200,8 @@ def load_and_preprocess_image_simulated_set(path_simulated_image_trainset):
 
         inp_image = tf.cast(inp_image, tf.float32)
         inp_image = (inp_image - 127.5)/127.5
-        if not "clutter" in image_type:
-            inp_image.set_shape([369,496,3])
+        #if not "clutter" in image_type:
+        inp_image.set_shape([369,496,3])
         inp_image = tf.image.resize(inp_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
         return inp_image
     else:
@@ -271,31 +272,31 @@ for image_path, image_path_simulated in zip(image_paths_train, image_paths_train
     #     sys.exit()
     #tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
     plt.show()
+    # only augment the image if we dont have a image type of clutter
     if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
-        inp_flipped_left_right, inp_flipped_up_down, inp_rotate = augmentation(inp)#tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
         train_flipped_left_right, train_flipped_up_down, train_rotate = augmentation(re)
-
-
-        flipped_left_right_inp = inp_flipped_left_right
         flipped_left_right_train = train_flipped_left_right
-
-        inp_augmented_training_data_flip_left_right.append(flipped_left_right_inp)  # , flipped_up_down, rotate])
         real_augmented_training_data_flip_left_right.append(flipped_left_right_train)  # , flipped_up_down, rotate])
-
-        flipped_up_down_inp = inp_flipped_up_down
-        real_augmented_up_down_inp = train_flipped_up_down
-
-        inp_augmented_training_data_flip_up_down.append(flipped_up_down_inp)
-        real_augmented_training_data_flip_up_down.append(real_augmented_up_down_inp)
-
-        rotate_inp = inp_rotate
+        real_augmented_up_down = train_flipped_up_down
+        real_augmented_training_data_flip_up_down.append(real_augmented_up_down)
         rotate_real = train_rotate
-
-        inp_augmented_training_data_rotate.append(rotate_inp)
         real_augmented_training_data_rotate.append(rotate_real)
 
     elif "clutter" in image_type:
         pass
+
+
+    #===================================for simulated data===================================
+        inp_flipped_left_right, inp_flipped_up_down, inp_rotate = augmentation(inp)#tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
+        flipped_left_right_inp = inp_flipped_left_right
+        inp_augmented_training_data_flip_left_right.append(flipped_left_right_inp)  # , flipped_up_down, rotate])
+        flipped_up_down_inp = inp_flipped_up_down
+        inp_augmented_training_data_flip_up_down.append(flipped_up_down_inp)
+        rotate_inp = inp_rotate
+        inp_augmented_training_data_rotate.append(rotate_inp)
+
+    #===================================for simulated data===================================
+
 
 # for image_path_test in image_paths_test:
 #     re_test,inp_test = load_and_preprocess_image(image_path_test)
@@ -403,107 +404,6 @@ The CycleGAN paper uses a modified resnet based generator. This tutorial is usin
 OUTPUT_CHANNELS = 3
 
 #===========================================================================================
-#region generator
-
-# def downsample(filters,size,apply_instancenorm = True):
-#     initializer = tf.random_normal_initializer(0., 0.02)
-#     result = tf.keras.Sequential()
-#     result.add(tf.keras.layers.Conv2D(filters,size,strides=2,padding='same',kernel_initializer=initializer,use_bias=True))
-#     if apply_instancenorm:
-#         result.add(tfa.layers.InstanceNormalization())
-#     result.add(tf.keras.layers.LeakyReLU())
-#     return result
-#
-# down_model = downsample(3,4)
-# down_result = down_model(tf.expand_dims(inp, 0))
-# print(down_result.shape)
-#
-# def upsample(filters,size,apply_dropout = False):
-#     initializer = tf.random_normal_initializer(0., 0.02)
-#     result = tf.keras.Sequential()
-#     result.add(tf.keras.layers.Conv2DTranspose(filters,size,strides=2,padding='same'
-#                                                ,kernel_initializer=initializer,use_bias=True))
-#     result.add(tfa.layers.InstanceNormalization())
-#     if apply_dropout:
-#         result.add(tf.keras.layers.Dropout(0.5))
-#     result.add(tf.keras.layers.ReLU())
-#     return result
-#
-# up_model = upsample(3,4)
-# up_result = up_model(down_result)
-# print(up_result.shape)
-#
-#
-# def Generator():
-#   inputs = tf.keras.layers.Input(shape=[256, 256, 3])
-#
-#   down_stack = [
-#     downsample(128, 6, apply_instancenorm=True),  # (batch_size, 128, 128, 64)
-#     downsample(256, 6),  # (batch_size, 64, 64, 128)
-#     downsample(512, 8),  # (batch_size, 32, 32, 256)
-#     downsample(1024, 8),  # (batch_size, 16, 16, 512)
-#     downsample(1024, 9),  # (batch_size, 8, 8, 512)
-#     downsample(1024, 9),  # (batch_size, 4, 4, 512)
-#     downsample(1024, 11),  # (batch_size, 2, 2, 512)
-#     downsample(1024, 11),  # (batch_size, 1, 1, 512)
-#   ]
-#
-#   up_stack = [
-#     upsample(1024, 6, apply_dropout=True),  # (batch_size, 2, 2, 1024)
-#     upsample(1024, 6, apply_dropout=True),  # (batch_size, 4, 4, 1024)
-#     upsample(1024, 8, apply_dropout=True),  # (batch_size, 8, 8, 1024)
-#     upsample(1024, 8),  # (batch_size, 16, 16, 1024)
-#     upsample(512, 9),  # (batch_size, 32, 32, 512)
-#     upsample(256, 9),  # (batch_size, 64, 64, 256)
-#     upsample(128, 11),  # (batch_size, 128, 128, 128)
-#   ]
-#
-#   initializer = tf.random_normal_initializer(0., 0.02)
-#   last = tf.keras.layers.Conv2DTranspose(OUTPUT_CHANNELS, 4,
-#                                          strides=2,
-#                                          padding='same',
-#                                          kernel_initializer=initializer,
-#                                          activation='tanh')  # (batch_size, 256, 256, 3)
-#
-#   x = inputs
-#
-#   # Downsampling through the model
-#   skips = []
-#   for down in down_stack:
-#     x = down(x)
-#     skips.append(x)
-#
-#   skips = reversed(skips[:-1])
-#
-#   # Upsampling and establishing the skip connections
-#   for up, skip in zip(up_stack, skips):
-#     x = up(x)
-#     x = tf.keras.layers.Concatenate()([x, skip])
-#
-#   x = last(x)
-#
-#   return tf.keras.Model(inputs=inputs, outputs=x)
-#
-# def Discriminator():
-#     initializer = tf.random_normal_initializer(0., 0.02) #where mean is 0 and the STD is 0.02
-#     inp = tf.keras.layers.Input(shape=[256,256,3], name='input_image')
-#     tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
-#     x = tf.keras.layers.concatenate([inp, tar])
-#     down1 = downsample(128,4,True)(x) # fordi vi har en batch size på 128,128,64
-#     down2 = downsample(256,10)(down1) #batch size 64,64,128
-#     down3 = downsample(512,10)(down2) #batch size ,32,32,256
-#
-#     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
-#     conv = tf.keras.layers.Conv2D(1024,2,strides=1, kernel_initializer=initializer,use_bias=True)(zero_pad1) #batch size ,31,31,512
-#     instancenorm = tfa.layers.InstanceNormalization()(conv)
-#     leaky_relu = tf.keras.layers.LeakyReLU()(instancenorm)
-#     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
-#     last = tf.keras.layers.Conv2D(1,2,strides=1, kernel_initializer=initializer)(zero_pad2) #batch size 30,30,1
-#     return tf.keras.Model(inputs=[inp,tar], outputs=[last])
-
-#endregion
-#===========================================================================================
-#==================================prøve pix2pix example fra tensorflow authors==================================
 
 class InstanceNormalization(tf.keras.layers.Layer):
   """Instance Normalization Layer (https://arxiv.org/abs/1607.08022)."""
@@ -613,24 +513,24 @@ def unet_generator(output_channels, norm_type='batchnorm'):
   """
 
   down_stack = [
-      downsample(128, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
-      downsample(256, 4, norm_type),  # (bs, 64, 64, 128)
-      downsample(512, 4, norm_type),  # (bs, 32, 32, 256)
-      downsample(1024, 4, norm_type),  # (bs, 16, 16, 512)
-      downsample(1024, 4, norm_type),  # (bs, 8, 8, 512)
-      downsample(1024, 4, norm_type),  # (bs, 4, 4, 512)
-      downsample(1024, 4, norm_type),  # (bs, 2, 2, 512)
-      downsample(1024, 4, norm_type),  # (bs, 1, 1, 512)
+      downsample(64, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
+      downsample(128, 4, norm_type),  # (bs, 64, 64, 128)
+      downsample(256, 4, norm_type),  # (bs, 32, 32, 256)
+      downsample(512, 4, norm_type),  # (bs, 16, 16, 512)
+      downsample(512, 4, norm_type),  # (bs, 8, 8, 512)
+      downsample(512, 4, norm_type),  # (bs, 4, 4, 512)
+      downsample(512, 4, norm_type),  # (bs, 2, 2, 512)
+      downsample(512, 4, norm_type),  # (bs, 1, 1, 512)
   ]
 
   up_stack = [
-      upsample(1024, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-      upsample(1024, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-      upsample(1024, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-      upsample(1024, 4, norm_type),  # (bs, 16, 16, 1024)
-      upsample(512, 4, norm_type),  # (bs, 32, 32, 512)
-      upsample(256, 4, norm_type),  # (bs, 64, 64, 256)
-      upsample(128, 4, norm_type),  # (bs, 128, 128, 128)
+      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+      upsample(512, 4, norm_type),  # (bs, 16, 16, 1024)
+      upsample(256, 4, norm_type),  # (bs, 32, 32, 512)
+      upsample(128, 4, norm_type),  # (bs, 64, 64, 256)
+      upsample(64, 4, norm_type),  # (bs, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -688,7 +588,7 @@ def discriminator(norm_type='batchnorm', target=True):
 
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
-      1024, 4, strides=1, kernel_initializer=initializer,
+      512, 4, strides=1, kernel_initializer=initializer,
       use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
 
   if norm_type.lower() == 'batchnorm':
@@ -725,7 +625,7 @@ plt.figure(figsize=(8, 8))
 contrast = 8
 
 imgs = [sample_simulated, to_training_image, sample_train, to_simulated]
-title = ['Horse', 'To Zebra', 'Zebra', 'To Horse']
+title = ['sample_simulated', 'To to_training_image', 'sample_train', ' To simulated']
 
 for i in range(len(imgs)):
   plt.subplot(2, 2, i+1)
@@ -739,11 +639,11 @@ plt.show()
 plt.figure(figsize=(8, 8))
 
 plt.subplot(121)
-plt.title('Is a real zebra?')
+plt.title('Is a real oil_drum?')
 plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
 
 plt.subplot(122)
-plt.title('Is a real horse?')
+plt.title('Is a fake oildrum?')
 plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
 
 plt.show()
@@ -803,7 +703,7 @@ ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 Training
 """
 
-EPOCHS = 40
+EPOCHS = 20
 
 def generate_images(model, test_input, epoch_num):
   prediction = model(test_input)
@@ -811,7 +711,7 @@ def generate_images(model, test_input, epoch_num):
   plt.figure(figsize=(12, 12))
 
   display_list = [test_input[0], prediction[0]]
-  title = ['Input Image', 'Predicted Image ']
+  title = ['Input Image', 'Predicted Image test']
   num_elem = len(display_list)
 
 
@@ -827,7 +727,7 @@ def generate_images(model, test_input, epoch_num):
       os.makedirs(folder_name)
 
   # Save the figure using the step number to keep track of progress
-  plt.savefig(f'{folder_name}/test image_at_epoch_{epoch_num:04d}.png')
+  plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
