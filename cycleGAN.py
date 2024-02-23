@@ -675,11 +675,11 @@ def identity_loss(real_image, same_image):
   return LAMBDA * 0.5 * loss
 
 
-generator_g_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
-generator_f_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
+generator_g_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
+generator_f_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
 
-discriminator_x_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
-discriminator_y_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.2)
+discriminator_x_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
+discriminator_y_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
 
 # checkpoint_path = "./checkpoints/train"
 #
