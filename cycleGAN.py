@@ -21,10 +21,22 @@ import pathlib
 import tensorflow_addons as tfa
 from IPython import display
 from IPython.display import clear_output
+import neptune
+from neptune.types import File
 import datetime
 import sys
 #import cv2
 #from sklearn.cluster import KMeans
+
+
+
+run = neptune.init_run(
+    project="masteroppgave/cycleGAN",
+    api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
+)
+
+
+
 
 
 start_time = time.time()
@@ -728,6 +740,7 @@ def generate_images(model, test_input, epoch_num):
 
   # Save the figure using the step number to keep track of progress
   plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
+  run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path)
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
