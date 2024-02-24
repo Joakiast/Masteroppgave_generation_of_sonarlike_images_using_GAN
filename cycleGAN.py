@@ -36,6 +36,25 @@ run = neptune.init_run(
     api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
 )
 
+def upload_plot_to_neptune(imgs, titles, contrast=8):
+    plt.figure(figsize=(8, 8))
+    for i in range(len(imgs)):
+        plt.subplot(2, 2, i+1)
+        plt.title(titles[i])
+        if i % 2 == 0:
+            plt.imshow(imgs[i][0] * 0.5 + 0.5)
+        else:
+            plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
+        plt.axis('off')
+
+    # Lagre til en BytesIO stream og laste opp direkte til Neptune
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format='png')
+    img_buffer.seek(0)
+    run["visualizations/generator_outputs"].upload(img_buffer)
+    plt.close()
+
+
 start_time = time.time()
 #region load the dataset
 #test 0
@@ -322,9 +341,9 @@ simulated_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train_simulat
 print(f"dataset simulated shape 1: {len(simulated_dataset)}")
 
 train_dataset = train_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
-print(train_dataset)
+print(f"dataset shape 2: {len(train_dataset)}")
 simulated_dataset = simulated_dataset.map(load_and_preprocess_image_simulated_set, num_parallel_calls=tf.data.AUTOTUNE)
-print(simulated_dataset)
+print(f"dataset simulated shape 2: {len(simulated_dataset)}")
 
 
 augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(real_augmented_training_data_flip_left_right)
@@ -347,6 +366,7 @@ augmented_simulated_dataset_rotate = tf.data.Dataset.from_tensor_slices(inp_augm
 train_dataset = train_dataset.concatenate(augmented_training_dataset_rotate)
 simulated_dataset = simulated_dataset.concatenate(augmented_simulated_dataset_rotate)
 print(f"dataset shape 4: {len(train_dataset)}")
+print(f"dataset simulated shape 4: {len(simulated_dataset)}")
 
 train_dataset = train_dataset.shuffle(BUFFER_SIZE_trainset)
 simulated_dataset = simulated_dataset.shuffle(BUFFER_SIZE_simulated)
@@ -645,8 +665,17 @@ for i in range(len(imgs)):
     plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
 plt.show()
 
-plt.figure(figsize=(8, 8))
+img_buffer = BytesIO()
+plt.savefig(img_buffer, format='png')
+plt.close()  # Lukk plottet for å frigjøre minne
+img_buffer.seek(0)  # Gå tilbake til starten av bufferen
 
+# Last opp plottet direkte fra bufferen til Neptune
+run["visualizations/combined_generators_output"].upload(img_buffer)
+
+
+
+plt.figure(figsize=(8, 8))
 plt.subplot(121)
 plt.title('Is a real oil_drum?')
 plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
@@ -654,8 +683,15 @@ plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
 plt.subplot(122)
 plt.title('Is a fake oildrum?')
 plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
-
 plt.show()
+
+
+# Lagre og laste opp det andre plottet til Neptune
+img_buffer = BytesIO()
+plt.savefig(img_buffer, format='png')
+plt.close()
+img_buffer.seek(0)
+run["visualizations/discriminators_output"].upload(img_buffer)
 
 LAMBDA = 10
 
