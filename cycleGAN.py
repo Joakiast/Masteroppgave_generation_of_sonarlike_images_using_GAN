@@ -767,6 +767,9 @@ def generate_images(model, test_input, epoch_num):
   # print('Saved generated images at step '+ str(step))
   plt.show()
 
+def log_value(run, name, value):
+    # Denne funksjonen kjører i eager modus og kan derfor trygt kalle .numpy() på tensoren.
+    run[name].log(value.numpy())
 
 @tf.function
 def train_step(real_x, real_y):
@@ -833,12 +836,12 @@ def train_step(real_x, real_y):
 
 #==============logging===========================================================
 
-  run["train/gen_g_loss"].log(gen_g_loss.numpy())
-  run["train/gen_f_loss"].log(gen_f_loss.numpy())
-  run["train/total_cycle_loss"].log(total_cycle_loss.numpy())
-  run["train/disc_x_loss"].log(disc_x_loss.numpy())
-  run["train/disc_y_loss"].log(disc_y_loss.numpy())
-
+  for name, value in [("train/gen_g_loss", gen_g_loss),
+                      ("train/gen_f_loss", gen_f_loss),
+                      ("train/total_cycle_loss", total_cycle_loss),
+                      ("train/disc_x_loss", disc_x_loss),
+                      ("train/disc_y_loss", disc_y_loss)]:
+      tf.py_function(log_value, [run, name, value], [])
 
 
 
