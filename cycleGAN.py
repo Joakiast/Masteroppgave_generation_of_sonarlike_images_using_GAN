@@ -22,6 +22,7 @@ import tensorflow_addons as tfa
 from IPython import display
 from IPython.display import clear_output
 import neptune
+from io import BytesIO
 from neptune.types import File
 import datetime
 import sys
@@ -34,10 +35,6 @@ run = neptune.init_run(
     project="masteroppgave/cycleGAN",
     api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
 )
-
-
-
-
 
 start_time = time.time()
 #region load the dataset
@@ -52,8 +49,8 @@ color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på oildrum
 
 #image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
-image_type = '*clutter_RGB'
+image_type = '*oil_drum_RGB'
+#image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
 train_set_path = pathlib.Path("datasets/train")
@@ -283,7 +280,7 @@ for image_path, image_path_simulated in zip(image_paths_train, image_paths_train
     # if i > 9:
     #     sys.exit()
     #tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image], Tout=[tf.float32,tf.float32])
-    plt.show()
+    #plt.show()
     # only augment the image if we dont have a image type of clutter
     if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
         train_flipped_left_right, train_flipped_up_down, train_rotate = augmentation(re)
