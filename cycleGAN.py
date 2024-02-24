@@ -767,9 +767,7 @@ def generate_images(model, test_input, epoch_num):
   # print('Saved generated images at step '+ str(step))
   plt.show()
 
-def log_value(run, name, value):
-    # Denne funksjonen kjører i eager modus og kan derfor trygt kalle .numpy() på tensoren.
-    run[name].log(value.numpy())
+
 
 @tf.function
 def train_step(real_x, real_y):
@@ -836,13 +834,17 @@ def train_step(real_x, real_y):
 
 #==============logging===========================================================
 
+  def log_wrapper(name, value):
+      # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
+      run[name].log(value.numpy())
+
+  # Bruker en lambda-funksjon som wrapper for å unngå å passere Run objektet direkte
   for name, value in [("train/gen_g_loss", gen_g_loss),
                       ("train/gen_f_loss", gen_f_loss),
                       ("train/total_cycle_loss", total_cycle_loss),
                       ("train/disc_x_loss", disc_x_loss),
                       ("train/disc_y_loss", disc_y_loss)]:
-      tf.py_function(log_value, [run, name, value], [])
-
+      tf.py_function(lambda v: log_wrapper(name, v), [value], [])
 
 
 
