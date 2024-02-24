@@ -687,11 +687,11 @@ def identity_loss(real_image, same_image):
   return LAMBDA * 0.5 * loss
 
 
-generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
+generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
 
-discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
+discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
 
 # checkpoint_path = "./checkpoints/train"
 #
@@ -774,8 +774,6 @@ def train_step(real_x, real_y):
     # calculate the loss
     gen_g_loss = generator_loss(disc_fake_y)
     gen_f_loss = generator_loss(disc_fake_x)
-    #run["train/gen_g_loss"].log(gen_g_loss)
-    #run["train/gen_f_loss"].log(gen_f_loss)
 
     total_cycle_loss = calc_cycle_loss(real_x, cycled_x) + calc_cycle_loss(real_y, cycled_y)
 
