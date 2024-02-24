@@ -76,15 +76,15 @@ learningrate_G_f = 3e-4
 learningrate_D_x = 3e-4
 learningrate_D_y = 3e-4
 
-beta_G_g = 0.5
-beta_G_f = 0.5
-beta_D_x = 0.5
-beta_D_y = 0.5
+beta_G_g = 0.25
+beta_G_f = 0.25
+beta_D_x = 0.25
+beta_D_y = 0.25
 
 
 #image_type = '*rock_RGB'
-image_type = '*oil_drum_RGB'
-#image_type = '*clutter_RGB'
+#image_type = '*oil_drum_RGB'
+image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
 params = {
