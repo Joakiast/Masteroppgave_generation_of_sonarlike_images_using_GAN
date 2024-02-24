@@ -740,7 +740,8 @@ def generate_images(model, test_input, epoch_num):
 
   # Save the figure using the step number to keep track of progress
   plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
-  run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path)
+  image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
+  run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
