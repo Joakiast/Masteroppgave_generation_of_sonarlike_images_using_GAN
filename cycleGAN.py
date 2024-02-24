@@ -774,8 +774,8 @@ def train_step(real_x, real_y):
     # calculate the loss
     gen_g_loss = generator_loss(disc_fake_y)
     gen_f_loss = generator_loss(disc_fake_x)
-    run["train/gen_g_loss"].log(gen_g_loss)
-    run["train/gen_f_loss"].log(gen_f_loss)
+    #run["train/gen_g_loss"].log(gen_g_loss)
+    #run["train/gen_f_loss"].log(gen_f_loss)
 
     total_cycle_loss = calc_cycle_loss(real_x, cycled_x) + calc_cycle_loss(real_y, cycled_y)
 
@@ -785,8 +785,8 @@ def train_step(real_x, real_y):
 
     disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
     disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
-    run["train/disc_x_loss"].log(disc_x_loss)
-    run["train/disc_y_loss"].log(disc_y_loss)
+    #run["train/disc_x_loss"].log(disc_x_loss)
+    #run["train/disc_y_loss"].log(disc_y_loss)
 
   # Calculate the gradients for generator and discriminator
   generator_g_gradients = tape.gradient(total_gen_g_loss,
