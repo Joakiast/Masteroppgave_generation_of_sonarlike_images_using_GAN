@@ -89,7 +89,6 @@ image_type = '*oil_drum_RGB'
 
 params = {
     "activation": "relu",
-    "dropout": 0.25,
     "learning_rate": 0.1,
     "n_epochs": EPOCHS,
     "batch_size": BATCH_SIZE,
