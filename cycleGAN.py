@@ -315,13 +315,13 @@ for image_path, image_path_simulated in zip(image_paths_train, image_paths_train
 
 
     #===================================for simulated data===================================
-        inp_flipped_left_right, inp_flipped_up_down, inp_rotate = augmentation(inp)#tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
-        flipped_left_right_inp = inp_flipped_left_right
-        inp_augmented_training_data_flip_left_right.append(flipped_left_right_inp)  # , flipped_up_down, rotate])
-        flipped_up_down_inp = inp_flipped_up_down
-        inp_augmented_training_data_flip_up_down.append(flipped_up_down_inp)
-        rotate_inp = inp_rotate
-        inp_augmented_training_data_rotate.append(rotate_inp)
+    inp_flipped_left_right, inp_flipped_up_down, inp_rotate = augmentation(inp)#tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
+    flipped_left_right_inp = inp_flipped_left_right
+    inp_augmented_training_data_flip_left_right.append(flipped_left_right_inp)  # , flipped_up_down, rotate])
+    flipped_up_down_inp = inp_flipped_up_down
+    inp_augmented_training_data_flip_up_down.append(flipped_up_down_inp)
+    rotate_inp = inp_rotate
+    inp_augmented_training_data_rotate.append(rotate_inp)
 
     #===================================for simulated data===================================
 
