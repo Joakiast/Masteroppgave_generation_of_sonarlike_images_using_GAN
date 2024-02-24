@@ -33,8 +33,11 @@ import sys
 
 run = neptune.init_run(
     project="masteroppgave/cycleGAN",
-    api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
+    api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ==",
+    mode="read-only"
 )
+
+
 
 def upload_plot_to_neptune(imgs, titles, contrast=8):
     plt.figure(figsize=(8, 8))
@@ -829,6 +832,16 @@ def train_step(real_x, real_y):
   discriminator_y_optimizer.apply_gradients(zip(discriminator_y_gradients,
                                                 discriminator_y.trainable_variables))
 
+#==============logging===========================================================
+
+  run["train/gen_g_loss"].log(gen_g_loss.numpy())
+  run["train/gen_f_loss"].log(gen_f_loss.numpy())
+  run["train/total_cycle_loss"].log(total_cycle_loss.numpy())
+  run["train/disc_x_loss"].log(disc_x_loss.numpy())
+  run["train/disc_y_loss"].log(disc_y_loss.numpy())
+
+
+
 
 
 for epoch in range(EPOCHS):
@@ -865,3 +878,4 @@ print("Generate using test dataset")
 # for inp in test_horses.take(5):
 #   generate_images(generator_g, inp)
 
+run.stop()
