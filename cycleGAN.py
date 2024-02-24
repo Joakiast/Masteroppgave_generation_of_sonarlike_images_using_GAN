@@ -21,7 +21,7 @@ import pathlib
 import tensorflow_addons as tfa
 from IPython import display
 from IPython.display import clear_output
-import neptune.new as neptune
+import neptune
 from io import BytesIO
 from neptune.types import File
 import datetime
@@ -665,13 +665,6 @@ for i in range(len(imgs)):
     plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
 plt.show()
 
-img_buffer = BytesIO()
-plt.savefig(img_buffer, format='png')
-plt.close()  # Lukk plottet for å frigjøre minne
-img_buffer.seek(0)  # Gå tilbake til starten av bufferen
-
-# Last opp plottet direkte fra bufferen til Neptune
-run["visualizations/combined_generators_output"].upload(img_buffer)
 
 
 
@@ -683,15 +676,8 @@ plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
 plt.subplot(122)
 plt.title('Is a fake oildrum?')
 plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
+
 plt.show()
-
-
-# Lagre og laste opp det andre plottet til Neptune
-img_buffer = BytesIO()
-plt.savefig(img_buffer, format='png')
-plt.close()
-img_buffer.seek(0)
-run["visualizations/discriminators_output"].upload(img_buffer)
 
 LAMBDA = 10
 
