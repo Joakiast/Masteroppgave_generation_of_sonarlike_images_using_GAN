@@ -76,10 +76,10 @@ train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
 test_set_path = pathlib.Path("datasets/test")
 
-image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))][:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]#[:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]#[:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train_simulated)}")
 
 image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
