@@ -834,12 +834,12 @@ def train_step(real_x, real_y):
 
 #==============logging===========================================================
 
-  run["train/gen_g_loss"].log(gen_g_loss.numpy())
-  run["train/gen_f_loss"].log(gen_f_loss.numpy())
-  run["train/total_cycle_loss"].log(total_cycle_loss.numpy())
-  run["train/disc_x_loss"].log(disc_x_loss.numpy())
-  run["train/disc_y_loss"].log(disc_y_loss.numpy())
-
+  # run["train/gen_g_loss"].log(gen_g_loss.numpy())
+  # run["train/gen_f_loss"].log(gen_f_loss.numpy())
+  # run["train/total_cycle_loss"].log(total_cycle_loss.numpy())
+  # run["train/disc_x_loss"].log(disc_x_loss.numpy())
+  # run["train/disc_y_loss"].log(disc_y_loss.numpy())
+  #
 
 
 
