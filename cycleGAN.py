@@ -68,7 +68,7 @@ BATCH_SIZE = 10
 EPOCHS = 10
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
-DROPOUT = 0.5
+DROPOUT = 0.2
 LAMBDA = 10
 
 learningrate_G_g = 2e-4
