@@ -88,7 +88,7 @@ image_type = '*oil_drum_RGB'
 #image_type = "*man_made_object_RGB"
 
 params = {
-    "activation": "relu",
+    "activation": "tanh",
     "learning_rate": 0.1,
     "n_epochs": EPOCHS,
     "batch_size": BATCH_SIZE,
@@ -103,6 +103,7 @@ params = {
     "beta_D_y": beta_D_y,
     "Lambda": LAMBDA,
     "Image_type": image_type,
+    "use_bias": True,
 
 }
 run["model/parameters"] = params
@@ -520,7 +521,7 @@ def downsample(filters, size, norm_type='batchnorm', apply_norm=True):
   result = tf.keras.Sequential()
   result.add(
       tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',
-                             kernel_initializer=initializer, use_bias=False))
+                             kernel_initializer=initializer, use_bias=True))
 
   if apply_norm:
     if norm_type.lower() == 'batchnorm':
@@ -555,7 +556,7 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
       tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
                                       padding='same',
                                       kernel_initializer=initializer,
-                                      use_bias=False))
+                                      use_bias=True))
 
   if norm_type.lower() == 'batchnorm':
     result.add(tf.keras.layers.BatchNormalization())
@@ -658,7 +659,7 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
       512, 4, strides=1, kernel_initializer=initializer,
-      use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
+      use_bias=True)(zero_pad1)  # (bs, 31, 31, 512)
 
   if norm_type.lower() == 'batchnorm':
     norm1 = tf.keras.layers.BatchNormalization()(conv)
