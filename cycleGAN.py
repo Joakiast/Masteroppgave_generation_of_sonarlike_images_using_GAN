@@ -38,23 +38,23 @@ run = neptune.init_run(
 
 
 
-def upload_plot_to_neptune(imgs, titles, contrast=8):
-    plt.figure(figsize=(8, 8))
-    for i in range(len(imgs)):
-        plt.subplot(2, 2, i+1)
-        plt.title(titles[i])
-        if i % 2 == 0:
-            plt.imshow(imgs[i][0] * 0.5 + 0.5)
-        else:
-            plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
-        plt.axis('off')
-
-    # Lagre til en BytesIO stream og laste opp direkte til Neptune
-    img_buffer = BytesIO()
-    plt.savefig(img_buffer, format='png')
-    img_buffer.seek(0)
-    run["visualizations/generator_outputs"].upload(img_buffer)
-    plt.close()
+# def upload_plot_to_neptune(imgs, titles, contrast=8):
+#     plt.figure(figsize=(8, 8))
+#     for i in range(len(imgs)):
+#         plt.subplot(2, 2, i+1)
+#         plt.title(titles[i])
+#         if i % 2 == 0:
+#             plt.imshow(imgs[i][0] * 0.5 + 0.5)
+#         else:
+#             plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
+#         plt.axis('off')
+#
+#     # Lagre til en BytesIO stream og laste opp direkte til Neptune
+#     img_buffer = BytesIO()
+#     plt.savefig(img_buffer, format='png')
+#     img_buffer.seek(0)
+#     run["visualizations/generator_outputs"].upload(img_buffer)
+#     plt.close()
 
 
 start_time = time.time()
@@ -67,12 +67,52 @@ resize_y = 256
 BATCH_SIZE = 10
 EPOCHS = 10
 color_channel = 3
-crop_size = 256#resize_x / 2 150 fin størrelse på oildrum
+crop_size = 256#resize_x / 2 150 fin størrelse på
+DROPOUT = 0.5
+LAMBDA = 10
+
+learningrate_G_g = 2e-4
+learningrate_G_f = 2e-4
+learningrate_D_x = 2e-4
+learningrate_D_y = 2e-4
+
+beta_G_g = 0.5
+beta_G_f = 0.5
+beta_D_x = 0.5
+beta_D_y = 0.5
+
 
 #image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
+image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
-image_type = "*man_made_object_RGB"
+#image_type = "*man_made_object_RGB"
+
+params = {
+    "activation": "relu",
+    "dropout": 0.25,
+    "learning_rate": 0.1,
+    "n_epochs": EPOCHS,
+    "batch_size": BATCH_SIZE,
+    "drop_out": DROPOUT,
+    "learningrate_generator_g": learningrate_G_g,
+    "learningrate_generator_f": learningrate_G_f,
+    "learningrate_discriminator_x": learningrate_D_x,
+    "learningrate_discriminator_y": learningrate_D_y,
+    "beta_G_g": beta_G_g,
+    "beta_G_f": beta_G_f,
+    "beta_D_x": beta_D_x,
+    "beta_D_y": beta_D_y,
+    "Lambda": LAMBDA,
+    "Image_type": image_type,
+
+}
+run["model/parameters"] = params
+
+
+
+
+
+#region Preparing datasets
 
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
@@ -169,10 +209,6 @@ def find_coordinates_for_cropping(path_image):
     except Exception as e:
         print(f"Error while processing label file {label_path}: {e}")
     return None, None
-
-
-#endregion
-
 
 #==========================
 def load_and_preprocess_image_trainset(path_image_trainset):
@@ -391,7 +427,7 @@ simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 # test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
 #============================================================================
-#endregion gggggggggg))))))))))
+#endregion
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
 for i in train_dataset.take(1):
@@ -422,6 +458,9 @@ sample_simulated = next(iter(simulated_dataset))
 sample_train = next(iter(train_dataset))
 
 #==============================================================================
+
+#endregion
+
 
 """
 Import and reuse the Pix2Pix models
@@ -525,7 +564,7 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
     result.add(InstanceNormalization())
 
   if apply_dropout:
-    result.add(tf.keras.layers.Dropout(0.5))
+    result.add(tf.keras.layers.Dropout(DROPOUT))
 
   result.add(tf.keras.layers.ReLU())
 
@@ -681,7 +720,7 @@ plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
 
 plt.show()
 
-LAMBDA = 10
+
 
 loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
@@ -707,12 +746,17 @@ def identity_loss(real_image, same_image):
   loss = tf.reduce_mean(tf.abs(real_image - same_image))
   return LAMBDA * 0.5 * loss
 
+generator_g_optimizer = tf.keras.optimizers.Adam(learningrate_G_g, beta_1=beta_G_g)
+generator_f_optimizer = tf.keras.optimizers.Adam(learningrate_G_f, beta_1=beta_G_f)
 
-generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+discriminator_x_optimizer = tf.keras.optimizers.Adam(learningrate_D_x, beta_1=beta_D_x)
+discriminator_y_optimizer = tf.keras.optimizers.Adam(learningrate_D_y, beta_1=beta_D_y)
 
-discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+# generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+# generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+#
+# discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+# discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
 # checkpoint_path = "./checkpoints/train"
 #
