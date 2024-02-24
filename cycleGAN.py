@@ -47,9 +47,9 @@ resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 10
-EPOCHS = 200
+EPOCHS = 10
 color_channel = 3
-crop_size = 150#resize_x / 2
+crop_size = 256#resize_x / 2 150 fin størrelse på oildrum
 
 #image_type = '*rock_RGB'
 #image_type = '*oil_drum_RGB'
@@ -168,12 +168,12 @@ def load_and_preprocess_image_trainset(path_image_trainset):
 
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-        if not "clutter" in image_type:
+        i#f not "clutter" in image_type:
             #x,y = tf.py_function(func=find_coordinates_for_circle_tensor, inp=[path_image_trainset], Tout=[tf.float32, tf.float32])
-            x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],
+        x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],
                                   Tout=[tf.float32, tf.float32])
-            image.set_shape([400, 600, 3])
-            image = crop_image_around_POI(image, x, y, crop_size)
+        image.set_shape([400, 600, 3])
+        image = crop_image_around_POI(image, x, y, crop_size)
             #inp_image = tf.py_function(func = remove_part_of_image, inp = [image,x,y], Tout = tf.float32)#remove_part_of_image(image,x,y)#crop_image_around_POI(image, x, y, crop_size)
             #inp_image.set_shape([400, 600, 3])
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
@@ -189,9 +189,9 @@ def load_and_preprocess_image_trainset(path_image_trainset):
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         assert image.shape == (400, 600, 3)
         #image = tf.image.resize(image, [400, 600], method=tf.image.ResizeMethod.AREA)
-        if not "clutter" in image_type:
-            x, y = find_coordinates_for_cropping(path_image_trainset)
-            image = crop_image_around_POI(image, x, y, crop_size)
+        #if not "clutter" in image_type:
+        x, y = find_coordinates_for_cropping(path_image_trainset)
+        image = crop_image_around_POI(image, x, y, crop_size)
             # image = tf.image.resize(image, [resize_x,resize_y], method=tf.image.ResizeMethod.AREA)
             # print(f"alle bilder kommer hit: image shape før resize: {image.shape} bilde: {path_image}")
         image = tf.image.resize(image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
@@ -687,11 +687,11 @@ def identity_loss(real_image, same_image):
   return LAMBDA * 0.5 * loss
 
 
-generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
-generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
+generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
-discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
-discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
+discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
 # checkpoint_path = "./checkpoints/train"
 #
@@ -715,7 +715,7 @@ discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
 Training
 """
 
-EPOCHS = 100
+
 
 def generate_images(model, test_input, epoch_num):
   prediction = model(test_input)
