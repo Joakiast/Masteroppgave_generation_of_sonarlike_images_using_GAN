@@ -21,7 +21,7 @@ import pathlib
 import tensorflow_addons as tfa
 from IPython import display
 from IPython.display import clear_output
-import neptune
+import neptune.new as neptune
 from io import BytesIO
 from neptune.types import File
 import datetime
