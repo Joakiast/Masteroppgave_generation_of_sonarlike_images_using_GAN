@@ -68,9 +68,9 @@ color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på oildrum
 
 #image_type = '*rock_RGB'
-image_type = '*oil_drum_RGB'
+#image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
-#image_type = "*man_made_object_RGB"
+image_type = "*man_made_object_RGB"
 
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
@@ -80,7 +80,7 @@ image_paths_train = [str(path) for path in list(train_set_path.glob(image_type +
 print(f"size of trainingset: {len(image_paths_train)}")
 
 image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]#[:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
-print(f"size of trainingset: {len(image_paths_train_simulated)}")
+print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
 
 image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
