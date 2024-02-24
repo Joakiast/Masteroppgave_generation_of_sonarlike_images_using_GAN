@@ -501,7 +501,7 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
   return result
 
 
-def unet_generator(output_channels, norm_type='batchnorm'):
+def unet_generator(more_filters, output_channels, norm_type='batchnorm'):
   """Modified u-net generator model (https://arxiv.org/abs/1611.07004).
 
   Args:
@@ -513,24 +513,24 @@ def unet_generator(output_channels, norm_type='batchnorm'):
   """
 
   down_stack = [
-      downsample(64, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
-      downsample(128, 4, norm_type),  # (bs, 64, 64, 128)
-      downsample(256, 4, norm_type),  # (bs, 32, 32, 256)
-      downsample(512, 4, norm_type),  # (bs, 16, 16, 512)
-      downsample(512, 4, norm_type),  # (bs, 8, 8, 512)
-      downsample(512, 4, norm_type),  # (bs, 4, 4, 512)
-      downsample(512, 4, norm_type),  # (bs, 2, 2, 512)
-      downsample(512, 4, norm_type),  # (bs, 1, 1, 512)
+      downsample(64*more_filters, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
+      downsample(128*more_filters, 4, norm_type),  # (bs, 64, 64, 128)
+      downsample(256*more_filters, 4, norm_type),  # (bs, 32, 32, 256)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 16, 16, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 8, 8, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 4, 4, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 2, 2, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 1, 1, 512)
   ]
 
   up_stack = [
-      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-      upsample(512, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-      upsample(512, 4, norm_type),  # (bs, 16, 16, 1024)
-      upsample(256, 4, norm_type),  # (bs, 32, 32, 512)
-      upsample(128, 4, norm_type),  # (bs, 64, 64, 256)
-      upsample(64, 4, norm_type),  # (bs, 128, 128, 128)
+      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+      upsample(512*more_filters, 4, norm_type),  # (bs, 16, 16, 1024)
+      upsample(256*more_filters, 4, norm_type),  # (bs, 32, 32, 512)
+      upsample(128*more_filters, 4, norm_type),  # (bs, 64, 64, 256)
+      upsample(64*more_filters, 4, norm_type),  # (bs, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -562,7 +562,7 @@ def unet_generator(output_channels, norm_type='batchnorm'):
   return tf.keras.Model(inputs=inputs, outputs=x)
 
 
-def discriminator(norm_type='batchnorm', target=True):
+def discriminator(more_filters, norm_type='batchnorm', target=True):
   """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
 
   Args:
@@ -582,9 +582,9 @@ def discriminator(norm_type='batchnorm', target=True):
     tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])  # (bs, 256, 256, channels*2)
 
-  down1 = downsample(128, 4, norm_type, False)(x)  # (bs, 128, 128, 64)
-  down2 = downsample(256, 4, norm_type)(down1)  # (bs, 64, 64, 128)
-  down3 = downsample(512, 4, norm_type)(down2)  # (bs, 32, 32, 256)
+  down1 = downsample(128*more_filters, 4, norm_type, False)(x)  # (bs, 128, 128, 64)
+  down2 = downsample(256*more_filters, 4, norm_type)(down1)  # (bs, 64, 64, 128)
+  down3 = downsample(512*more_filters, 4, norm_type)(down2)  # (bs, 32, 32, 256)
 
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
@@ -613,11 +613,11 @@ def discriminator(norm_type='batchnorm', target=True):
 #==================================prøve pix2pix example fra tensorflow authors==================================
 
 
-generator_g = unet_generator(OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
-generator_f = unet_generator(OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_g = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_f = unet_generator(1,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 
-discriminator_x = discriminator(norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
-discriminator_y = discriminator(norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_x = discriminator(2,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 
 to_training_image = generator_g(sample_simulated)
 to_simulated = generator_f(sample_train)
@@ -675,11 +675,11 @@ def identity_loss(real_image, same_image):
   return LAMBDA * 0.5 * loss
 
 
-generator_g_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
-generator_f_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
+generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
-discriminator_x_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
-discriminator_y_optimizer = tf.keras.optimizers.Adam(1e-4, beta_1=0.5)
+discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+discriminator_y_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
 # checkpoint_path = "./checkpoints/train"
 #
