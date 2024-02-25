@@ -81,7 +81,7 @@ beta_G_f = 0.9
 beta_D_x = 0.9
 beta_D_y = 0.9
 
-kernel_size_all = 8
+kernel_size_all = 6
 
 
 
