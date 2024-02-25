@@ -103,7 +103,7 @@ params = {
     "Lambda": LAMBDA,
     "Image_type": image_type,
     "use_bias": True,
-    "number_of_filters": "increased in generator not discriminator"
+    "number_of_filters": "increased x2 in generator not discriminator"
 
 }
 run["model/parameters"] = params
