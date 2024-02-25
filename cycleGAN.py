@@ -103,6 +103,7 @@ params = {
     "Lambda": LAMBDA,
     "Image_type": image_type,
     "use_bias": True,
+    "number_of_filters": "increased in generator not discriminator"
 
 }
 run["model/parameters"] = params
@@ -685,8 +686,8 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
 generator_g = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 generator_f = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 
-discriminator_x = discriminator(2,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
-discriminator_y = discriminator(2,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_x = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 
 to_training_image = generator_g(sample_simulated)
 to_simulated = generator_f(sample_train)
