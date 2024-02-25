@@ -64,11 +64,11 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 10
+BATCH_SIZE = 50
 EPOCHS = 40
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
-DROPOUT = 0.5
+DROPOUT = 0.3
 LAMBDA = 15
 
 learningrate_G_g = 7e-5
@@ -81,7 +81,6 @@ beta_G_f = 0.9
 beta_D_x = 0.9
 beta_D_y = 0.9
 
-kernel_size_all = 6
 
 
 
@@ -113,7 +112,6 @@ params = {
     "Image_type": image_type,
     "use_bias": True,
     "number_of_filters": "increased x2 in generator not discriminator",
-    "kernel_size_all": kernel_size_all
 }
 
 if image_type_2:
@@ -601,24 +599,24 @@ def unet_generator(more_filters, output_channels, norm_type='batchnorm'):
   """
 
   down_stack = [
-      downsample(64 * more_filters, kernel_size_all, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
-      downsample(128 * more_filters, kernel_size_all, norm_type),  # (bs, 64, 64, 128)
-      downsample(256 * more_filters, kernel_size_all, norm_type),  # (bs, 32, 32, 256)
-      downsample(512 * more_filters, kernel_size_all, norm_type),  # (bs, 16, 16, 512)
-      downsample(512 * more_filters, kernel_size_all, norm_type),  # (bs, 8, 8, 512)
-      downsample(512 * more_filters, kernel_size_all, norm_type),  # (bs, 4, 4, 512)
-      downsample(512 * more_filters, kernel_size_all, norm_type),  # (bs, 2, 2, 512)
-      downsample(512 * more_filters, kernel_size_all, norm_type),  # (bs, 1, 1, 512)
+      downsample(64*more_filters, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
+      downsample(128*more_filters, 4, norm_type),  # (bs, 64, 64, 128)
+      downsample(256*more_filters, 4, norm_type),  # (bs, 32, 32, 256)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 16, 16, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 8, 8, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 4, 4, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 2, 2, 512)
+      downsample(512*more_filters, 4, norm_type),  # (bs, 1, 1, 512)
   ]
 
   up_stack = [
-      upsample(512 * more_filters, kernel_size_all, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-      upsample(512 * more_filters, kernel_size_all, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-      upsample(512 * more_filters, kernel_size_all, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-      upsample(512 * more_filters, kernel_size_all, norm_type),  # (bs, 16, 16, 1024)
-      upsample(256 * more_filters, kernel_size_all, norm_type),  # (bs, 32, 32, 512)
-      upsample(128 * more_filters, kernel_size_all, norm_type),  # (bs, 64, 64, 256)
-      upsample(64 * more_filters, kernel_size_all, norm_type),  # (bs, 128, 128, 128)
+      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+      upsample(512*more_filters, 4, norm_type),  # (bs, 16, 16, 1024)
+      upsample(256*more_filters, 4, norm_type),  # (bs, 32, 32, 512)
+      upsample(128*more_filters, 4, norm_type),  # (bs, 64, 64, 256)
+      upsample(64*more_filters, 4, norm_type),  # (bs, 128, 128, 128)
   ]
 
   initializer = tf.random_normal_initializer(0., 0.02)
@@ -670,13 +668,13 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
     tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])  # (bs, 256, 256, channels*2)
 
-  down1 = downsample(128 * more_filters, kernel_size_all, norm_type, False)(x)  # (bs, 128, 128, 64)
-  down2 = downsample(256 * more_filters, kernel_size_all, norm_type)(down1)  # (bs, 64, 64, 128)
-  down3 = downsample(512 * more_filters, kernel_size_all, norm_type)(down2)  # (bs, 32, 32, 256)
+  down1 = downsample(128*more_filters, 4, norm_type, False)(x)  # (bs, 128, 128, 64)
+  down2 = downsample(256*more_filters, 4, norm_type)(down1)  # (bs, 64, 64, 128)
+  down3 = downsample(512*more_filters, 4, norm_type)(down2)  # (bs, 32, 32, 256)
 
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
-      512, kernel_size_all, strides=1, kernel_initializer=initializer,
+      512, 4, strides=1, kernel_initializer=initializer,
       use_bias=True)(zero_pad1)  # (bs, 31, 31, 512)
 
   if norm_type.lower() == 'batchnorm':
