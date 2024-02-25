@@ -82,10 +82,16 @@ beta_D_x = 0.9
 beta_D_y = 0.9
 
 
-image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
+#image_type = '*rock_RGB'
+image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
+
+#image_type_2 = False
+image_type_2 = '*rock_RGB'
+#image_type_2 = '*oil_drum_RGB'
+#image_type_2 = "*man_made_object_RGB"
+
 
 params = {
     "activation": "tanh",
@@ -103,9 +109,13 @@ params = {
     "Lambda": LAMBDA,
     "Image_type": image_type,
     "use_bias": True,
-    "number_of_filters": "increased x2 in generator not discriminator"
-
+    "number_of_filters": "increased x2 in generator not discriminator",
 }
+
+if image_type_2:
+    params["image_type_2"] = image_type_2
+
+
 run["model/parameters"] = params
 
 
@@ -120,6 +130,10 @@ test_set_path = pathlib.Path("datasets/test")
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]#[:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
+
+img_buffer = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
+
+image_paths_train.extend(img_buffer)
 
 image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]#[:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
@@ -925,5 +939,8 @@ print("Generate using test dataset")
 # # Run the trained model on the test dataset
 # for inp in test_horses.take(5):
 #   generate_images(generator_g, inp)
+
+generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
+discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
 
 run.stop()
