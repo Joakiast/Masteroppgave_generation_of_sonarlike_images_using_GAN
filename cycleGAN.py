@@ -69,17 +69,17 @@ EPOCHS = 40
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.5
-LAMBDA = 10
+LAMBDA = 15
 
-learningrate_G_g = 5e-5
-learningrate_G_f = 5e-5
-learningrate_D_x = 5e-5
-learningrate_D_y = 5e-5
+learningrate_G_g = 7e-5
+learningrate_G_f = 7e-5
+learningrate_D_x = 4e-5
+learningrate_D_y = 4e-5
 
-beta_G_g = 0.85
-beta_G_f = 0.85
-beta_D_x = 0.85
-beta_D_y = 0.85
+beta_G_g = 0.9
+beta_G_f = 0.9
+beta_D_x = 0.9
+beta_D_y = 0.9
 
 
 #image_type = '*rock_RGB'
