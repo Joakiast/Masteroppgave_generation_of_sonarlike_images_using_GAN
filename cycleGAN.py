@@ -76,10 +76,10 @@ learningrate_G_f = 5e-5
 learningrate_D_x = 5e-5
 learningrate_D_y = 5e-5
 
-beta_G_g = 0.65
-beta_G_f = 0.65
-beta_D_x = 0.65
-beta_D_y = 0.65
+beta_G_g = 0.85
+beta_G_f = 0.85
+beta_D_x = 0.85
+beta_D_y = 0.85
 
 
 #image_type = '*rock_RGB'
