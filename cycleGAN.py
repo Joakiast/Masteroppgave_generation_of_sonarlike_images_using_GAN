@@ -83,8 +83,8 @@ beta_D_y = 0.9
 
 
 #image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
-image_type = '*clutter_RGB'
+image_type = '*oil_drum_RGB'
+#image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
 params = {
