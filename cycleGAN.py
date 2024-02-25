@@ -64,22 +64,22 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 10
+BATCH_SIZE = 40
 EPOCHS = 40
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.5
 LAMBDA = 10
 
-learningrate_G_g = 1e-4
-learningrate_G_f = 1e-4
-learningrate_D_x = 1e-4
-learningrate_D_y = 1e-4
+learningrate_G_g = 5e-5
+learningrate_G_f = 5e-5
+learningrate_D_x = 5e-5
+learningrate_D_y = 5e-5
 
-beta_G_g = 0.25
-beta_G_f = 0.25
-beta_D_x = 0.25
-beta_D_y = 0.25
+beta_G_g = 0.65
+beta_G_f = 0.65
+beta_D_x = 0.65
+beta_D_y = 0.65
 
 
 #image_type = '*rock_RGB'
@@ -787,7 +787,7 @@ def generate_images(model, test_input, epoch_num):
   plt.figure(figsize=(12, 12))
 
   display_list = [test_input[0], prediction[0]]
-  title = ['Input Image', 'Predicted Image test']
+  title = ['Input Image', 'Predicted Image']
   num_elem = len(display_list)
 
 
