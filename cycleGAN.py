@@ -672,12 +672,12 @@ def Resnet_Generator(input_shape=(256, 256, 3),
 
         h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
         h = tf.keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
-        h = Norm()(h)
+        h = InstanceNormalization()(h)
         h = tf.nn.relu(h)
 
         h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
         h = tf.keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
-        h = Norm()(h)
+        h = InstanceNormalization()(h)
 
         return tf.keras.layers.add([x, h])
 
