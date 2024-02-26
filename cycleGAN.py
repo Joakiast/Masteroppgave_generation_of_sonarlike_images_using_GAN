@@ -69,7 +69,7 @@ EPOCHS = 40
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.3
-LAMBDA = 15
+LAMBDA = 20
 
 learningrate_G_g = 7e-5
 learningrate_G_f = 7e-5
@@ -946,3 +946,6 @@ generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
 
 run.stop()
+
+
+time.sleep(10) # for at slurm i fox ikke skal avslutte jobben før neptune har gjort seg ferdig
