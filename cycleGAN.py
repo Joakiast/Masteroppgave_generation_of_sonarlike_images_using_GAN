@@ -118,6 +118,7 @@ params = {
     "Image_type": image_type,
     "use_bias": True,
     "number_of_filters": "increased x2 in generator not discriminator",
+    "type of generator": "resnet",
 }
 
 if image_type_2:
@@ -143,9 +144,7 @@ image_paths_train = [str(path) for path in list(train_set_path.glob(image_type +
 print(f"size of trainingset: {len(image_paths_train)}")
 
 img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
-
 image_paths_train.extend(img_buffer_1)
-
 img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
 image_paths_train.extend(img_buffer_2)
 
@@ -250,7 +249,7 @@ def load_and_preprocess_image_trainset(path_image_trainset):
 
         image = tf.cast(image, tf.float32)
         image = (image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
-        i#f not "clutter" in image_type:
+        #if not "clutter" in image_type:
             #x,y = tf.py_function(func=find_coordinates_for_circle_tensor, inp=[path_image_trainset], Tout=[tf.float32, tf.float32])
         x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],
                                   Tout=[tf.float32, tf.float32])
@@ -468,7 +467,7 @@ for real_imgs in train_dataset.take(2):
         # Plotter input_img
         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)
         plt.title("Input Image")
-        plt.imshow(real_imgs[i].numpy() )
+        plt.imshow(real_imgs[i].numpy())
 plt.tight_layout()
 plt.show()
 
@@ -659,6 +658,64 @@ def unet_generator(more_filters, output_channels, norm_type='batchnorm'):
 
   return tf.keras.Model(inputs=inputs, outputs=x)
 
+def Resnet_Generator(input_shape=(256, 256, 3),
+                    output_channels=3,
+                    dim=64,
+                    n_downsamplings=2,
+                    n_blocks=9,
+                    norm='instance_norm'):
+    Norm = InstanceNormalization()
+
+    def _residual_block(x):
+        dim = x.shape[-1]
+        h = x
+
+        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+        h = tf.keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
+        h = Norm()(h)
+        h = tf.nn.relu(h)
+
+        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+        h = tf.keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
+        h = Norm()(h)
+
+        return tf.keras.layers.add([x, h])
+
+    # 0
+    h = inputs = tf.keras.Input(shape=input_shape)
+
+    # 1
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = tf.keras.layers.Conv2D(dim, 7, padding='valid', use_bias=False)(h)
+    h = Norm()(h)
+    h = tf.nn.relu(h)
+
+    # 2
+    for _ in range(n_downsamplings):
+        dim *= 2
+        h = tf.keras.layers.Conv2D(dim, 3, strides=2, padding='same', use_bias=False)(h)
+        h = Norm()(h)
+        h = tf.nn.relu(h)
+
+    # 3
+    for _ in range(n_blocks):
+        h = _residual_block(h)
+
+    # 4
+    for _ in range(n_downsamplings):
+        dim //= 2
+        h = tf.keras.layers.Conv2DTranspose(dim, 3, strides=2, padding='same', use_bias=False)(h)
+        h = Norm()(h)
+        h = tf.nn.relu(h)
+
+    # 5
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = tf.keras.layers.Conv2D(output_channels, 7, padding='valid')(h)
+    h = tf.tanh(h)
+
+    return tf.keras.Model(inputs=inputs, outputs=h)
+
+
 
 def discriminator(more_filters, norm_type='batchnorm', target=True):
   """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
@@ -711,8 +768,8 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
 #==================================prøve pix2pix example fra tensorflow authors==================================
 
 
-generator_g = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
-generator_f = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_g = Resnet_Generator()# unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_f = Resnet_Generator()#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 
 discriminator_x = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
