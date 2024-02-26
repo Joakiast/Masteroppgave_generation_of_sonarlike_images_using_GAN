@@ -69,7 +69,7 @@ EPOCHS = 40
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.3
-LAMBDA = 20
+LAMBDA = 5
 
 learningrate_G_g = 7e-5
 learningrate_G_f = 7e-5
