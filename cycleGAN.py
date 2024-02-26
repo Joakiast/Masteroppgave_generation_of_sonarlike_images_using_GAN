@@ -94,6 +94,12 @@ image_type_2 = '*rock_RGB'
 #image_type_2 = '*oil_drum_RGB'
 #image_type_2 = "*man_made_object_RGB"
 
+#image_type_3 = False
+#image_type_3 = '*rock_RGB'
+#image_type_3 = '*oil_drum_RGB'
+image_type_3 = "*man_made_object_RGB"
+
+
 
 params = {
     "activation": "tanh",
@@ -117,6 +123,9 @@ params = {
 if image_type_2:
     params["image_type_2"] = image_type_2
 
+if image_type_3:
+    params["image_type_3"] = image_type_3
+
 
 run["model/parameters"] = params
 
@@ -133,9 +142,12 @@ test_set_path = pathlib.Path("datasets/test")
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]#[:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
-img_buffer = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
+img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
 
-image_paths_train.extend(img_buffer)
+image_paths_train.extend(img_buffer_1)
+
+img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
+image_paths_train.extend(img_buffer_2)
 
 image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]#[:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
@@ -915,7 +927,7 @@ for epoch in range(EPOCHS):
   for image_x, image_y in tf.data.Dataset.zip((simulated_dataset, train_dataset)):
     train_step(image_x, image_y)
     if n % 10 == 0:
-      print ('.', end='')
+      print ('.', end='', flush=True)
     n += 1
 
   clear_output(wait=True)
@@ -948,4 +960,5 @@ discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator
 run.stop()
 
 
-time.sleep(10) # for at slurm i fox ikke skal avslutte jobben før neptune har gjort seg ferdig
+time.sleep(30) # for at slurm i fox ikke skal avslutte jobben før neptune har gjort seg ferdig
+print("End of line")
