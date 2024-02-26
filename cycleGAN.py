@@ -663,7 +663,7 @@ def Resnet_Generator(input_shape=(256, 256, 3),
                     dim=64,
                     n_downsamplings=2,
                     n_blocks=9,
-                    norm='instance_norm'):
+                    ):
     Norm = InstanceNormalization()
 
     def _residual_block(x):
@@ -768,8 +768,8 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
 #==================================prøve pix2pix example fra tensorflow authors==================================
 
 
-generator_g = Resnet_Generator()# unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
-generator_f = Resnet_Generator()#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_g = Resnet_Generator(input_shape=(256, 256, 3),output_channels=OUTPUT_CHANNELS,dim=64,n_downsamplings=2,n_blocks=9)# unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_f = Resnet_Generator(input_shape=(256, 256, 3),output_channels=OUTPUT_CHANNELS,dim=64,n_downsamplings=2,n_blocks=9)#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 
 discriminator_x = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
