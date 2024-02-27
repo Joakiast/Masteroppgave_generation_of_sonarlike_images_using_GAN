@@ -120,6 +120,7 @@ params = {
     "use_bias": True,
   #  "number_of_filters": "increased x2 in generator not discriminator",
     "type of generator": "Resnet",
+    "type of loss func": "MeanSquaredError"
 }
 
 if image_type_2:
@@ -805,7 +806,9 @@ plt.show()
 
 
 
-loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+#loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+loss_obj = tf.keras.losses.MeanSquaredError()
+
 
 def discriminator_loss(real, generated):
   real_loss = loss_obj(tf.ones_like(real), real)
