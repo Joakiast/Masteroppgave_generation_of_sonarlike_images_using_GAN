@@ -86,19 +86,19 @@ beta_D_y = 0.9
 
 
 #image_type = '*rock_RGB'
-image_type = '*oil_drum_RGB'
-#image_type = '*clutter_RGB'
+#image_type = '*oil_drum_RGB'
+image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-#image_type_2 = False
-image_type_2 = '*rock_RGB'
+image_type_2 = False
+#image_type_2 = '*rock_RGB'
 #image_type_2 = '*oil_drum_RGB'
 #image_type_2 = "*man_made_object_RGB"
 
-#image_type_3 = False
+image_type_3 = False
 #image_type_3 = '*rock_RGB'
 #image_type_3 = '*oil_drum_RGB'
-image_type_3 = "*man_made_object_RGB"
+#image_type_3 = "*man_made_object_RGB"
 
 
 
@@ -141,10 +141,11 @@ test_set_path = pathlib.Path("datasets/test")
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]#[:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
-img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
-image_paths_train.extend(img_buffer_1)
-img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
-image_paths_train.extend(img_buffer_2)
+if image_type_2 or image_type_3:
+    img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
+    image_paths_train.extend(img_buffer_1)
+    img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
+    image_paths_train.extend(img_buffer_2)
 
 image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]#[:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
