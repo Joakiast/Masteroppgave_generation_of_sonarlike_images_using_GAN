@@ -119,7 +119,7 @@ params = {
     "Image_type": image_type,
     "use_bias": True,
     "number_of_filters": "increased x2 in generator not discriminator",
-    "type of generator": "u_net",
+    "type of generator": "Resnet",
 }
 
 if image_type_2:
@@ -662,16 +662,16 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
     initializer = tf.random_normal_initializer(0., 0.02)
     conv_block = tf.keras.Sequential()
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
-                                 kernel_initializer=initializer, use_bias=False))
+                                 kernel_initializer=initializer, use_bias=True))
     if norm_type == 'instancenorm':
         conv_block.add(InstanceNormalization())
     elif norm_type == 'batchnorm':
         conv_block.add(tf.keras.layers.BatchNormalization())
     if apply_dropout:
-        conv_block.add(layers.Dropout(0.5))
+        conv_block.add(layers.Dropout(DROPOUT))
     conv_block.add(layers.ReLU())
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
-                                 kernel_initializer=initializer, use_bias=False))
+                                 kernel_initializer=initializer, use_bias=True))
     if norm_type == 'instancenorm':
         conv_block.add(InstanceNormalization())
 
