@@ -28,6 +28,7 @@ import datetime
 import sys
 #import cv2
 #from sklearn.cluster import KMeans
+import math
 
 
 
@@ -118,7 +119,7 @@ params = {
     "Image_type": image_type,
     "use_bias": True,
     "number_of_filters": "increased x2 in generator not discriminator",
-    "type of generator": "resnet",
+    "type of generator": "u_net",
 }
 
 if image_type_2:
@@ -129,9 +130,6 @@ if image_type_3:
 
 
 run["model/parameters"] = params
-
-
-
 
 
 #region Preparing datasets
@@ -598,7 +596,7 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
   return result
 
 
-def unet_generator(more_filters, output_channels, norm_type='batchnorm'):
+def unet_generator(filter_multiplier, output_channels, norm_type='batchnorm'):
   """Modified u-net generator model (https://arxiv.org/abs/1611.07004).
 
   Args:
@@ -610,26 +608,25 @@ def unet_generator(more_filters, output_channels, norm_type='batchnorm'):
   """
 
   down_stack = [
-      downsample(64*more_filters, 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
-      downsample(128*more_filters, 4, norm_type),  # (bs, 64, 64, 128)
-      downsample(256*more_filters, 4, norm_type),  # (bs, 32, 32, 256)
-      downsample(512*more_filters, 4, norm_type),  # (bs, 16, 16, 512)
-      downsample(512*more_filters, 4, norm_type),  # (bs, 8, 8, 512)
-      downsample(512*more_filters, 4, norm_type),  # (bs, 4, 4, 512)
-      downsample(512*more_filters, 4, norm_type),  # (bs, 2, 2, 512)
-      downsample(512*more_filters, 4, norm_type),  # (bs, 1, 1, 512)
+      downsample(math.floor(64 * filter_multiplier), 4, norm_type, apply_norm=False),  # (bs, 128, 128, 64)
+      downsample(math.floor(128 * filter_multiplier), 4, norm_type),  # (bs, 64, 64, 128)
+      downsample(math.floor(256 * filter_multiplier), 4, norm_type),  # (bs, 32, 32, 256)
+      downsample(math.floor(512 * filter_multiplier), 4, norm_type),  # (bs, 16, 16, 512)
+      downsample(math.floor(512 * filter_multiplier), 4, norm_type),  # (bs, 8, 8, 512)
+      downsample(math.floor(512 * filter_multiplier), 4, norm_type),  # (bs, 4, 4, 512)
+      downsample(math.floor(512 * filter_multiplier), 4, norm_type),  # (bs, 2, 2, 512)
+      downsample(math.floor(512 * filter_multiplier), 4, norm_type)  # (bs, 1, 1, 512)
   ]
 
   up_stack = [
-      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-      upsample(512*more_filters, 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-      upsample(512*more_filters, 4, norm_type),  # (bs, 16, 16, 1024)
-      upsample(256*more_filters, 4, norm_type),  # (bs, 32, 32, 512)
-      upsample(128*more_filters, 4, norm_type),  # (bs, 64, 64, 256)
-      upsample(64*more_filters, 4, norm_type),  # (bs, 128, 128, 128)
+      upsample(math.floor(512 * filter_multiplier), 4, norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+      upsample(math.floor(512 * filter_multiplier), 4, norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+      upsample(math.floor(512 * filter_multiplier), 4, norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+      upsample(math.floor(512 * filter_multiplier), 4, norm_type),  # (bs, 16, 16, 1024)
+      upsample(math.floor(256 * filter_multiplier), 4, norm_type),  # (bs, 32, 32, 512)
+      upsample(math.floor(128 * filter_multiplier), 4, norm_type),  # (bs, 64, 64, 256)
+      upsample(math.floor(64 * filter_multiplier), 4, norm_type),  # (bs, 128, 128, 128)
   ]
-
   initializer = tf.random_normal_initializer(0., 0.02)
   last = tf.keras.layers.Conv2DTranspose(
       output_channels, 4, strides=2,
@@ -658,66 +655,65 @@ def unet_generator(more_filters, output_channels, norm_type='batchnorm'):
 
   return tf.keras.Model(inputs=inputs, outputs=x)
 
-def Resnet_Generator(input_shape=(256, 256, 3),
-                    output_channels=3,
-                    dim=64,
-                    n_downsamplings=2,
-                    n_blocks=9,
-                    ):
-    Norm = InstanceNormalization()
 
-    def _residual_block(x):
-        dim = x.shape[-1]
-        h = x
+#=========================Resnet=====================================
 
-        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-        h = tf.keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
-        h = InstanceNormalization()(h)
-        h = tf.nn.relu(h)
+def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=False):
+    initializer = tf.random_normal_initializer(0., 0.02)
+    conv_block = tf.keras.Sequential()
+    conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
+                                 kernel_initializer=initializer, use_bias=False))
+    if norm_type == 'instancenorm':
+        conv_block.add(InstanceNormalization())
+    elif norm_type == 'batchnorm':
+        conv_block.add(tf.keras.layers.BatchNormalization())
+    if apply_dropout:
+        conv_block.add(layers.Dropout(0.5))
+    conv_block.add(layers.ReLU())
+    conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
+                                 kernel_initializer=initializer, use_bias=False))
+    if norm_type == 'instancenorm':
+        conv_block.add(InstanceNormalization())
 
-        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-        h = tf.keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
-        h = InstanceNormalization()(h)
-
-        return tf.keras.layers.add([x, h])
-
-    # 0
-    h = inputs = tf.keras.Input(shape=input_shape)
-
-    # 1
-    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
-    h = tf.keras.layers.Conv2D(dim, 7, padding='valid', use_bias=False)(h)
-    h = Norm()(h)
-    h = tf.nn.relu(h)
-
-    # 2
-    for _ in range(n_downsamplings):
-        dim *= 2
-        h = tf.keras.layers.Conv2D(dim, 3, strides=2, padding='same', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
-
-    # 3
-    for _ in range(n_blocks):
-        h = _residual_block(h)
-
-    # 4
-    for _ in range(n_downsamplings):
-        dim //= 2
-        h = tf.keras.layers.Conv2DTranspose(dim, 3, strides=2, padding='same', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
-
-    # 5
-    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
-    h = tf.keras.layers.Conv2D(output_channels, 7, padding='valid')(h)
-    h = tf.tanh(h)
-
-    return tf.keras.Model(inputs=inputs, outputs=h)
+    return layers.add([x, conv_block(x)])
 
 
+def ResNetGenerator(input_shape=(256, 256, 3), output_channels=3, filters=64, norm_type='instancenorm', num_blocks=9):
+    inputs = layers.Input(shape=input_shape)
 
-def discriminator(more_filters, norm_type='batchnorm', target=True):
+    x = layers.Conv2D(filters, 7, strides=1, padding='same')(inputs)
+    x = layers.ReLU()(x)
+
+    # Downsampling
+    x = layers.Conv2D(filters * 2, 3, strides=2, padding='same')(x)
+    x = layers.ReLU()(x)
+    x = layers.Conv2D(filters * 4, 3, strides=2, padding='same')(x)
+    x = layers.ReLU()(x)
+
+    # Residual blocks
+    for _ in range(num_blocks):
+        x = ResidualBlock(x, filters * 4, 3, norm_type)
+
+    # Upsampling
+    x = layers.Conv2DTranspose(filters * 2, 3, strides=2, padding='same')(x)
+    x = layers.ReLU()(x)
+    x = layers.Conv2DTranspose(filters, 3, strides=2, padding='same')(x)
+    x = layers.ReLU()(x)
+
+    outputs = layers.Conv2D(output_channels, 7, padding='same', activation='tanh')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs)
+
+
+# Eksempel på bruk:
+# generator = ResNetGenerator()
+# generator.summary()
+
+#========================Resnet=====================================
+
+
+
+def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
   """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
 
   Args:
@@ -737,13 +733,13 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
     tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
     x = tf.keras.layers.concatenate([inp, tar])  # (bs, 256, 256, channels*2)
 
-  down1 = downsample(128*more_filters, 4, norm_type, False)(x)  # (bs, 128, 128, 64)
-  down2 = downsample(256*more_filters, 4, norm_type)(down1)  # (bs, 64, 64, 128)
-  down3 = downsample(512*more_filters, 4, norm_type)(down2)  # (bs, 32, 32, 256)
+  down1 = downsample(math.floor(128 * filter_multiplier), 4, norm_type, False)(x)  # (bs, 128, 128, 64)
+  down2 = downsample(math.floor(256 * filter_multiplier), 4, norm_type)(down1)  # (bs, 64, 64, 128)
+  down3 = downsample(math.floor(512 * filter_multiplier), 4, norm_type)(down2)  # (bs, 32, 32, 256)
 
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
-      512, 4, strides=1, kernel_initializer=initializer,
+      math.floor(512*filter_multiplier), 4, strides=1, kernel_initializer=initializer,
       use_bias=True)(zero_pad1)  # (bs, 31, 31, 512)
 
   if norm_type.lower() == 'batchnorm':
@@ -768,8 +764,8 @@ def discriminator(more_filters, norm_type='batchnorm', target=True):
 #==================================prøve pix2pix example fra tensorflow authors==================================
 
 
-generator_g = Resnet_Generator(input_shape=(256, 256, 3),output_channels=OUTPUT_CHANNELS,dim=64,n_downsamplings=2,n_blocks=9)# unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
-generator_f = Resnet_Generator(input_shape=(256, 256, 3),output_channels=OUTPUT_CHANNELS,dim=64,n_downsamplings=2,n_blocks=9)#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_g = ResNetGenerator()#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_f = ResNetGenerator()#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 
 discriminator_x = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
@@ -1012,7 +1008,7 @@ print("Generate using test dataset")
 #   generate_images(generator_g, inp)
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
-discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
+#discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
 
 run.stop()
 
