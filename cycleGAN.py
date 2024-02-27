@@ -65,8 +65,8 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 5
-EPOCHS = 50
+BATCH_SIZE = 1
+EPOCHS = 60
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.3
@@ -74,8 +74,8 @@ LAMBDA = 5
 
 learningrate_G_g = 0.0002#7e-5
 learningrate_G_f = 0.0002#7e-5
-learningrate_D_x = 0.0002#4e-5
-learningrate_D_y = 0.0002#4e-5
+learningrate_D_x = learningrate_G_g / 2#4e-5
+learningrate_D_y = learningrate_G_f / 2#4e-5
 
 beta_G_g = 0.9
 beta_G_f = 0.9
