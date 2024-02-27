@@ -86,8 +86,8 @@ beta_D_y = 0.9
 
 
 #image_type = '*rock_RGB'
-#image_type = '*oil_drum_RGB'
-image_type = '*clutter_RGB'
+image_type = '*oil_drum_RGB'
+#image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
 image_type_2 = False
@@ -118,7 +118,7 @@ params = {
     "Lambda": LAMBDA,
     "Image_type": image_type,
     "use_bias": True,
-    "number_of_filters": "increased x2 in generator not discriminator",
+  #  "number_of_filters": "increased x2 in generator not discriminator",
     "type of generator": "Resnet",
 }
 
@@ -141,9 +141,10 @@ test_set_path = pathlib.Path("datasets/test")
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]#[:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
-if image_type_2 or image_type_3:
+if image_type_2:
     img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]#[:8000]
     image_paths_train.extend(img_buffer_1)
+if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
     image_paths_train.extend(img_buffer_2)
 
