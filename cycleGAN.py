@@ -708,10 +708,6 @@ def ResNetGenerator(input_shape=(256, 256, 3), output_channels=3, filters=64, no
     return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
-# Eksempel på bruk:
-# generator = ResNetGenerator()
-# generator.summary()
-
 #========================Resnet=====================================
 
 
@@ -885,14 +881,21 @@ def generate_images(model, test_input, epoch_num):
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
 
+
+
   folder_name = 'generated_data/generated_images_cycle_GAN_simulated_dataset'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
+  if epoch_num % 5 == 0:
+      #plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
+      print('fig closed')
+      plt.close("all")
+
   # Save the figure using the step number to keep track of progress
-  plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
-  image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
-  run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
+      plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
+      image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
+      run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
