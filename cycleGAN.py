@@ -121,7 +121,7 @@ params = {
     "Image_type": image_type,
     "use_bias": True,
   #  "number_of_filters": "increased x2 in generator not discriminator",
-    "type of generator": "Resnet",
+    "type of generator": "Unet",
     "type of loss func": "MeanSquaredError",
     "save_every_n_epochs": save_every_n_epochs,
 }
@@ -777,8 +777,11 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
 #==================================prøve pix2pix example fra tensorflow authors==================================
 
 
-generator_g = ResNetGenerator()#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
-generator_f = ResNetGenerator()#unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_g = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+generator_f = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+
+#generator_g = ResNetGenerator()
+#generator_f = ResNetGenerator()
 
 discriminator_x = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
