@@ -29,7 +29,7 @@ import sys
 #import cv2
 #from sklearn.cluster import KMeans
 import math
-
+import tensorflow_addons as tfa
 
 
 run = neptune.init_run(
@@ -82,7 +82,7 @@ beta_G_f = 0.9
 beta_D_x = 0.9
 beta_D_y = 0.9
 
-save_every_n_epochs = 5
+save_every_n_epochs = 2
 
 
 
@@ -92,15 +92,15 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-#image_type_2 = False
-image_type_2 = '*rock_RGB'
+image_type_2 = False
+#image_type_2 = '*rock_RGB'
 #image_type_2 = '*oil_drum_RGB'
 #image_type_2 = "*man_made_object_RGB"
 
-#image_type_3 = False
+image_type_3 = False
 #image_type_3 = '*rock_RGB'
 #image_type_3 = '*oil_drum_RGB'
-image_type_3 = "*man_made_object_RGB"
+#image_type_3 = "*man_made_object_RGB"
 
 
 
@@ -152,10 +152,10 @@ if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
     image_paths_train.extend(img_buffer_2)
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]#[:len(image_paths_train)]   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:20] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
 
-image_paths_test = [str(path) for path in list(test_set_path.glob(image_type + ".jpg"))]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][405:]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
@@ -324,7 +324,18 @@ def augmentation(input_img):
 
     flipped_left_right = tf.image.flip_left_right(input_img)
     flipped_up_down = tf.image.flip_up_down(input_img)
-    rotate = tf.image.rot90(input_img)
+    n_degrees = 10 #degrees rotated
+    radians = n_degrees * math.pi / 180
+    rotate = tfa.image.rotate(input_img, -radians)
+
+    #rotate = tf.image.rot90(input_img)
+    #flytte objektet til forksjellige posisjoner i bildet, være forskintg rotering av sonar bilder med tanke på skygge 10 grader opp og ned
+    #kan også være interresant å se på ville augemnteringer som farge og store rotasjoner
+    #kan dele det inn i fysiske realiserbare og ikke realiserbare
+    # kan også være innteresant å croppe og resize så det ikke blir helt likt det blir da ikke fysisk realiserbart, men kan være av interesse
+    #bør ta det til sist liten tro på
+
+
 
     return flipped_left_right, flipped_up_down, rotate
 
@@ -451,11 +462,11 @@ train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 
 
-# test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
-# test_dataset = test_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
-# test_dataset = test_dataset.shuffle(BUFFER_SIZE_trainset)
-# test_dataset = test_dataset.batch(BATCH_SIZE)
-# test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
+test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
+test_dataset = test_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
+test_dataset = test_dataset.shuffle(BUFFER_SIZE_trainset)
+test_dataset = test_dataset.batch(BATCH_SIZE)
+test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
 #============================================================================
 #endregion
