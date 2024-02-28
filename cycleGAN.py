@@ -84,7 +84,11 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
+generator_type = "resnet"
+#generator_type = "unet"
 
+filter_muultiplier_generator = 2
+filter_muultiplier_discriminator = 1
 
 
 #image_type = '*rock_RGB'
@@ -101,6 +105,7 @@ image_type_3 = False
 #image_type_3 = '*rock_RGB'
 #image_type_3 = '*oil_drum_RGB'
 #image_type_3 = "*man_made_object_RGB"
+
 
 
 
@@ -121,10 +126,14 @@ params = {
     "Image_type": image_type,
     "use_bias": True,
   #  "number_of_filters": "increased x2 in generator not discriminator",
-    "type of generator": "Unet",
+    "type of generator": generator_type,
     "type of loss func": "MeanSquaredError",
     "save_every_n_epochs": save_every_n_epochs,
+    "filter multiplier gen": filter_muultiplier_generator,
+    "filter multiplier disc": filter_muultiplier_discriminator
 }
+
+
 
 if image_type_2:
     params["image_type_2"] = image_type_2
@@ -695,26 +704,26 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
     return layers.add([x, conv_block(x)])
 
 
-def ResNetGenerator(input_shape=(256, 256, 3), output_channels=3, filters=64, norm_type='instancenorm', num_blocks=9):
+def ResNetGenerator(filter_multiplier,input_shape=(256, 256, 3), output_channels=3, filters=64, norm_type='instancenorm', num_blocks=9):
     inputs = layers.Input(shape=input_shape)
 
-    x = layers.Conv2D(filters, 7, strides=1, padding='same')(inputs)
+    x = layers.Conv2D(filters*filter_multiplier, 7, strides=1, padding='same')(inputs)
     x = layers.ReLU()(x)
 
     # Downsampling
-    x = layers.Conv2D(filters * 2, 3, strides=2, padding='same')(x)
+    x = layers.Conv2D(filters * 2*filter_multiplier, 3, strides=2, padding='same')(x)
     x = layers.ReLU()(x)
-    x = layers.Conv2D(filters * 4, 3, strides=2, padding='same')(x)
+    x = layers.Conv2D(filters * 4*filter_multiplier, 3, strides=2, padding='same')(x)
     x = layers.ReLU()(x)
 
     # Residual blocks
     for _ in range(num_blocks):
-        x = ResidualBlock(x, filters * 4, 3, norm_type)
+        x = ResidualBlock(x, filters * 4*filter_multiplier, 3, norm_type)
 
     # Upsampling
-    x = layers.Conv2DTranspose(filters * 2, 3, strides=2, padding='same')(x)
+    x = layers.Conv2DTranspose(filters * 2*filter_multiplier, 3, strides=2, padding='same')(x)
     x = layers.ReLU()(x)
-    x = layers.Conv2DTranspose(filters, 3, strides=2, padding='same')(x)
+    x = layers.Conv2DTranspose(filters*filter_multiplier, 3, strides=2, padding='same')(x)
     x = layers.ReLU()(x)
 
     outputs = layers.Conv2D(output_channels, 7, padding='same', activation='tanh')(x)
@@ -776,15 +785,16 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
 
 #==================================prøve pix2pix example fra tensorflow authors==================================
 
+if generator_type == 'unet':
+    generator_g = unet_generator(filter_muultiplier_generator, OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+    generator_f = unet_generator(filter_muultiplier_generator, OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
 
-#generator_g = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm") #Generator() #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
-#generator_f = unet_generator(2,OUTPUT_CHANNELS, norm_type="instancenorm")  #Generator()  #pix2pix.unet_generator(OUTPUT_CHANNELS, norm_type='instancenorm')
+if generator_type == 'resnet':
+    generator_g = ResNetGenerator(filter_muultiplier_generator)
+    generator_f = ResNetGenerator(filter_muultiplier_generator)
 
-generator_g = ResNetGenerator()
-generator_f = ResNetGenerator()
-
-discriminator_x = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
-discriminator_y = discriminator(1,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_x = discriminator(filter_muultiplier_discriminator,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_y = discriminator(filter_muultiplier_discriminator,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 
 to_training_image = generator_g(sample_simulated)
 to_simulated = generator_f(sample_train)
