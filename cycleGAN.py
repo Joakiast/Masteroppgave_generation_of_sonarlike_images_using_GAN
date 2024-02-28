@@ -152,10 +152,10 @@ if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]#[:8000]
     image_paths_train.extend(img_buffer_2)
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:20] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:405] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
 
-image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][405:]   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][406:]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
