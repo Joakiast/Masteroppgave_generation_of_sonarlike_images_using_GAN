@@ -84,8 +84,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet"
-generator_type = "unet"
+generator_type = "resnet"
+#generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
@@ -105,7 +105,6 @@ image_type_3 = False
 #image_type_3 = '*rock_RGB'
 #image_type_3 = '*oil_drum_RGB'
 #image_type_3 = "*man_made_object_RGB"
-
 
 
 
@@ -695,7 +694,7 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
         conv_block.add(tf.keras.layers.BatchNormalization())
     if apply_dropout:
         conv_block.add(layers.Dropout(DROPOUT))
-    conv_block.add(layers.ReLU())
+    conv_block.add(layers.PReLU())
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
                                  kernel_initializer=initializer, use_bias=True))
     if norm_type == 'instancenorm':
@@ -708,13 +707,13 @@ def ResNetGenerator(filter_multiplier,input_shape=(256, 256, 3), output_channels
     inputs = layers.Input(shape=input_shape)
 
     x = layers.Conv2D(filters*filter_multiplier, 7, strides=1, padding='same')(inputs)
-    x = layers.ReLU()(x)
+    x = layers.PReLU()(x)
 
     # Downsampling
     x = layers.Conv2D(filters * 2*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.ReLU()(x)
+    x = layers.PReLU()(x)
     x = layers.Conv2D(filters * 4*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.ReLU()(x)
+    x = layers.PReLU()(x)
 
     # Residual blocks
     for _ in range(num_blocks):
@@ -722,9 +721,9 @@ def ResNetGenerator(filter_multiplier,input_shape=(256, 256, 3), output_channels
 
     # Upsampling
     x = layers.Conv2DTranspose(filters * 2*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.ReLU()(x)
+    x = layers.PReLU()(x)
     x = layers.Conv2DTranspose(filters*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.ReLU()(x)
+    x = layers.PReLU()(x)
 
     outputs = layers.Conv2D(output_channels, 7, padding='same', activation='tanh')(x)
 
