@@ -92,15 +92,15 @@ image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
 
-#image_type_2 = False
-image_type_2 = '*rock_RGB'
+image_type_2 = False
+#image_type_2 = '*rock_RGB'
 #image_type_2 = '*oil_drum_RGB'
 #image_type_2 = "*man_made_object_RGB"
 
-#image_type_3 = False
+image_type_3 = False
 #image_type_3 = '*rock_RGB'
 #image_type_3 = '*oil_drum_RGB'
-image_type_3 = "*man_made_object_RGB"
+#image_type_3 = "*man_made_object_RGB"
 
 
 
@@ -892,8 +892,8 @@ def generate_images(model, test_input, epoch_num):
 
   if epoch_num % save_every_n_epochs == 0:
       #plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
-      print('fig closed')
-      plt.close("all")
+      print('fig saved')
+      #plt.close("all")
 
   # Save the figure using the step number to keep track of progress
       plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
