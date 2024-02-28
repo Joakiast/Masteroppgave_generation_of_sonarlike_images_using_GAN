@@ -66,7 +66,7 @@ resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 1
-EPOCHS = 60
+EPOCHS = 100
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.3
@@ -81,6 +81,8 @@ beta_G_g = 0.9
 beta_G_f = 0.9
 beta_D_x = 0.9
 beta_D_y = 0.9
+
+save_every_n_epochs = 5
 
 
 
@@ -120,7 +122,8 @@ params = {
     "use_bias": True,
   #  "number_of_filters": "increased x2 in generator not discriminator",
     "type of generator": "Resnet",
-    "type of loss func": "MeanSquaredError"
+    "type of loss func": "MeanSquaredError",
+    "save_every_n_epochs": save_every_n_epochs,
 }
 
 if image_type_2:
@@ -887,7 +890,7 @@ def generate_images(model, test_input, epoch_num):
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
-  if epoch_num % 5 == 0:
+  if epoch_num % save_every_n_epochs == 0:
       #plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
       print('fig closed')
       plt.close("all")
