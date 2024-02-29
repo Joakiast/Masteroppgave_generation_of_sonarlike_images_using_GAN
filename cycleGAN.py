@@ -70,7 +70,7 @@ EPOCHS = 100
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.5
-LAMBDA = 10
+LAMBDA = 15
 
 learningrate_G_g = 0.0002#7e-5
 learningrate_G_f = 0.0002#7e-5
@@ -328,6 +328,8 @@ print(f"BUFFER_SIZE train set:: {BUFFER_SIZE_trainset}")
 
 BUFFER_SIZE_simulated = len(image_paths_train_simulated)
 print(f"BUFFER_SIZE simulated set: {BUFFER_SIZE_simulated}")
+
+BUFFER_SIZE_test_set = len(image_paths_test)
 def augmentation(input_img):
 
     flipped_left_right = tf.image.flip_left_right(input_img)
@@ -471,8 +473,8 @@ simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 
 
 test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
-test_dataset = test_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
-test_dataset = test_dataset.shuffle(BUFFER_SIZE_trainset)
+test_dataset = test_dataset.map(load_and_preprocess_image_simulated_set, num_parallel_calls=tf.data.AUTOTUNE)
+test_dataset = test_dataset.shuffle(BUFFER_SIZE_test_set)
 test_dataset = test_dataset.batch(BATCH_SIZE)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
