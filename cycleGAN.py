@@ -899,50 +899,50 @@ Training
 
 
 
-
-def calculate_activation_statistics(images, model):
-    batch_size = 50
-    num_images = images.shape[0]
-    n_batches = int(np.ceil(num_images / batch_size))
-    act = np.zeros((num_images, 2048))
-
-
-    for i in range(n_batches):
-        start = i * batch_size
-        end = start + batch_size
-        batch = images[start:end]
-        act[start:end] = model.predict(batch)
-
-
-    mu = np.mean(act, axis=0)
-    sigma = np.cov(act, rowvar=False)
-
-
-    return mu, sigma
-
-
-def calculate_frechet_distance(mu1, sigma1, mu2, sigma2):
-    epsilon = 1e-6
-    # Korrekt beregning av kvadratroten av et matriseprodukt
-    covmean = sqrtm(sigma1.dot(sigma2))
-    if np.iscomplexobj(covmean):
-        covmean = covmean.real
-    mu_diff = mu1 - mu2
-    # Beregning av FID-score med den korrigerte kvadratroten av matriseproduktet
-    fid = np.sum(mu_diff**2) + np.trace(sigma1 + sigma2 - 2 * covmean) + epsilon
-    return fid
-
-
-def calculate_fid(real_images, generated_images, model):
-    real_mu, real_sigma = calculate_activation_statistics(real_images, model)
-    generated_mu, generated_sigma = calculate_activation_statistics(generated_images, model)
-    fid = calculate_frechet_distance(real_mu, real_sigma, generated_mu, generated_sigma)
-    return fid
-
-
-# Load the pre-trained InceptionV3 model
-inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(256, 256, 3))
-
+#
+# def calculate_activation_statistics(images, model):
+#     batch_size = BATCH_SIZE
+#     num_images = images.shape[0]
+#     n_batches = int(np.ceil(num_images / batch_size))
+#     act = np.zeros((num_images, 2048))
+#
+#
+#     for i in range(n_batches):
+#         start = i * batch_size
+#         end = start + batch_size
+#         batch = images[start:end]
+#         act[start:end] = model.predict(batch)
+#
+#
+#     mu = np.mean(act, axis=0)
+#     sigma = np.cov(act, rowvar=False)
+#
+#
+#     return mu, sigma
+#
+#
+# def calculate_frechet_distance(mu1, sigma1, mu2, sigma2):
+#     epsilon = 1e-6
+#     # Korrekt beregning av kvadratroten av et matriseprodukt
+#     covmean = sqrtm(sigma1.dot(sigma2))
+#     if np.iscomplexobj(covmean):
+#         covmean = covmean.real
+#     mu_diff = mu1 - mu2
+#     # Beregning av FID-score med den korrigerte kvadratroten av matriseproduktet
+#     fid = np.sum(mu_diff**2) + np.trace(sigma1 + sigma2 - 2 * covmean) + epsilon
+#     return fid
+#
+#
+# def calculate_fid(real_images, generated_images, model):
+#     real_mu, real_sigma = calculate_activation_statistics(real_images, model)
+#     generated_mu, generated_sigma = calculate_activation_statistics(generated_images, model)
+#     fid = calculate_frechet_distance(real_mu, real_sigma, generated_mu, generated_sigma)
+#     return fid
+#
+#
+# # Load the pre-trained InceptionV3 model
+# inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(256, 256, 3))
+#
 
 
 
@@ -988,8 +988,8 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
-  fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
-  print("FID Score:", fid_score)
+  #fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
+#  print("FID Score:", fid_score)
 
     #################################################
     #                   testing
