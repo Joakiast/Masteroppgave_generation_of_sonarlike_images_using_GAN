@@ -30,7 +30,7 @@ import sys
 #from sklearn.cluster import KMeans
 import math
 import tensorflow_addons as tfa
-
+from scipy.linalg import sqrtm
 
 run = neptune.init_run(
     project="masteroppgave/cycleGAN",
@@ -897,7 +897,7 @@ Training
 #               Frechet Inception Distance
 ######################################################
 
-from scipy import linalg
+
 
 
 def calculate_activation_statistics(images, model):
@@ -923,12 +923,13 @@ def calculate_activation_statistics(images, model):
 
 def calculate_frechet_distance(mu1, sigma1, mu2, sigma2):
     epsilon = 1e-6
-    sqrtm_term = np.sqrt(np.dot(sigma1, sigma2))
-    if np.iscomplexobj(sqrtm_term):
-        sqrtm_term = sqrtm_term.real
-    fid = np.linalg.norm(mu1 - mu2) + np.trace(sigma1 + sigma2 - 2 * sqrtm_term + epsilon)
-
-
+    # Korrekt beregning av kvadratroten av et matriseprodukt
+    covmean = sqrtm(sigma1.dot(sigma2))
+    if np.iscomplexobj(covmean):
+        covmean = covmean.real
+    mu_diff = mu1 - mu2
+    # Beregning av FID-score med den korrigerte kvadratroten av matriseproduktet
+    fid = np.sum(mu_diff**2) + np.trace(sigma1 + sigma2 - 2 * covmean) + epsilon
     return fid
 
 
@@ -936,16 +937,14 @@ def calculate_fid(real_images, generated_images, model):
     real_mu, real_sigma = calculate_activation_statistics(real_images, model)
     generated_mu, generated_sigma = calculate_activation_statistics(generated_images, model)
     fid = calculate_frechet_distance(real_mu, real_sigma, generated_mu, generated_sigma)
-
-
     return fid
 
 
 # Load the pre-trained InceptionV3 model
-inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(299, 299, 3))
+inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(256, 256, 3))
 
-fid_score = calculate_fid(real_images, generated_images, inception_model)
-print("FID Score:", fid_score)
+
+
 
 
 
