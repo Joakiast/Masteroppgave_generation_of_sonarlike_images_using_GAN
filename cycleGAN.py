@@ -70,7 +70,7 @@ EPOCHS = 100
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.5
-LAMBDA = 5
+LAMBDA = 10
 
 learningrate_G_g = 0.0002#7e-5
 learningrate_G_f = 0.0002#7e-5
@@ -694,7 +694,7 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
         conv_block.add(tf.keras.layers.BatchNormalization())
     if apply_dropout:
         conv_block.add(layers.Dropout(DROPOUT))
-    conv_block.add(layers.PReLU())
+    conv_block.add(layers.ReLU())
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
                                  kernel_initializer=initializer, use_bias=True))
     if norm_type == 'instancenorm':
@@ -707,13 +707,13 @@ def ResNetGenerator(filter_multiplier,input_shape=(256, 256, 3), output_channels
     inputs = layers.Input(shape=input_shape)
 
     x = layers.Conv2D(filters*filter_multiplier, 7, strides=1, padding='same')(inputs)
-    x = layers.PReLU()(x)
+    x = layers.ReLU()(x)
 
     # Downsampling
     x = layers.Conv2D(filters * 2*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.PReLU()(x)
+    x = layers.ReLU()(x)
     x = layers.Conv2D(filters * 4*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.PReLU()(x)
+    x = layers.ReLU()(x)
 
     # Residual blocks
     for _ in range(num_blocks):
@@ -721,9 +721,9 @@ def ResNetGenerator(filter_multiplier,input_shape=(256, 256, 3), output_channels
 
     # Upsampling
     x = layers.Conv2DTranspose(filters * 2*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.PReLU()(x)
+    x = layers.ReLU()(x)
     x = layers.Conv2DTranspose(filters*filter_multiplier, 3, strides=2, padding='same')(x)
-    x = layers.PReLU()(x)
+    x = layers.ReLU()(x)
 
     outputs = layers.Conv2D(output_channels, 7, padding='same', activation='tanh')(x)
 
