@@ -65,7 +65,7 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 1
+BATCH_SIZE = 10
 EPOCHS = 100
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
@@ -84,8 +84,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet"
-generator_type = "unet"
+generator_type = "resnet"
+#generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
@@ -522,7 +522,7 @@ Cyclegan uses instance normalization instead of batch normalization.
 The CycleGAN paper uses a modified resnet based generator. This tutorial is using a modified unet generator for simplicity.
 """
 OUTPUT_CHANNELS = 3
-
+#region Genrator and discriminator
 #===========================================================================================
 
 class InstanceNormalization(tf.keras.layers.Layer):
@@ -795,6 +795,8 @@ if generator_type == 'resnet':
 discriminator_x = discriminator(filter_muultiplier_discriminator,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 discriminator_y = discriminator(filter_muultiplier_discriminator,norm_type='instancenorm', target=False)#pix2pix.discriminator(norm_type='instancenorm', target=False)
 
+#endregion
+
 to_training_image = generator_g(sample_simulated)
 to_simulated = generator_f(sample_train)
 plt.figure(figsize=(8, 8))
@@ -827,7 +829,7 @@ plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
 plt.show()
 
 
-
+#region define loss functions
 #loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 loss_obj = tf.keras.losses.MeanSquaredError()
 
@@ -853,6 +855,8 @@ def calc_cycle_loss(real_image, cycled_image):
 def identity_loss(real_image, same_image):
   loss = tf.reduce_mean(tf.abs(real_image - same_image))
   return LAMBDA * 0.5 * loss
+
+#endregion
 
 generator_g_optimizer = tf.keras.optimizers.Adam(learningrate_G_g, beta_1=beta_G_g)
 generator_f_optimizer = tf.keras.optimizers.Adam(learningrate_G_f, beta_1=beta_G_f)
@@ -890,7 +894,12 @@ Training
 
 
 
-def generate_images(model, test_input, epoch_num):
+def generate_images(model, test_input, epoch_num, num,testing = False):
+
+    #################################################
+    #                   training
+    #################################################
+
   prediction = model(test_input)
 
   plt.figure(figsize=(12, 12))
@@ -926,7 +935,41 @@ def generate_images(model, test_input, epoch_num):
   # print('Saved generated images at step '+ str(step))
   plt.show()
 
+    #################################################
+    #                   testing
+    #################################################
+  if testing:
+      prediction = model(test_input)
 
+      plt.figure(figsize=(12, 12))
+
+      display_list = [test_input[0], prediction[0]]
+      title = ['Test Input Image', 'Predicted Image from testinput']
+      num_elem = len(display_list)
+
+      for i in range(num_elem):
+          plt.subplot(1, 2, i + 1)
+          plt.title(title[i])
+          # getting the pixel values between [0, 1] to plot it.
+          plt.imshow(display_list[i] * 0.5 + 0.5)
+          plt.axis('off')
+
+      folder_name = 'generated_data/testing/generated_images_cycle_GAN_simulated_dataset'
+      if not os.path.exists(folder_name):
+          os.makedirs(folder_name)
+
+
+      # plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
+      print('fig saved')
+      # plt.close("all")
+
+      # Save the figure using the step number to keep track of progress
+      plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
+      image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
+      run[f"visualizations/test_image_at_step_{num:04d}"].upload(image_path_buffer)
+      # plt.close()  # Close the figure to free up memory
+      # print('Saved generated images at step '+ str(step))
+      plt.show()
 
 @tf.function
 def train_step(real_x, real_y):
@@ -1020,7 +1063,8 @@ for epoch in range(EPOCHS):
   clear_output(wait=True)
   # Using a consistent image (sample_horse) so that the progress of the model
   # is clearly visible.
-  generate_images(generator_g, sample_simulated, epoch)
+  num = 0
+  generate_images(generator_g, sample_simulated, epoch,num)
 
   # if (epoch + 1) % 5 == 0:
   #   ckpt_save_path = ckpt_manager.save()
@@ -1037,9 +1081,11 @@ print(f"Tiden det tok å kjøre koden: {elapsed_time/60} minutter")
 print("training done===============================================")
 print("Generate using test dataset")
 
-# # Run the trained model on the test dataset
-# for inp in test_horses.take(5):
-#   generate_images(generator_g, inp)
+num = 0
+# Run the trained model on the test dataset
+for test_inp in test_dataset.take(5):
+  num+=1
+  generate_images(generator_g, test_inp,None,num,testing=True)
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
