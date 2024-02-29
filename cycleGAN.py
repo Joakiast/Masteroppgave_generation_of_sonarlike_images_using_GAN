@@ -65,7 +65,7 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 10
+BATCH_SIZE = 20
 EPOCHS = 100
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
@@ -893,6 +893,61 @@ Training
 """
 
 
+######################################################
+#               Frechet Inception Distance
+######################################################
+
+from scipy import linalg
+
+
+def calculate_activation_statistics(images, model):
+    batch_size = 50
+    num_images = images.shape[0]
+    n_batches = int(np.ceil(num_images / batch_size))
+    act = np.zeros((num_images, 2048))
+
+
+    for i in range(n_batches):
+        start = i * batch_size
+        end = start + batch_size
+        batch = images[start:end]
+        act[start:end] = model.predict(batch)
+
+
+    mu = np.mean(act, axis=0)
+    sigma = np.cov(act, rowvar=False)
+
+
+    return mu, sigma
+
+
+def calculate_frechet_distance(mu1, sigma1, mu2, sigma2):
+    epsilon = 1e-6
+    sqrtm_term = np.sqrt(np.dot(sigma1, sigma2))
+    if np.iscomplexobj(sqrtm_term):
+        sqrtm_term = sqrtm_term.real
+    fid = np.linalg.norm(mu1 - mu2) + np.trace(sigma1 + sigma2 - 2 * sqrtm_term + epsilon)
+
+
+    return fid
+
+
+def calculate_fid(real_images, generated_images, model):
+    real_mu, real_sigma = calculate_activation_statistics(real_images, model)
+    generated_mu, generated_sigma = calculate_activation_statistics(generated_images, model)
+    fid = calculate_frechet_distance(real_mu, real_sigma, generated_mu, generated_sigma)
+
+
+    return fid
+
+
+# Load the pre-trained InceptionV3 model
+inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(299, 299, 3))
+
+fid_score = calculate_fid(real_images, generated_images, inception_model)
+print("FID Score:", fid_score)
+
+
 
 def generate_images(model, test_input, epoch_num, num,testing = False):
 
@@ -918,7 +973,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
 
 
 
-  folder_name = 'generated_data/generated_images_cycle_GAN_simulated_dataset'
+    folder_name = 'generated_data/generated_images_cycle_GAN_simulated_dataset'
   if not os.path.exists(folder_name):
       os.makedirs(folder_name)
 
@@ -934,6 +989,8 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
   # plt.close()  # Close the figure to free up memory
   # print('Saved generated images at step '+ str(step))
   plt.show()
+  fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
+  print("FID Score:", fid_score)
 
     #################################################
     #                   testing
@@ -970,6 +1027,10 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
       # plt.close()  # Close the figure to free up memory
       # print('Saved generated images at step '+ str(step))
       plt.show()
+
+
+
+
 
 @tf.function
 def train_step(real_x, real_y):
@@ -1086,6 +1147,7 @@ num = 0
 for test_inp in test_dataset.take(5):
   num+=1
   generate_images(generator_g, test_inp,None,num,testing=True)
+
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
