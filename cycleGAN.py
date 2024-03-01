@@ -87,8 +87,8 @@ save_every_n_epochs = 2
 generator_type = "resnet"
 #generator_type = "unet"
 
-filter_muultiplier_generator = 1
-filter_muultiplier_discriminator = 1
+filter_muultiplier_generator = 0.5
+filter_muultiplier_discriminator = 0.5
 
 
 #image_type = '*rock_RGB'
@@ -1172,12 +1172,16 @@ print(f"len test dataset: {len(test_dataset)}")
 
 
 
-for batch in test_dataset:  # Fjerner .take(len(test_dataset))
-    for img in batch:  # Antar at dette er en batch av bilder
-        test_img_expanded = tf.expand_dims(img, axis=0)  # Riktig måte å utvide dimensjonen på
-        generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
-        num += 1
-        print(num)
+# for batch in test_dataset:  # Fjerner .take(len(test_dataset))
+#     for img in batch:  # Antar at dette er en batch av bilder
+#         test_img_expanded = tf.expand_dims(img, axis=0)  # Riktig måte å utvide dimensjonen på
+#         generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
+#         num += 1
+#         print(num)
+
+
+for inp in test_dataset.take(5):
+  generate_images(generator_g, inp)
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
