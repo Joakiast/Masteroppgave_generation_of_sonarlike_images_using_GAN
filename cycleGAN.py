@@ -1171,12 +1171,12 @@ print(f"len test dataset: {len(test_dataset)}")
 
 
 
-for batch in test_dataset.take(len(test_dataset)):  # Ta en batch for enkelhets skyld
-    for img in batch:  # Iterer gjennom hvert bilde i batchen
-        test_img_expanded = tf.expand_dims(img, axis=0)
+for batch in test_dataset:  # Fjerner .take(len(test_dataset))
+    for img in batch:  # Antar at dette er en batch av bilder
+        test_img_expanded = tf.expand_dims(img, axis=0)  # Riktig måte å utvide dimensjonen på
         generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
         num += 1
-
+        print(num)
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
