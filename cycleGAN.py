@@ -1156,52 +1156,15 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-# Run the trained model on the test dataset
-# for test_inp in test_dataset:#.take(len(test_dataset)):
-#   num+=1
-#   generate_images(generator_g, test_inp,epoch,num,testing=True)
+for batch in test_dataset:
+    for img in batch:
+        # Utvid dimensjonene til bildet for å inkludere batch-dimensjonen
+        img_expanded = tf.expand_dims(img, axis=0)
 
+        # Kall generate_images funksjonen for det bearbeidede bildet
+        generate_images(generator_g, img_expanded, epoch, num, testing=True)
 
-# for test_batch in test_dataset:  # Iterer gjennom hver batch i datasettet
-#     for test_img in test_batch:  # Iterer gjennom hvert bilde i batchen
-#         num += 1
-#         # Siden generate_images forventer et enkelt bilde, må du utvide dimensjonen til test_img
-#         # for å matche inputformatet (batch_størrelse, høyde, bredde, kanaler).
-#         test_img_expanded = tf.expand_dims(test_img, axis=0)
-#         generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
-
-
-
-# for batch in test_dataset:  # Fjerner .take(len(test_dataset))
-#     for img in batch:  # Antar at dette er en batch av bilder
-#         test_img_expanded = tf.expand_dims(img, axis=0)  # Riktig måte å utvide dimensjonen på
-#         generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
-#         num += 1
-#         print(num)
-
-num = 0
-for inp in test_dataset.take(5):
-    inp_with_batch = tf.expand_dims(inp[0], axis=0)  # Legger til batchdimensjon
-    generate_images(generator_g, inp_with_batch, epoch, num, testing=True)
-    num += 1
-
-##############################
-#
-# folder_name = "test_slett_meg"
-# for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
-#     num += 1
-#     print(f" ")
-#     # Anta at bildene er normalisert til [0, 1]. Hvis ikke, må du kanskje normalisere dem.
-#     # Dette viser det første bildet i batchen
-#     plt.imshow(batch[0].numpy())
-#     plt.title(f"Sample {num}")
-#     plt.axis('off')  # Skjul aksene for et renere bilde
-#     plt.show()
-#
-# plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
-# image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
-# run[f"visualizations/test_slett_meg/test_image_at_step_{num:04d}"].upload(image_path_buffer)
-
+        num += 1
 ############################
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
