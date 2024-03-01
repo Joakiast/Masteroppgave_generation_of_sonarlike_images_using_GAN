@@ -1174,7 +1174,7 @@ print(f"len test dataset: {len(test_dataset)}")
 for batch in test_dataset.take(1):  # Ta en batch for enkelhets skyld
     for img in batch:  # Iterer gjennom hvert bilde i batchen
         test_img_expanded = tf.expand_dims(img, axis=0)
-        generate_images(generator_g, test_img_expanded, epoch, num)
+        generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
         num += 1
 
 
