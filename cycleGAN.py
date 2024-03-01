@@ -1153,6 +1153,8 @@ print("training done===============================================")
 print("Generate using test dataset")
 
 num = 0
+print(f"len test dataset: {len(test_dataset)}")
+
 # Run the trained model on the test dataset
 for test_inp in test_dataset.take(len(test_dataset)):
   num+=1
