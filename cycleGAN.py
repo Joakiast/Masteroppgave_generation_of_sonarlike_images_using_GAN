@@ -1007,8 +1007,6 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
   if testing:
       assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
       print("plotting test images")
-      print(f"Generating for test image {num} with shape {test_input.shape}")
-      print(f"bilde: {test_input}")
 
       prediction = model(test_input)
 
@@ -1161,12 +1159,8 @@ print(f"len test dataset: {len(test_dataset)}")
 
 
 for test_input in test_dataset:
-    # Siden batch-størrelsen er 1, inneholder hver 'test_input' ett bilde.
-    # 'test_input' har formen (1, Høyde, Bredde, Kanaler) pga. batch(1)
 
-    # Du trenger ikke å utvide dimensjonene siden hver 'test_input' allerede er en batch med ett bilde.
-    # Direkte kall til generate_images funksjonen med den aktuelle 'test_input'
-    generate_images(generator_g, test_input, epoch, num, testing=True)
+    generate_images(generator_g, test_input[0], epoch, num, testing=True)
 
     num += 1
 ############################
