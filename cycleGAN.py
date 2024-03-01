@@ -1157,13 +1157,14 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
+for test_batch in test_dataset:
+    # Siden test_batch er i formen (1, 256, 256, 3), bruk tf.squeeze for å fjerne batch-dimensjonen
+    test_image = tf.squeeze(test_batch, axis=0)  # Dette endrer formen til (256, 256, 3)
 
-for test_input in test_dataset:
-
-    generate_images(generator_g, test_input[0], epoch, num, testing=True)
+    # Siden generate_images forventer et enkelt bilde, pass test_image direkte
+    generate_images(generator_g, test_image, epoch, num, testing=True)
 
     num += 1
-############################
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
