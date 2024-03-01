@@ -1161,13 +1161,13 @@ print(f"len test dataset: {len(test_dataset)}")
 #   generate_images(generator_g, test_inp,epoch,num,testing=True)
 
 
-for test_batch in test_dataset:  # Iterer gjennom hver batch i datasettet
-    for test_img in test_batch:  # Iterer gjennom hvert bilde i batchen
-        num += 1
-        # Siden generate_images forventer et enkelt bilde, må du utvide dimensjonen til test_img
-        # for å matche inputformatet (batch_størrelse, høyde, bredde, kanaler).
-        test_img_expanded = tf.expand_dims(test_img, axis=0)
-        generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
+# for test_batch in test_dataset:  # Iterer gjennom hver batch i datasettet
+#     for test_img in test_batch:  # Iterer gjennom hvert bilde i batchen
+#         num += 1
+#         # Siden generate_images forventer et enkelt bilde, må du utvide dimensjonen til test_img
+#         # for å matche inputformatet (batch_størrelse, høyde, bredde, kanaler).
+#         test_img_expanded = tf.expand_dims(test_img, axis=0)
+#         generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
 
 
 
