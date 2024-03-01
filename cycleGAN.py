@@ -65,8 +65,8 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 5
-BATCH_SIZE_TEST = 5
+BATCH_SIZE = 1
+BATCH_SIZE_TEST = 1
 EPOCHS = 2
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
@@ -1160,10 +1160,10 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset.take(20):
+for test_batch in range(len(test_dataset)):
 
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
-    generate_images(generator_g, test_batch, epoch, num, testing=True)
+    generate_images(generator_g,sample_test, epoch, num, testing=True)
 
     num += 1
 
