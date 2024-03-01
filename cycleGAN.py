@@ -61,12 +61,12 @@ run = neptune.init_run(
 start_time = time.time()
 #region load the dataset
 #test 0
-resize_x = 28#256
-resize_y = 28#256
+resize_x = 256
+resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 10
-EPOCHS = 100
+EPOCHS = 2
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
 DROPOUT = 0.5
@@ -508,6 +508,7 @@ plt.show()
 
 sample_simulated = next(iter(simulated_dataset))
 sample_train = next(iter(train_dataset))
+sample_test = next(iter(test_dataset))
 
 #==============================================================================
 
@@ -1147,7 +1148,7 @@ num = 0
 # Run the trained model on the test dataset
 for test_inp in test_dataset.take(5):
   num+=1
-  generate_images(generator_g, test_inp,None,num,testing=True)
+  generate_images(generator_g, test_inp,epoch,num,testing=True)
 
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
