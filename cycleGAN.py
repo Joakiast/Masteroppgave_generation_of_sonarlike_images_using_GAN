@@ -1173,10 +1173,12 @@ print(f"len test dataset: {len(test_dataset)}")
 
 for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
     num += 1
-    # Anta at bildene er normalisert til [0, 1]. Hvis ikke, må du kanskje normalisere dem.
-    # Dette viser det første bildet i batchen
-    #plt.imshow(batch[0].numpy())
-    generate_images(generator_g, batch[0].numpy(), epoch, num, testing=True)
+    # Ta det første bildet i batchen og legg til en batch-dimensjon
+    test_img = batch[0]  # Anta at 'batch' er en tensor av bilder
+    test_img_expanded = tf.expand_dims(test_img, axis=0)  # Legger til batch-dimensjon
+
+    # Pass nå test_img_expanded til din generate_images funksjon
+    generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
 
 
 
