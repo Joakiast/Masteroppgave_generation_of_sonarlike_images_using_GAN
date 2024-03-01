@@ -482,7 +482,7 @@ simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
 test_dataset = test_dataset.map(load_and_preprocess_image_simulated_set, num_parallel_calls=tf.data.AUTOTUNE)
 test_dataset = test_dataset.shuffle(BUFFER_SIZE_test_set)
-test_dataset = test_dataset.batch(BATCH_SIZE_TEST)
+#test_dataset = test_dataset.batch(BATCH_SIZE_TEST)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
 #============================================================================
@@ -1015,7 +1015,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
 
       plt.figure(figsize=(12, 12))
 
-      display_list = [test_input[0], prediction[0]]
+      display_list = [test_input[0], prediction]#[0]]
       title = ['Test Input Image', 'Predicted Image from testinput']
       num_elem = len(display_list)
 
