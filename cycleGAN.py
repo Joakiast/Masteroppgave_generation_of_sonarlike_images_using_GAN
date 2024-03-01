@@ -1179,10 +1179,10 @@ print(f"len test dataset: {len(test_dataset)}")
 #         num += 1
 #         print(num)
 
-
+num = 0
 for inp in test_dataset.take(5):
-  generate_images(generator_g, inp)
-
+  generate_images(generator_g, inp,epoch,num,testing=True)
+  num+=1
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
 
