@@ -87,7 +87,7 @@ save_every_n_epochs = 2
 generator_type = "resnet"
 #generator_type = "unet"
 
-filter_muultiplier_generator = 2
+filter_muultiplier_generator = 1
 filter_muultiplier_discriminator = 1
 
 
@@ -1171,15 +1171,11 @@ print(f"len test dataset: {len(test_dataset)}")
 
 
 
-for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
-    num += 1
-    # Ta det første bildet i batchen og legg til en batch-dimensjon
-    test_img = batch[0]  # Anta at 'batch' er en tensor av bilder
-    test_img_expanded = tf.expand_dims(test_img, axis=0)  # Legger til batch-dimensjon
-
-    # Pass nå test_img_expanded til din generate_images funksjon
-    generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
-
+for batch in test_dataset.take(1):  # Ta en batch for enkelhets skyld
+    for img in batch:  # Iterer gjennom hvert bilde i batchen
+        test_img_expanded = tf.expand_dims(img, axis=0)
+        generate_images(generator_g, test_img_expanded, epoch, num)
+        num += 1
 
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
