@@ -66,6 +66,7 @@ resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 5
+BATCH_SIZE_TEST = 8
 EPOCHS = 2
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
@@ -481,7 +482,7 @@ simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
 test_dataset = test_dataset.map(load_and_preprocess_image_simulated_set, num_parallel_calls=tf.data.AUTOTUNE)
 test_dataset = test_dataset.shuffle(BUFFER_SIZE_test_set)
-test_dataset = test_dataset.batch(1)
+test_dataset = test_dataset.batch(BATCH_SIZE_TEST)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 
 #============================================================================
@@ -1006,7 +1007,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
     #                   testing
     #################################################
   if testing:
-      test_input = tf.expand_dims(test_input, axis=0)
+      #test_input = tf.expand_dims(test_input, axis=0)
       #assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
       print("plotting test images")
 
@@ -1159,12 +1160,10 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset:
-    # Siden test_batch er i formen (1, 256, 256, 3), bruk tf.squeeze for å fjerne batch-dimensjonen
-    test_image = tf.squeeze(test_batch, axis=0)  # Dette endrer formen til (256, 256, 3)
+for test_batch in test_dataset.take(BATCH_SIZE_TEST):
 
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
-    generate_images(generator_g, test_image, epoch, num, testing=True)
+    generate_images(generator_g, test_batch, epoch, num, testing=True)
 
     num += 1
 
