@@ -1180,11 +1180,28 @@ print(f"len test dataset: {len(test_dataset)}")
 #         print(num)
 
 num = 0
-for inp in test_dataset.take(5):
-  generate_images(generator_g, inp[0].numpy(),epoch,num,testing=True)
-  num+=1
+# for inp in test_dataset.take(5):
+#   generate_images(generator_g, inp[0].numpy(),epoch,num,testing=True)
+#   num+=1
+#
+# ##############################
 
+folder_name = "test_slett_meg"
+for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
+    num += 1
+    print(f" ")
+    # Anta at bildene er normalisert til [0, 1]. Hvis ikke, må du kanskje normalisere dem.
+    # Dette viser det første bildet i batchen
+    plt.imshow(batch[0].numpy())
+    plt.title(f"Sample {num}")
+    plt.axis('off')  # Skjul aksene for et renere bilde
+    plt.show()
 
+plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
+image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
+run[f"visualizations/test_slett_meg/test_image_at_step_{num:04d}"].upload(image_path_buffer)
+
+############################
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
