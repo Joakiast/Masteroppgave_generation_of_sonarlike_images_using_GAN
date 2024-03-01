@@ -956,43 +956,44 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
     #################################################
     #                   training
     #################################################
+  if testing == False:
 
-  prediction = model(test_input)
+      prediction = model(test_input)
 
-  plt.figure(figsize=(12, 12))
+      plt.figure(figsize=(12, 12))
 
-  display_list = [test_input[0], prediction[0]]
-  title = ['Input Image', 'Predicted Image']
-  num_elem = len(display_list)
-
-
-  for i in range(num_elem):
-    plt.subplot(1, 2, i+1)
-    plt.title(title[i])
-    # getting the pixel values between [0, 1] to plot it.
-    plt.imshow(display_list[i] * 0.5 + 0.5)
-    plt.axis('off')
+      display_list = [test_input[0], prediction[0]]
+      title = ['Input Image', 'Predicted Image']
+      num_elem = len(display_list)
 
 
+      for i in range(num_elem):
+        plt.subplot(1, 2, i+1)
+        plt.title(title[i])
+        # getting the pixel values between [0, 1] to plot it.
+        plt.imshow(display_list[i] * 0.5 + 0.5)
+        plt.axis('off')
 
-    folder_name = 'generated_data/generated_images_cycle_GAN_simulated_dataset'
-  if not os.path.exists(folder_name):
-      os.makedirs(folder_name)
 
-  if epoch_num % save_every_n_epochs == 0:
-      #plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
-      print('fig saved')
-      #plt.close("all")
 
-  # Save the figure using the step number to keep track of progress
-      plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
-      image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
-      run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
-  # plt.close()  # Close the figure to free up memory
-  # print('Saved generated images at step '+ str(step))
-  plt.show()
-  #fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
-#  print("FID Score:", fid_score)
+        folder_name = 'generated_data/generated_images_cycle_GAN_simulated_dataset'
+      if not os.path.exists(folder_name):
+          os.makedirs(folder_name)
+
+      if epoch_num % save_every_n_epochs == 0:
+          #plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
+          print('fig saved')
+          #plt.close("all")
+
+      # Save the figure using the step number to keep track of progress
+          plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
+          image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
+          run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
+      # plt.close()  # Close the figure to free up memory
+      # print('Saved generated images at step '+ str(step))
+      plt.show()
+      #fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
+    #  print("FID Score:", fid_score)
 
     #################################################
     #                   testing
@@ -1025,7 +1026,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
       # Save the figure using the step number to keep track of progress
       plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
       image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
-      run[f"visualizations/test_image_at_step_{num:04d}"].upload(image_path_buffer)
+      run[f"visualizations/test_my_model/test_image_at_step_{num:04d}"].upload(image_path_buffer)
       # plt.close()  # Close the figure to free up memory
       # print('Saved generated images at step '+ str(step))
       plt.show()
