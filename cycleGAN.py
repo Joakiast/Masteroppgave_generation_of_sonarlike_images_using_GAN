@@ -1169,6 +1169,17 @@ for test_batch in test_dataset:  # Iterer gjennom hver batch i datasettet
         test_img_expanded = tf.expand_dims(test_img, axis=0)
         generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
 
+
+
+for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
+    num += 1
+    # Anta at bildene er normalisert til [0, 1]. Hvis ikke, må du kanskje normalisere dem.
+    # Dette viser det første bildet i batchen
+    #plt.imshow(batch[0].numpy())
+    generate_images(generator_g, batch[0].numpy(), epoch, num, testing=True)
+
+
+
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
 
