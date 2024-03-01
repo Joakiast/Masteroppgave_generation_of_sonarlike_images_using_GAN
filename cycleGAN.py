@@ -1153,7 +1153,7 @@ print("Generate using test dataset")
 
 num = 0
 # Run the trained model on the test dataset
-for test_inp in test_dataset.take(5):
+for test_inp in test_dataset:# test_dataset.take(5):
   num+=1
   generate_images(generator_g, test_inp,epoch,num,testing=True)
 
