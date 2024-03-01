@@ -84,8 +84,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet"
-generator_type = "unet"
+generator_type = "resnet"
+#generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
@@ -123,7 +123,7 @@ params = {
     "beta_D_y": beta_D_y,
     "Lambda": LAMBDA,
     "Image_type": image_type,
-    "use_bias": True,
+    "use_bias": False,
   #  "number_of_filters": "increased x2 in generator not discriminator",
     "type of generator": generator_type,
     "type of loss func": "MeanSquaredError",
@@ -149,6 +149,9 @@ run["model/parameters"] = params
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
 test_set_path = pathlib.Path("datasets/test")
+test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
+
+
 
 image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]#[:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
@@ -165,6 +168,9 @@ print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
 
 image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][406:]   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
+
+buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob("*.png"))]#[:405] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_test.extend(buffer_test)
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
 
@@ -690,7 +696,7 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
     initializer = tf.random_normal_initializer(0., 0.02)
     conv_block = tf.keras.Sequential()
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
-                                 kernel_initializer=initializer, use_bias=True))
+                                 kernel_initializer=initializer, use_bias=False))
     if norm_type == 'instancenorm':
         conv_block.add(InstanceNormalization())
     elif norm_type == 'batchnorm':
@@ -699,7 +705,7 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
         conv_block.add(layers.Dropout(DROPOUT))
     conv_block.add(layers.ReLU())
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
-                                 kernel_initializer=initializer, use_bias=True))
+                                 kernel_initializer=initializer, use_bias=False))
     if norm_type == 'instancenorm':
         conv_block.add(InstanceNormalization())
 
@@ -764,7 +770,7 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
   zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
   conv = tf.keras.layers.Conv2D(
       math.floor(512*filter_multiplier), 4, strides=1, kernel_initializer=initializer,
-      use_bias=True)(zero_pad1)  # (bs, 31, 31, 512)
+      use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
 
   if norm_type.lower() == 'batchnorm':
     norm1 = tf.keras.layers.BatchNormalization()(conv)
