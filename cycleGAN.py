@@ -1006,7 +1006,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
     #                   testing
     #################################################
   if testing:
-      test_input_expanded = tf.expand_dims(test_input, axis=0)
+      test_input = tf.expand_dims(test_input, axis=0)
       #assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
       print("plotting test images")
 
