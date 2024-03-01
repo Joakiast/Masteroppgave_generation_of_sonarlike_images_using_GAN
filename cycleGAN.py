@@ -1005,6 +1005,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
     #                   testing
     #################################################
   if testing:
+      print("plotting test images")
       prediction = model(test_input)
 
       plt.figure(figsize=(12, 12))
@@ -1153,7 +1154,7 @@ print("Generate using test dataset")
 
 num = 0
 # Run the trained model on the test dataset
-for test_inp in test_dataset:# test_dataset.take(5):
+for test_inp in test_dataset.take(len(test_dataset)):
   num+=1
   generate_images(generator_g, test_inp,epoch,num,testing=True)
 
