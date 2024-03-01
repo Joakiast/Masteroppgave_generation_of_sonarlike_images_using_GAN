@@ -65,7 +65,7 @@ resize_x = 256
 resize_y = 256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 10
+BATCH_SIZE = 100
 EPOCHS = 2
 color_channel = 3
 crop_size = 256#resize_x / 2 150 fin størrelse på
@@ -988,7 +988,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
       # Save the figure using the step number to keep track of progress
           plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
           image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
-          run[f"visualizations/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
+          run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
       # plt.close()  # Close the figure to free up memory
       # print('Saved generated images at step '+ str(step))
       plt.show()
