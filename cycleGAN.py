@@ -61,8 +61,8 @@ run = neptune.init_run(
 start_time = time.time()
 #region load the dataset
 #test 0
-resize_x = 256
-resize_y = 256
+resize_x = 28#256
+resize_y = 28#256
 
 #The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 10
