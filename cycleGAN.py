@@ -87,8 +87,8 @@ save_every_n_epochs = 2
 generator_type = "resnet"
 #generator_type = "unet"
 
-filter_muultiplier_generator = 0.5
-filter_muultiplier_discriminator = 0.5
+filter_muultiplier_generator = 0.25
+filter_muultiplier_discriminator = 0.25
 
 
 #image_type = '*rock_RGB'
@@ -1180,26 +1180,27 @@ print(f"len test dataset: {len(test_dataset)}")
 #         print(num)
 
 num = 0
-# for inp in test_dataset.take(5):
-#   generate_images(generator_g, inp[0].numpy(),epoch,num,testing=True)
-#   num+=1
-#
-# ##############################
-
-folder_name = "test_slett_meg"
-for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
+for inp in test_dataset.take(5):
+    inp_with_batch = tf.expand_dims(inp[0], axis=0)  # Legger til batchdimensjon
+    generate_images(generator_g, inp_with_batch, epoch, num, testing=True)
     num += 1
-    print(f" ")
-    # Anta at bildene er normalisert til [0, 1]. Hvis ikke, må du kanskje normalisere dem.
-    # Dette viser det første bildet i batchen
-    plt.imshow(batch[0].numpy())
-    plt.title(f"Sample {num}")
-    plt.axis('off')  # Skjul aksene for et renere bilde
-    plt.show()
 
-plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
-image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
-run[f"visualizations/test_slett_meg/test_image_at_step_{num:04d}"].upload(image_path_buffer)
+##############################
+#
+# folder_name = "test_slett_meg"
+# for batch in test_dataset:  # Iterer gjennom hver batch i datasettet
+#     num += 1
+#     print(f" ")
+#     # Anta at bildene er normalisert til [0, 1]. Hvis ikke, må du kanskje normalisere dem.
+#     # Dette viser det første bildet i batchen
+#     plt.imshow(batch[0].numpy())
+#     plt.title(f"Sample {num}")
+#     plt.axis('off')  # Skjul aksene for et renere bilde
+#     plt.show()
+#
+# plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
+# image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
+# run[f"visualizations/test_slett_meg/test_image_at_step_{num:04d}"].upload(image_path_buffer)
 
 ############################
 
