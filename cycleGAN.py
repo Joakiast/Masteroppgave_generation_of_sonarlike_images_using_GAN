@@ -1007,6 +1007,9 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
   if testing:
       assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
       print("plotting test images")
+      print(f"Generating for test image {num} with shape {test_input.shape}")
+      print(f"bilde: {test_input}")
+
       prediction = model(test_input)
 
       plt.figure(figsize=(12, 12))
