@@ -963,7 +963,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
     #                   training
     #################################################
   if testing == False:
-
+      assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
       prediction = model(test_input)
 
       plt.figure(figsize=(12, 12))
@@ -1005,6 +1005,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
     #                   testing
     #################################################
   if testing:
+      assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
       print("plotting test images")
       prediction = model(test_input)
 
