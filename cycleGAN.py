@@ -1156,10 +1156,18 @@ num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
 # Run the trained model on the test dataset
-for test_inp in test_dataset.take(len(test_dataset)):
-  num+=1
-  generate_images(generator_g, test_inp,epoch,num,testing=True)
+# for test_inp in test_dataset:#.take(len(test_dataset)):
+#   num+=1
+#   generate_images(generator_g, test_inp,epoch,num,testing=True)
 
+
+for test_batch in test_dataset:  # Iterer gjennom hver batch i datasettet
+    for test_img in test_batch:  # Iterer gjennom hvert bilde i batchen
+        num += 1
+        # Siden generate_images forventer et enkelt bilde, må du utvide dimensjonen til test_img
+        # for å matche inputformatet (batch_størrelse, høyde, bredde, kanaler).
+        test_img_expanded = tf.expand_dims(test_img, axis=0)
+        generate_images(generator_g, test_img_expanded, epoch, num, testing=True)
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 #discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
