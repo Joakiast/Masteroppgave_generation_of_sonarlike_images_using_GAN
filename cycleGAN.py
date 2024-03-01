@@ -1015,7 +1015,7 @@ def generate_images(model, test_input, epoch_num, num,testing = False):
 
       plt.figure(figsize=(12, 12))
 
-      display_list = [test_input[0], prediction]#[0]]
+      display_list = [test_input[0], prediction[0]]
       title = ['Test Input Image', 'Predicted Image from testinput']
       num_elem = len(display_list)
 
