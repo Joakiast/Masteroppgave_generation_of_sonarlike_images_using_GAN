@@ -1156,15 +1156,16 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for batch in test_dataset:
-    for img in batch:
-        # Utvid dimensjonene til bildet for å inkludere batch-dimensjonen
-        img_expanded = tf.expand_dims(img, axis=0)
 
-        # Kall generate_images funksjonen for det bearbeidede bildet
-        generate_images(generator_g, img_expanded, epoch, num, testing=True)
+for test_input in test_dataset:
+    # Siden batch-størrelsen er 1, inneholder hver 'test_input' ett bilde.
+    # 'test_input' har formen (1, Høyde, Bredde, Kanaler) pga. batch(1)
 
-        num += 1
+    # Du trenger ikke å utvide dimensjonene siden hver 'test_input' allerede er en batch med ett bilde.
+    # Direkte kall til generate_images funksjonen med den aktuelle 'test_input'
+    generate_images(generator_g, test_input, epoch, num, testing=True)
+
+    num += 1
 ############################
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
