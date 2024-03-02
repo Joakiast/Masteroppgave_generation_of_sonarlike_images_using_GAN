@@ -29,7 +29,17 @@ import sys
 # from sklearn.cluster import KMeans
 import math
 import tensorflow_addons as tfa
+import random
+
 from scipy.linalg import sqrtm
+
+
+# Set seeds for reproducibility
+seed_number = 42
+
+tf.random.set_seed(seed_number)
+np.random.seed(seed_number)
+random.seed(seed_number)
 
 run = neptune.init_run(
     project="masteroppgave/cycleGAN",
@@ -125,7 +135,8 @@ params = {
     "type of loss func": "MeanSquaredError",
     "save_every_n_epochs": save_every_n_epochs,
     "filter multiplier gen": filter_muultiplier_generator,
-    "filter multiplier disc": filter_muultiplier_discriminator
+    "filter multiplier disc": filter_muultiplier_discriminator,
+    "seed_number": seed_number
 }
 
 if image_type_2:
@@ -1140,7 +1151,7 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset.take(5): #endre ved behov
+for test_batch in test_dataset.take(26): #endre ved behov
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
     generate_images(generator_g, test_batch, epoch, num, testing=True)
 
