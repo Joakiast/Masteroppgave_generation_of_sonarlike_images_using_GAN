@@ -6,6 +6,8 @@ based generator. This tutorial is using a modified unet generator for simplicity
 # ==============================================================================
 
 import tensorflow as tf
+from keras.src.applications import InceptionV3
+from tensorflow.keras.applications.inception_v3 import preprocess_input
 
 tf.__version__
 import glob
@@ -29,9 +31,13 @@ import sys
 # from sklearn.cluster import KMeans
 import math
 import tensorflow_addons as tfa
-import random
 
+
+from numpy import cov
+from numpy import trace
+from numpy import iscomplexobj
 from scipy.linalg import sqrtm
+import random
 
 
 # Set seeds for reproducibility
@@ -958,6 +964,37 @@ Training
 # inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(256, 256, 3))
 #
 
+# calculate frechet inception distance
+def calculate_fid(model, images1, images2):
+    # calculate activations
+    act1 = model.predict(images1)
+    act2 = model.predict(images2)
+
+    print("Aktiveringsvektorer form:", act1.shape, act2.shape)
+
+    # calculate mean and covariance statistics
+    mu1, sigma1 = act1.mean(axis=0), cov(act1, rowvar=False)
+    mu2, sigma2 = act2.mean(axis=0), cov(act2, rowvar=False)
+    print("Kovariansmatrise form:", sigma1.shape, sigma2.shape)
+
+    # calculate sum squared difference between means
+    ssdiff = np.sum((mu1 - mu2) ** 2.0)
+    # calculate sqrt of product between cov
+    covmean = sqrtm(sigma1.dot(sigma2))
+    # check and correct imaginary numbers from sqrt
+    covmean = sqrtm(sigma1.dot(sigma2))
+    if np.iscomplexobj(covmean):
+        print("Komplekse tall funnet i covmean")
+        covmean = covmean.real
+
+    # calculate score
+    fid = ssdiff + trace(sigma1 + sigma2 - 2.0 * covmean)
+    return fid
+
+if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
+    FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
+
+
 
 def generate_images(model, test_input, epoch_num, num, testing=False):
     #################################################
@@ -965,8 +1002,17 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
     #################################################
     if testing == False:
 
+        def log_wrapper(name, value):
+            # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
+            run[name].log(value.numpy())
+
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         prediction = model(test_input)
+
+        #=================
+        test_input_prepared = preprocess_input(test_input)
+        prediction_prepared = preprocess_input(prediction)
+        #================
 
         plt.figure(figsize=(12, 12))
 
@@ -991,6 +1037,13 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
             run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
+            if BATCH_SIZE > 1or BATCH_SIZE_TEST > 1:
+                fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
+                print("FID Score:", fid_score)
+                tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
+            else:
+                print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
+
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
         plt.show()
@@ -1006,7 +1059,18 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         print("plotting test images")
 
+
+        def log_wrapper(name, value):
+            # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
+            run[name].log(value.numpy())
+
+        # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         prediction = model(test_input)
+
+        # =================
+        test_input_prepared = preprocess_input(test_input)
+        prediction_prepared = preprocess_input(prediction)
+        # ================
 
         plt.figure(figsize=(12, 12))
 
