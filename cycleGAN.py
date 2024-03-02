@@ -981,7 +981,10 @@ def calculate_fid(model, images1, images2):
     fid = ssdiff + trace(sigma1 + sigma2 - 2.0 * covmean)
     return fid
 
-FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
+
+
+if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
+    FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
 
 
 # ======================================
@@ -1028,7 +1031,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
             run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
-            if BATCH_SIZE or BATCH_SIZE_TEST > 1:
+            if BATCH_SIZE > 1or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score:", fid_score)
                 tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
@@ -1087,7 +1090,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
             run[f"visualizations/test_my_model/test_image_at_step_{num:04d}"].upload(image_path_buffer)
-            if BATCH_SIZE or BATCH_SIZE_TEST > 1:
+            if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score:", fid_score)
                 tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
