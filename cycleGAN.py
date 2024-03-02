@@ -1221,6 +1221,10 @@ for test_batch in test_dataset.take(num_test_img):
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 # discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
+model_path = f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5'
+
+# Last opp modellen til Neptune
+run[f'models/my_generator_{image_type[1:-8]}'].upload(model_path)
 
 run.stop()
 
