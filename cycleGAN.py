@@ -6,6 +6,8 @@ based generator. This tutorial is using a modified unet generator for simplicity
 # ==============================================================================
 
 import tensorflow as tf
+from keras.src.applications import InceptionV3
+from tensorflow.keras.applications.inception_v3 import preprocess_input
 
 tf.__version__
 import glob
@@ -29,6 +31,11 @@ import sys
 # from sklearn.cluster import KMeans
 import math
 import tensorflow_addons as tfa
+
+
+from numpy import cov
+from numpy import trace
+from numpy import iscomplexobj
 from scipy.linalg import sqrtm
 
 run = neptune.init_run(
@@ -58,15 +65,17 @@ run = neptune.init_run(
 start_time = time.time()
 # region load the dataset
 # test 0
-resize_x = 76#256
-resize_y = 76#256
+resize_x = 256
+resize_y = 256
+
+num_test_img = 26
 
 # The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 2
-BATCH_SIZE_TEST = 2
-EPOCHS = 30
+BATCH_SIZE = 1
+BATCH_SIZE_TEST = 1
+EPOCHS = 100
 color_channel = 3
-crop_size = resize_x#  256  # resize_x / 2 150 fin størrelse på
+crop_size = resize_y#256  # resize_x / 2 150 fin størrelse på
 DROPOUT = 0.5
 LAMBDA = 10
 
@@ -896,13 +905,11 @@ discriminator_y_optimizer = tf.keras.optimizers.Adam(learningrate_D_y, beta_1=be
 Training
 """
 
-
 ######################################################
 #               Frechet Inception Distance
 ######################################################
 
 
-#
 # def calculate_activation_statistics(images, model):
 #     batch_size = BATCH_SIZE
 #     num_images = images.shape[0]
@@ -916,22 +923,19 @@ Training
 #         batch = images[start:end]
 #         act[start:end] = model.predict(batch)
 #
-#
 #     mu = np.mean(act, axis=0)
 #     sigma = np.cov(act, rowvar=False)
 #
-#
 #     return mu, sigma
-#
 #
 # def calculate_frechet_distance(mu1, sigma1, mu2, sigma2):
 #     epsilon = 1e-6
-#     # Korrekt beregning av kvadratroten av et matriseprodukt
+#
 #     covmean = sqrtm(sigma1.dot(sigma2))
 #     if np.iscomplexobj(covmean):
 #         covmean = covmean.real
 #     mu_diff = mu1 - mu2
-#     # Beregning av FID-score med den korrigerte kvadratroten av matriseproduktet
+#
 #     fid = np.sum(mu_diff**2) + np.trace(sigma1 + sigma2 - 2 * covmean) + epsilon
 #     return fid
 #
@@ -944,9 +948,43 @@ Training
 #
 #
 # # Load the pre-trained InceptionV3 model
-# inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(256, 256, 3))
+# inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
 #
 
+# =============================
+
+
+# calculate frechet inception distance
+def calculate_fid(model, images1, images2):
+    # calculate activations
+    act1 = model.predict(images1)
+    act2 = model.predict(images2)
+
+    print("Aktiveringsvektorer form:", act1.shape, act2.shape)
+
+    # calculate mean and covariance statistics
+    mu1, sigma1 = act1.mean(axis=0), cov(act1, rowvar=False)
+    mu2, sigma2 = act2.mean(axis=0), cov(act2, rowvar=False)
+    print("Kovariansmatrise form:", sigma1.shape, sigma2.shape)
+
+    # calculate sum squared difference between means
+    ssdiff = np.sum((mu1 - mu2) ** 2.0)
+    # calculate sqrt of product between cov
+    covmean = sqrtm(sigma1.dot(sigma2))
+    # check and correct imaginary numbers from sqrt
+    covmean = sqrtm(sigma1.dot(sigma2))
+    if np.iscomplexobj(covmean):
+        print("Komplekse tall funnet i covmean")
+        covmean = covmean.real
+
+    # calculate score
+    fid = ssdiff + trace(sigma1 + sigma2 - 2.0 * covmean)
+    return fid
+
+FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
+
+
+# ======================================
 
 def generate_images(model, test_input, epoch_num, num, testing=False):
     #################################################
@@ -954,8 +992,18 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
     #################################################
     if testing == False:
 
+        def log_wrapper(name, value):
+            # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
+            run[name].log(value.numpy())
+
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         prediction = model(test_input)
+        #=================
+        test_input_prepared = preprocess_input(test_input)
+        prediction_prepared = preprocess_input(prediction)
+        #================
+        print(
+            f"prediction.shape: {prediction.shape} test_input.shape: {test_input.shape} ===> prediction[0].shape: {prediction[0].shape} test_input[0].shape: {test_input[0].shape}")
 
         plt.figure(figsize=(12, 12))
 
@@ -980,11 +1028,19 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
             run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
+            if BATCH_SIZE or BATCH_SIZE_TEST > 1:
+                fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
+                print("FID Score:", fid_score)
+                tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
+            else:
+                print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
+
+
+
+
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
         plt.show()
-        # fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
-    #  print("FID Score:", fid_score)
 
     #################################################
     #                   testing
@@ -994,6 +1050,17 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
         # test_input = tf.expand_dims(test_input, axis=0)
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         print("plotting test images")
+        def log_wrapper(name, value):
+            # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
+            run[name].log(value.numpy())
+
+
+        prediction = model(test_input)
+        #=================
+        test_input_prepared = preprocess_input(test_input)
+        prediction_prepared = preprocess_input(prediction)
+        #================
+
 
         prediction = model(test_input)
 
@@ -1020,6 +1087,12 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
             run[f"visualizations/test_my_model/test_image_at_step_{num:04d}"].upload(image_path_buffer)
+            if BATCH_SIZE or BATCH_SIZE_TEST > 1:
+                fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
+                print("FID Score:", fid_score)
+                tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
+            else:
+                print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
         plt.show()
@@ -1140,7 +1213,7 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset.take(5):
+for test_batch in test_dataset.take(num_test_img):
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
     generate_images(generator_g, test_batch, epoch, num, testing=True)
 
@@ -1148,6 +1221,10 @@ for test_batch in test_dataset.take(5):
 
 generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
 # discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
+model_path = f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5'
+
+# Last opp modellen til Neptune
+run[f'models/my_generator_{image_type[1:-8]}'].upload(model_path)
 
 run.stop()
 
