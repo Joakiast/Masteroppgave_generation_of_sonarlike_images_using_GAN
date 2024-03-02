@@ -1140,7 +1140,7 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset.take(5):
+for test_batch in test_dataset.take(5): #endre ved behov
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
     generate_images(generator_g, test_batch, epoch, num, testing=True)
 
