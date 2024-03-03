@@ -701,7 +701,7 @@ def unet_generator(filter_multiplier, output_channels, norm_type='batchnorm'):
 
 # =========================Resnet=====================================
 
-def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=False):
+def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=True):
     initializer = tf.random_normal_initializer(0., 0.02)
     conv_block = tf.keras.Sequential()
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
@@ -1037,7 +1037,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{epoch_num:04d}.png'
             run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
-            if BATCH_SIZE > 1or BATCH_SIZE_TEST > 1:
+            if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score:", fid_score)
                 tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
@@ -1095,6 +1095,12 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
             run[f"visualizations/test_my_model/test_image_at_step_{num:04d}"].upload(image_path_buffer)
+            if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
+                fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
+                print("FID Score:", fid_score)
+                tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score], Tout=[])
+            else:
+                print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
         plt.show()
@@ -1265,9 +1271,9 @@ generator_f.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_f.h5')
 discriminator_y.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_y.h5')
 
 run["cycle_GAN/generator_g"].upload(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_g.h5')
-run["vanilla_GAN/discriminator_x"].upload(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_x.h5')
+run["vanilla_GAN/discriminator_x"].upload(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_discriminator_x.h5')
 run["cycle_GAN/generator_f"].upload(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_f.h5')
-run["vanilla_GAN/discriminator_y"].upload(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_y.h5')
+run["vanilla_GAN/discriminator_y"].upload(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_discriminator_y.h5')
 
 
 
