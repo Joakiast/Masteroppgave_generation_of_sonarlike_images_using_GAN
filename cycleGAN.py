@@ -86,8 +86,8 @@ crop_size = 256  # resize_x / 2 150 fin størrelse på
 DROPOUT = 0.2
 LAMBDA = 10
 
-learningrate_G_g = 0.0002  # 7e-5
-learningrate_G_f = 0.0002  # 7e-5
+learningrate_G_g = 0.0003  # 7e-5
+learningrate_G_f = 0.0003  # 7e-5
 learningrate_D_x = learningrate_G_g / 2  # 4e-5
 learningrate_D_y = learningrate_G_f / 2  # 4e-5
 
@@ -124,7 +124,7 @@ params = {
     "activation": "tanh",
     "n_epochs": EPOCHS,
     "batch_size": BATCH_SIZE,
-    "drop_out": DROPOUT,
+    "drop_out": "Apply dropout False",#DROPOUT,
     "learningrate_generator_g": learningrate_G_g,
     "learningrate_generator_f": learningrate_G_f,
     "learningrate_discriminator_x": learningrate_D_x,
@@ -701,7 +701,7 @@ def unet_generator(filter_multiplier, output_channels, norm_type='batchnorm'):
 
 # =========================Resnet=====================================
 
-def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=True):
+def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=False):
     initializer = tf.random_normal_initializer(0., 0.02)
     conv_block = tf.keras.Sequential()
     conv_block.add(layers.Conv2D(filters, size, strides=1, padding='same',
