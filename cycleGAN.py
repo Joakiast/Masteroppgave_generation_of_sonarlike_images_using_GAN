@@ -98,8 +98,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet"
-generator_type = "unet"
+generator_type = "resnet"
+#generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
