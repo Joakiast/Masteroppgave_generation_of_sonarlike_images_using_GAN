@@ -86,8 +86,8 @@ crop_size = 256  # resize_x / 2 150 fin størrelse på
 DROPOUT = 0.2
 LAMBDA = 10
 
-learningrate_G_g = 0.0003  # 7e-5
-learningrate_G_f = 0.0003  # 7e-5
+learningrate_G_g = 0.0001  # 7e-5
+learningrate_G_f = 0.0001  # 7e-5
 learningrate_D_x = learningrate_G_g / 2  # 4e-5
 learningrate_D_y = learningrate_G_f / 2  # 4e-5
 
