@@ -1166,6 +1166,8 @@ def train_step(real_x, real_y):
     discriminator_y_optimizer.apply_gradients(zip(discriminator_y_gradients,
                                                   discriminator_y.trainable_variables))
 
+
+
     # ==============logging===========================================================
 
     def log_wrapper(name, value):
@@ -1180,16 +1182,51 @@ def train_step(real_x, real_y):
                         ("train/disc_y_loss", disc_y_loss)]:
         tf.py_function(lambda v: log_wrapper(name, v), [value], [])
 
+    return {
+        'gen_g_loss': gen_g_loss,
+        'gen_f_loss': gen_f_loss,
+        'disc_x_loss': disc_x_loss,
+        'disc_y_loss': disc_y_loss,
+        'total_cycle_loss': total_cycle_loss
+    }
+
 
 for epoch in range(EPOCHS):
     start = time.time()
 
+    total_gen_g_loss = 0
+    total_gen_f_loss = 0
+    total_disc_x_loss = 0
+    total_disc_y_loss = 0
+    total_cycle_loss = 0
+
     n = 0
     for image_x, image_y in tf.data.Dataset.zip((simulated_dataset, train_dataset)):
-        train_step(image_x, image_y)
+        #train_step(image_x, image_y)
+        losses = train_step(image_x, image_y)
+
+        total_gen_g_loss += losses['gen_g_loss']
+        total_gen_f_loss += losses['gen_f_loss']
+        total_disc_x_loss += losses['disc_x_loss']
+        total_disc_y_loss += losses['disc_y_loss']
+        total_cycle_loss += losses['total_cycle_loss']
+        n += 1
         if n % 10 == 0:
             print('.', end='', flush=True)
-        n += 1
+        #n += 1
+
+        avg_gen_g_loss = total_gen_g_loss / n
+        avg_gen_f_loss = total_gen_f_loss / n
+        avg_disc_x_loss = total_disc_x_loss / n
+        avg_disc_y_loss = total_disc_y_loss / n
+        avg_cycle_loss = total_cycle_loss / n
+
+        run["epoch/avg_gen_g_loss_for_epoch"].log(avg_gen_g_loss)
+        run["epoch/avg_gen_f_loss_for_epoch"].log(avg_gen_f_loss)
+        run["epoch/avg_disc_x_loss_for_epoch"].log(avg_disc_x_loss)
+        run["epoch/avg_disc_y_loss_for_epoch"].log(avg_disc_y_loss)
+        run["epoch/avg_cycle_loss_for_epoch"].log(avg_cycle_loss)
+
 
     clear_output(wait=True)
     # Using a consistent image (sample_horse) so that the progress of the model
@@ -1221,8 +1258,19 @@ for test_batch in test_dataset.take(26): #endre ved behov
 
     num += 1
 
-generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator.h5')
-# discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator.h5')
+# Lagrer modellene til fil
+generator_g.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_g.h5')
+discriminator_x.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_x.h5')
+generator_f.save(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_f.h5')
+discriminator_y.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_y.h5')
+
+run["cycle_GAN/generator_g"].upload(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_g.h5')
+run["vanilla_GAN/discriminator_x"].upload(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_x.h5')
+run["cycle_GAN/generator_f"].upload(f'saved_model_cycle_GAN/{image_type[1:-8]}/my_generator_f.h5')
+run["vanilla_GAN/discriminator_y"].upload(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator_y.h5')
+
+
+
 
 run.stop()
 
