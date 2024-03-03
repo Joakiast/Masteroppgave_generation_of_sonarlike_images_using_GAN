@@ -1215,17 +1215,17 @@ for epoch in range(EPOCHS):
             print('.', end='', flush=True)
         #n += 1
 
-        avg_gen_g_loss = total_gen_g_loss / n
-        avg_gen_f_loss = total_gen_f_loss / n
-        avg_disc_x_loss = total_disc_x_loss / n
-        avg_disc_y_loss = total_disc_y_loss / n
-        avg_cycle_loss = total_cycle_loss / n
+    avg_gen_g_loss = total_gen_g_loss / n
+    avg_gen_f_loss = total_gen_f_loss / n
+    avg_disc_x_loss = total_disc_x_loss / n
+    avg_disc_y_loss = total_disc_y_loss / n
+    avg_cycle_loss = total_cycle_loss / n
 
-        run["epoch/avg_gen_g_loss_for_epoch"].log(avg_gen_g_loss)
-        run["epoch/avg_gen_f_loss_for_epoch"].log(avg_gen_f_loss)
-        run["epoch/avg_disc_x_loss_for_epoch"].log(avg_disc_x_loss)
-        run["epoch/avg_disc_y_loss_for_epoch"].log(avg_disc_y_loss)
-        run["epoch/avg_cycle_loss_for_epoch"].log(avg_cycle_loss)
+    run["epoch/avg_gen_g_loss_for_epoch"].log(avg_gen_g_loss)
+    run["epoch/avg_gen_f_loss_for_epoch"].log(avg_gen_f_loss)
+    run["epoch/avg_disc_x_loss_for_epoch"].log(avg_disc_x_loss)
+    run["epoch/avg_disc_y_loss_for_epoch"].log(avg_disc_y_loss)
+    run["epoch/avg_cycle_loss_for_epoch"].log(avg_cycle_loss)
 
 
     clear_output(wait=True)
