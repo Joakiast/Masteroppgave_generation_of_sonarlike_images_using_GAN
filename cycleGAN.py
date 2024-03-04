@@ -39,8 +39,8 @@ from numpy import iscomplexobj
 from scipy.linalg import sqrtm
 import random
 
-from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import peak_signal_noise_ratio as psnr
+#from skimage.metrics import structural_similarity as ssim
+#from skimage.metrics import peak_signal_noise_ratio as psnr
 
 
 # Set seeds for reproducibility
