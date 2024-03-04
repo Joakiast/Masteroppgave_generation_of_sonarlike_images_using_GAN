@@ -39,6 +39,9 @@ from numpy import iscomplexobj
 from scipy.linalg import sqrtm
 import random
 
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import peak_signal_noise_ratio as psnr
+
 
 # Set seeds for reproducibility
 seed_number = 42
@@ -84,10 +87,10 @@ EPOCHS = 100
 color_channel = 3
 crop_size = 256  # resize_x / 2 150 fin størrelse på
 DROPOUT = 0#.2
-LAMBDA = 10
+LAMBDA = 2
 
-learningrate_G_g = 0.0001  # 7e-5
-learningrate_G_f = 0.0001  # 7e-5
+learningrate_G_g = 0.0002  # 7e-5
+learningrate_G_f = 0.0002  # 7e-5
 learningrate_D_x = learningrate_G_g / 2  # 4e-5
 learningrate_D_y = learningrate_G_f / 2  # 4e-5
 
@@ -98,8 +101,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet"
-generator_type = "unet"
+generator_type = "resnet"
+#generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
@@ -124,7 +127,7 @@ params = {
     "activation": "tanh",
     "n_epochs": EPOCHS,
     "batch_size": BATCH_SIZE,
-    "drop_out": "Apply dropout False",#DROPOUT,
+    "drop_out": DROPOUT,
     "learningrate_generator_g": learningrate_G_g,
     "learningrate_generator_f": learningrate_G_f,
     "learningrate_discriminator_x": learningrate_D_x,
@@ -914,55 +917,6 @@ Training
 """
 
 
-######################################################
-#               Frechet Inception Distance
-######################################################
-
-
-#
-# def calculate_activation_statistics(images, model):
-#     batch_size = BATCH_SIZE
-#     num_images = images.shape[0]
-#     n_batches = int(np.ceil(num_images / batch_size))
-#     act = np.zeros((num_images, 2048))
-#
-#
-#     for i in range(n_batches):
-#         start = i * batch_size
-#         end = start + batch_size
-#         batch = images[start:end]
-#         act[start:end] = model.predict(batch)
-#
-#
-#     mu = np.mean(act, axis=0)
-#     sigma = np.cov(act, rowvar=False)
-#
-#
-#     return mu, sigma
-#
-#
-# def calculate_frechet_distance(mu1, sigma1, mu2, sigma2):
-#     epsilon = 1e-6
-#     # Korrekt beregning av kvadratroten av et matriseprodukt
-#     covmean = sqrtm(sigma1.dot(sigma2))
-#     if np.iscomplexobj(covmean):
-#         covmean = covmean.real
-#     mu_diff = mu1 - mu2
-#     # Beregning av FID-score med den korrigerte kvadratroten av matriseproduktet
-#     fid = np.sum(mu_diff**2) + np.trace(sigma1 + sigma2 - 2 * covmean) + epsilon
-#     return fid
-#
-#
-# def calculate_fid(real_images, generated_images, model):
-#     real_mu, real_sigma = calculate_activation_statistics(real_images, model)
-#     generated_mu, generated_sigma = calculate_activation_statistics(generated_images, model)
-#     fid = calculate_frechet_distance(real_mu, real_sigma, generated_mu, generated_sigma)
-#     return fid
-#
-#
-# # Load the pre-trained InceptionV3 model
-# inception_model = tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(256, 256, 3))
-#
 
 # calculate frechet inception distance
 def calculate_fid(model, images1, images2):
@@ -994,6 +948,17 @@ def calculate_fid(model, images1, images2):
 if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
     FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
 
+
+############################################################################################################
+#                   calculate SSIM and PSNR for images to measure the quality of the generated images
+############################################################################################################
+
+def calculate_SSIM_and_PSNR(imageA, imageB):
+    ssim_index = ssim(imageA, imageB, data_range=imageB.max() - imageB.min())
+    psnr_value = psnr(imageA, imageB, data_range=imageB.max() - imageB.min())
+
+    print(f"SSIM: {ssim_index}, PSNR: {psnr_value}")
+    return ssim_index, psnr_value
 
 
 def generate_images(model, test_input, epoch_num, num, testing=False):
