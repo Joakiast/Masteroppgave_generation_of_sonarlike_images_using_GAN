@@ -1176,15 +1176,18 @@ for epoch in range(EPOCHS):
     total_cycle_loss = 0
 
 #######################################################
-#                   learning rate decay after 100 epochs
+#                   learning rate decay after 100 epochs på generator og discriminator
 #######################################################
 
 
     if epoch >= 100:
         # Beregn den nye læringstakten her. Dette er et eksempel. Du må tilpasse dette til ditt scenario.
         new_lr = max(learningrate_D_x * (1 - (epoch - 100) / 100), 0)  # Sørger for at læringstakten ikke går under 0
+        new_lr_g = max(learningrate_G_g * (1 - (epoch - 100) / 100), 0)
         tf.keras.backend.set_value(discriminator_x_optimizer.learning_rate, new_lr)
         tf.keras.backend.set_value(discriminator_y_optimizer.learning_rate, new_lr)
+        tf.keras.backend.set_value(generator_g_optimizer.learning_rate, new_lr_g)
+        tf.keras.backend.set_value(generator_f_optimizer.learning_rate, new_lr_g)
 
     n = 0
     for image_x, image_y in tf.data.Dataset.zip((simulated_dataset, train_dataset)):
