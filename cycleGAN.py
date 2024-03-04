@@ -83,11 +83,12 @@ resize_y = 256
 # The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 1
 BATCH_SIZE_TEST = 1
-EPOCHS = 100
+EPOCHS = 200
+decay_start_epoch = 100
 color_channel = 3
 crop_size = 256  # resize_x / 2 150 fin størrelse på
 DROPOUT = 0#.2
-LAMBDA = 2
+LAMBDA = 10
 
 learningrate_G_g = 0.0002  # 7e-5
 learningrate_G_f = 0.0002  # 7e-5
@@ -126,6 +127,7 @@ image_type_3 = False
 params = {
     "activation": "tanh",
     "n_epochs": EPOCHS,
+    "decay_start_epoch": decay_start_epoch,
     "batch_size": BATCH_SIZE,
     "drop_out": DROPOUT,
     "learningrate_generator_g": learningrate_G_g,
@@ -888,6 +890,7 @@ generator_f_optimizer = tf.keras.optimizers.Adam(learningrate_G_f, beta_1=beta_G
 discriminator_x_optimizer = tf.keras.optimizers.Adam(learningrate_D_x, beta_1=beta_D_x)
 discriminator_y_optimizer = tf.keras.optimizers.Adam(learningrate_D_y, beta_1=beta_D_y)
 
+
 # generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 # generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 #
@@ -1131,6 +1134,7 @@ def train_step(real_x, real_y):
     generator_f_optimizer.apply_gradients(zip(generator_f_gradients,
                                               generator_f.trainable_variables))
 
+
     discriminator_x_optimizer.apply_gradients(zip(discriminator_x_gradients,
                                                   discriminator_x.trainable_variables))
 
@@ -1170,6 +1174,17 @@ for epoch in range(EPOCHS):
     total_disc_x_loss = 0
     total_disc_y_loss = 0
     total_cycle_loss = 0
+
+#######################################################
+#                   learning rate decay after 100 epochs
+#######################################################
+
+
+    if epoch >= 100:
+        # Beregn den nye læringstakten her. Dette er et eksempel. Du må tilpasse dette til ditt scenario.
+        new_lr = max(learningrate_D_x * (1 - (epoch - 100) / 100), 0)  # Sørger for at læringstakten ikke går under 0
+        tf.keras.backend.set_value(discriminator_x_optimizer.learning_rate, new_lr)
+        tf.keras.backend.set_value(discriminator_y_optimizer.learning_rate, new_lr)
 
     n = 0
     for image_x, image_y in tf.data.Dataset.zip((simulated_dataset, train_dataset)):
