@@ -953,12 +953,12 @@ if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
 #                   calculate SSIM and PSNR for images to measure the quality of the generated images
 ############################################################################################################
 
-def calculate_SSIM_and_PSNR(imageA, imageB):
-    ssim_index = ssim(imageA, imageB, data_range=imageB.max() - imageB.min())
-    psnr_value = psnr(imageA, imageB, data_range=imageB.max() - imageB.min())
-
-    print(f"SSIM: {ssim_index}, PSNR: {psnr_value}")
-    return ssim_index, psnr_value
+# def calculate_SSIM_and_PSNR(imageA, imageB):
+#     ssim_index = ssim(imageA, imageB, data_range=imageB.max() - imageB.min())
+#     psnr_value = psnr(imageA, imageB, data_range=imageB.max() - imageB.min())
+#
+#     print(f"SSIM: {ssim_index}, PSNR: {psnr_value}")
+#     return ssim_index, psnr_value
 
 
 def generate_images(model, test_input, epoch_num, num, testing=False):
