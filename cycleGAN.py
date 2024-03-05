@@ -81,7 +81,7 @@ resize_x = 256
 resize_y = 256
 
 # The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 1
+BATCH_SIZE = 10
 BATCH_SIZE_TEST = 1
 EPOCHS = 200
 decay_start_epoch = 100
@@ -102,8 +102,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet"
-generator_type = "unet"
+generator_type = "resnet"
+#generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
