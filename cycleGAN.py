@@ -51,7 +51,7 @@ np.random.seed(seed_number)
 random.seed(seed_number)
 
 run = neptune.init_run(
-    project="masteroppgave/testRun",
+    project="masteroppgave/cycleGAN",
     api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
 )
 
@@ -557,31 +557,31 @@ for i in train_dataset.take(1):
 #         plt.imshow(inp_imgs[i].numpy())
 # plt.tight_layout()
 # plt.show()
-save_path = "/media/joakim/Random Stuff/random_slett_meg"
-
-# Sjekk om mappen eksisterer, hvis ikke, opprett den
-if not os.path.exists(save_path):
-    os.makedirs(save_path)
-
-# Anta at last_500_dataset er ditt TensorFlow Dataset
-count = 0
-for img in train_dataset:
-    # Opprett et filnavn for hvert bilde
-    filename = os.path.join(save_path, f"image_{count}.png")
-
-    # Lagre bildet
-    plt.figure()
-    plt.imshow(img.numpy().squeeze())  # Juster dette kallet basert på ditt datasett
-    plt.axis('off')
-    plt.savefig(filename)
-    plt.close()  # Lukk figuren for å frigjøre minne
-
-    # Inkrementer tellevariabelen
-    count += 1
-
-    # (Valgfritt) Gi tilbakemelding i konsollen
-    if count % 100 == 0:
-        print(f"Lagret {count} bilder...")
+# save_path = "/media/joakim/Random Stuff/random_slett_meg"
+#
+# # Sjekk om mappen eksisterer, hvis ikke, opprett den
+# if not os.path.exists(save_path):
+#     os.makedirs(save_path)
+#
+# # Anta at last_500_dataset er ditt TensorFlow Dataset
+# count = 0
+# for img in train_dataset:
+#     # Opprett et filnavn for hvert bilde
+#     filename = os.path.join(save_path, f"image_{count}.png")
+#
+#     # Lagre bildet
+#     plt.figure()
+#     plt.imshow(img.numpy().squeeze())  # Juster dette kallet basert på ditt datasett
+#     plt.axis('off')
+#     plt.savefig(filename)
+#     plt.close()  # Lukk figuren for å frigjøre minne
+#
+#     # Inkrementer tellevariabelen
+#     count += 1
+#
+#     # (Valgfritt) Gi tilbakemelding i konsollen
+#     if count % 100 == 0:
+#         print(f"Lagret {count} bilder...")
 
 sample_simulated = next(iter(simulated_dataset))
 sample_train = next(iter(train_dataset))
