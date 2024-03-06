@@ -81,8 +81,8 @@ resize_x = 256
 resize_y = 256
 
 # The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 10
-BATCH_SIZE_TEST = 1
+BATCH_SIZE = 8
+BATCH_SIZE_TEST = BATCH_SIZE
 EPOCHS = 200
 decay_start_epoch = 100
 color_channel = 3
@@ -1065,7 +1065,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             run[f"visualizations/test_my_model/test_image_at_step_{num:04d}"].upload(image_path_buffer)
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
-                print("FID Score:", fid_score)
+                print("FID Score tested:", fid_score)
                 tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score], Tout=[])
             else:
                 print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
