@@ -139,7 +139,7 @@ params = {
     "beta_D_x": beta_D_x,
     "beta_D_y": beta_D_y,
     "Lambda": LAMBDA,
-    "Image_type": image_type,
+    "Image_type added with extra set": image_type,
     "use_bias": False,
     #  "number_of_filters": "increased x2 in generator not discriminator",
     "type of generator": generator_type,
