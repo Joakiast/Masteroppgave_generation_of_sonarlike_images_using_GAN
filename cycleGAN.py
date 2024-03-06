@@ -174,6 +174,7 @@ image_paths_train_extra = [str(path) for path in list(
     train_set_extra_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 
 image_paths_train.extend(image_paths_train_extra)
+print(f"size of trainingset after adding extra training data: {len(image_paths_train)}")
 
 
 if image_type_2:
