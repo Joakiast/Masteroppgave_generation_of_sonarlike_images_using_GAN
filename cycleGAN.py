@@ -51,7 +51,7 @@ np.random.seed(seed_number)
 random.seed(seed_number)
 
 run = neptune.init_run(
-    project="masteroppgave/cycleGAN",
+    project="masteroppgave/testRun",
     api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
 )
 
@@ -162,7 +162,7 @@ run["model/parameters"] = params
 
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
-test_set_path = pathlib.Path("datasets/test")
+#test_set_path = pathlib.Path("datasets/test")
 test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
 train_set_extra_path = pathlib.Path("datasets/test")
 
@@ -231,7 +231,20 @@ def find_coordinates_for_cropping_tensor(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     # print(f"label file {label_file}")
 
-    label_path = os.path.join("datasets/train/Label", label_file)
+    if hasattr(path_image, 'numpy'):
+        path_image_str = path_image.numpy().decode("utf-8")
+    else:
+        path_image_str = path_image
+
+    #####################
+    if "test" in path_image_str:
+        label_path = os.path.join("datasets/test/Label", label_file)
+    else:
+        label_path = os.path.join("datasets/train/Label", label_file)
+    #####################
+
+
+    #label_path = os.path.join("datasets/train/Label", label_file)
     # print(f"label_path {label_path}")
     x, y = None, None
     try:
@@ -257,7 +270,20 @@ def find_coordinates_for_cropping(path_image):
     label_file = base_name.replace('.jpg', '.txt')  # Bytt ut filendelsen fra .jpg til .txt
     # print(f"label file {label_file}")
 
-    label_path = os.path.join("datasets/train/Label", label_file)
+    if hasattr(path_image, 'numpy'):
+        path_image_str = path_image.numpy().decode("utf-8")
+    else:
+        path_image_str = path_image
+
+    ####################
+    if "test" in path_image_str:
+        label_path = os.path.join("datasets/test/Label", label_file)
+    else:
+        label_path = os.path.join("datasets/train/Label", label_file)
+    #####################
+
+
+    #label_path = os.path.join("datasets/train/Label", label_file)
     # print(f"label_path {label_path}")
     x, y = None, None
     try:
@@ -511,32 +537,56 @@ number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 for i in train_dataset.take(1):
     print(f"Element type tuple len: {len(i)}")
 
-# Tar en batch fra datasettet
-for real_imgs in train_dataset.take(2):
-    plt.figure(figsize=(10, 5))
-    for i in range(number_of_samples_to_show):
-        # Plotter input_img
-        ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
-        plt.title("Input Image")
-        plt.imshow(real_imgs[i].numpy())
-plt.tight_layout()
-plt.show()
+# # Tar en batch fra datasettet
+# for real_imgs in train_dataset.take(2):
+#     plt.figure(figsize=(10, 5))
+#     for i in range(number_of_samples_to_show):
+#         # Plotter input_img
+#         ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
+#         plt.title("Input Image")
+#         plt.imshow(real_imgs[i].numpy())
+# plt.tight_layout()
+# plt.show()
 
-for inp_imgs in simulated_dataset.take(2):
-    plt.figure(figsize=(10, 5))
-    for i in range(number_of_samples_to_show):
-        # Plotter input_img
-        ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
-        plt.title("Input Image")
-        plt.imshow(inp_imgs[i].numpy())
-plt.tight_layout()
-plt.show()
+# for inp_imgs in simulated_dataset.take(2):
+#     plt.figure(figsize=(10, 5))
+#     for i in range(number_of_samples_to_show):
+#         # Plotter input_img
+#         ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
+#         plt.title("Input Image")
+#         plt.imshow(inp_imgs[i].numpy())
+# plt.tight_layout()
+# plt.show()
+save_path = "/media/joakim/Random Stuff/random_slett_meg"
+
+# Sjekk om mappen eksisterer, hvis ikke, opprett den
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+
+# Anta at last_500_dataset er ditt TensorFlow Dataset
+count = 0
+for img in train_dataset:
+    # Opprett et filnavn for hvert bilde
+    filename = os.path.join(save_path, f"image_{count}.png")
+
+    # Lagre bildet
+    plt.figure()
+    plt.imshow(img.numpy().squeeze())  # Juster dette kallet basert på ditt datasett
+    plt.axis('off')
+    plt.savefig(filename)
+    plt.close()  # Lukk figuren for å frigjøre minne
+
+    # Inkrementer tellevariabelen
+    count += 1
+
+    # (Valgfritt) Gi tilbakemelding i konsollen
+    if count % 100 == 0:
+        print(f"Lagret {count} bilder...")
 
 sample_simulated = next(iter(simulated_dataset))
 sample_train = next(iter(train_dataset))
 sample_test = next(iter(test_dataset))
 
-# ==============================================================================
 
 # endregion
 
