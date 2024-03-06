@@ -102,7 +102,7 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-generator_type = "resnet"
+generator_type = "resnet" # virker som resnet gir best resultat
 #generator_type = "unet"
 
 filter_muultiplier_generator = 2
@@ -164,10 +164,17 @@ train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
 test_set_path = pathlib.Path("datasets/test")
 test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
+train_set_extra_path = pathlib.Path("datasets/test")
 
 image_paths_train = [str(path) for path in list(
     train_set_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
+
+image_paths_train_extra = [str(path) for path in list(
+    train_set_extra_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
+
+image_paths_train.extend(image_paths_train_extra)
+
 
 if image_type_2:
     img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]  # [:8000]
