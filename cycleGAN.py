@@ -14,6 +14,7 @@ import glob
 # import imageio
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.linalg import norm
 import os
 import PIL
 from tensorflow.keras import layers
@@ -31,6 +32,7 @@ import sys
 # from sklearn.cluster import KMeans
 import math
 import tensorflow_addons as tfa
+
 
 
 from numpy import cov
@@ -1006,8 +1008,28 @@ def calculate_fid(model, images1, images2):
     fid = ssdiff + trace(sigma1 + sigma2 - 2.0 * covmean)
     return fid
 
-if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
-    FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
+
+FIDmodel = InceptionV3(include_top=False, pooling='avg', input_shape=(resize_x, resize_y, 3))
+
+def calculate_fid_single_image(model, image1, image2):
+    # calculate feature vectors
+    f1 = model.predict(image1)
+    f2 = model.predict(image2)
+
+    # calculate the outer product of f1 and f2
+    outer_f1 = np.outer(f1, f1)
+    outer_f2 = np.outer(f2, f2)
+
+
+    # calculate sum squared difference between feature vectors
+    ssdiff = np.sum((f1 - f2) ** 2.0)
+
+    # calculate the norm of difference between outer products
+    norm_diff = np.linalg.norm(outer_f1 - outer_f2, 'fro') # Frobenius norm
+
+    # custom FID score combining the differences
+    custom_fid = ssdiff + norm_diff
+    return custom_fid
 
 
 ############################################################################################################
@@ -1065,10 +1087,12 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
-                print("FID Score:", fid_score)
+                print("FID Score using several pics:", fid_score)
                 tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
             else:
-                print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
+                fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
+                print("FID Score one to one:", fid_score)
+                tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
 
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
@@ -1126,7 +1150,10 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
                 print("FID Score tested:", fid_score)
                 tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score], Tout=[])
             else:
-                print("BATCH_SIZE or BATCH_SIZE_TEST = 1, FID score cant be calculated")
+                fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
+                print("FID Score one to one:", fid_score)
+                tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score], Tout=[])
+
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
         plt.show()
