@@ -1079,7 +1079,8 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             os.makedirs(folder_name)
         if epoch_num % save_every_n_epochs == 0:
             # plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
-            print('fig saved')
+            print(f'fig saved at epoch {epoch_num}')
+            print(f"epoch type: {type(epoch_num)}")
             # plt.close("all")
             # Save the figure using the step number to keep track of progress
             plt.savefig(f'{folder_name}/test image_at_step_{epoch_num:04d}.png')
@@ -1088,17 +1089,13 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score using several pics:", fid_score)
-                tf.py_function(func=log_wrapper, inp=[f"train/FID_score/epoch_{epoch_num:04d}_", fid_score, epoch_num], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, epoch_num], Tout=[])
             else:
                 fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
-                print(f"FID Score one to one in training state at epoch_{epoch_num}: ", fid_score)
+                print(f"FID Score one to one in training state at epoch {epoch_num}: ", fid_score)
                 tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, epoch_num], Tout=[])
 
-        # plt.close()  # Close the figure to free up memory
-        # print('Saved generated images at step '+ str(step))
         plt.show()
-        # fid_score = calculate_fid(test_input[0], prediction[0], inception_model)
-    #  print("FID Score:", fid_score)
 
     #################################################
     #                   testing
