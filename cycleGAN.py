@@ -1051,8 +1051,11 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
     if testing == False:
 
         def log_wrapper(name, value, step):
-            # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
-            run[name].log(value.numpy(), step=step)
+            if isinstance(step, tf.Tensor):
+                step = step.numpy()
+            if isinstance(value, tf.Tensor):
+                value = value.numpy()
+            run[name].log(value, step=int(step))
 
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         prediction = model(test_input)
@@ -1089,12 +1092,11 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score using several pics:", fid_score)
-                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, epoch_num], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, tf.convert_to_tensor(epoch_num, dtype=tf.int32)], Tout=[])
             else:
                 fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
                 print(f"FID Score one to one in training state at epoch {epoch_num}: ", fid_score)
-                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, epoch_num], Tout=[])
-
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, tf.convert_to_tensor(epoch_num, dtype=tf.int32)], Tout=[])
         plt.show()
 
     #################################################
@@ -1106,10 +1108,12 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         print("plotting test images")
 
-
         def log_wrapper(name, value, step):
-            # Denne funksjonen vil bli kalt av tf.py_function, så den kan inneholde eager-kode.
-            run[name].log(value.numpy(), step=step)
+            if isinstance(step, tf.Tensor):
+                step = step.numpy()
+            if isinstance(value, tf.Tensor):
+                value = value.numpy()
+            run[name].log(value, step=int(step))
 
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
         prediction = model(test_input)
@@ -1145,11 +1149,11 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score tested:", fid_score)
-                tf.py_function(func=log_wrapper, inp=[f"test/FID_score", fid_score, epoch_num], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, tf.convert_to_tensor(epoch_num, dtype=tf.int32)], Tout=[])
             else:
                 fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score one to one:", fid_score)
-                tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score, epoch_num], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, tf.convert_to_tensor(epoch_num, dtype=tf.int32)], Tout=[])
 
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
