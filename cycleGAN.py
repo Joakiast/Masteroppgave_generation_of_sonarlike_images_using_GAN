@@ -165,7 +165,7 @@ run["model/parameters"] = params
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
 #test_set_path = pathlib.Path("datasets/test")
-test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
+#test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
 train_set_extra_path = pathlib.Path("datasets/test")
 
 image_paths_train = [str(path) for path in list(
@@ -194,9 +194,9 @@ image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.
                    406:]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
-buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob(
-    "*.png"))]  # [:405] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
-image_paths_test.extend(buffer_test)
+#buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob(
+ #   "*.png"))]  # [:405] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+#image_paths_test.extend(buffer_test)
 
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
@@ -1088,11 +1088,11 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score using several pics:", fid_score)
-                tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score/epoch_{epoch_num:04d}_", fid_score], Tout=[])
             else:
                 fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
-                print("FID Score one to one:", fid_score)
-                tf.py_function(func=log_wrapper, inp=["train/FID_score", fid_score], Tout=[])
+                print(f"FID Score one to one in training state at epoch_{epoch_num}: ", fid_score)
+                tf.py_function(func=log_wrapper, inp=[f"train/FID_score/epoch_{epoch_num:04d}_", fid_score], Tout=[])
 
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
@@ -1148,11 +1148,11 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score tested:", fid_score)
-                tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"test/FID_score/num_{num}_", fid_score], Tout=[])
             else:
                 fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score one to one:", fid_score)
-                tf.py_function(func=log_wrapper, inp=["test/FID_score", fid_score], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"test/FID_score/num_{num}_", fid_score], Tout=[])
 
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
@@ -1266,7 +1266,7 @@ for epoch in range(EPOCHS):
 
 
     if epoch >= 100:
-        # Beregn den nye læringstakten her. Dette er et eksempel. Du må tilpasse dette til ditt scenario.
+
         new_lr = max(learningrate_D_x * (1 - (epoch - 100) / 100), 0)  # Sørger for at læringstakten ikke går under 0
         new_lr_g = max(learningrate_G_g * (1 - (epoch - 100) / 100), 0)
         tf.keras.backend.set_value(discriminator_x_optimizer.learning_rate, new_lr)
@@ -1319,14 +1319,14 @@ for epoch in range(EPOCHS):
 end_time = time.time()  # Lagrer slutttiden
 elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
-print(f"Tiden det tok å kjøre koden: {elapsed_time / 60} minutter")
+print(f"Tiden det tok å kjøre koden: {elapsed_time / 60} minutter, eller {(elapsed_time / 60) / 60} timer")
 print("training done===============================================")
 print("Generate using test dataset")
 
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset.take(27): #endre ved behov
+for test_batch in test_dataset.take(19): #endre ved behov
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
     generate_images(generator_g, test_batch, epoch, num, testing=True)
 
