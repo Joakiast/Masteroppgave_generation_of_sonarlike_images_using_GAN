@@ -83,7 +83,7 @@ resize_x = 256
 resize_y = 256
 
 # The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 6
+BATCH_SIZE = 1
 BATCH_SIZE_TEST = BATCH_SIZE
 EPOCHS = 200
 decay_start_epoch = 100
@@ -167,7 +167,7 @@ run["model/parameters"] = params
 # region Preparing datasets
 
 train_set_path = pathlib.Path("datasets/train")
-train_set_path_simulated = pathlib.Path("datasets/sim_data_rgb_barrel")
+train_set_path_simulated = pathlib.Path("datasets/barrel_sim_v2/sim_data_rgb_barrel_v2")#("datasets/sim_data_rgb_barrel") kommentert ut gammel simulert datasett
 #test_set_path = pathlib.Path("datasets/test")
 #test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
 train_set_extra_path = pathlib.Path("datasets/test")
@@ -190,12 +190,11 @@ if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]  # [:8000]
     image_paths_train.extend(img_buffer_2)
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][
-                              :405]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:552]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
 
 image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][
-                   406:]  # filterer ut data i datasettet i terminal: ls |grep oil
+                   553:]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
 #buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob(
