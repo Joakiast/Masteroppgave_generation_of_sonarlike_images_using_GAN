@@ -83,8 +83,8 @@ resize_x = 256
 resize_y = 256
 
 # The bath size of 1 gives better results using the UNet in this experiment.
-BATCH_SIZE = 1
-BATCH_SIZE_TEST = BATCH_SIZE
+BATCH_SIZE = 6
+BATCH_SIZE_TEST = 1#BATCH_SIZE
 EPOCHS = 200
 decay_start_epoch = 100
 color_channel = 3
