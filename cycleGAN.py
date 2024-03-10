@@ -53,7 +53,7 @@ np.random.seed(seed_number)
 random.seed(seed_number)
 
 run = neptune.init_run(
-    project="masteroppgave/cycleGAN",
+    project="masteroppgave/testRun",
     api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
 )
 
@@ -168,19 +168,24 @@ run["model/parameters"] = params
 
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/barrel_sim_v2/sim_data_rgb_barrel_v2")#("datasets/sim_data_rgb_barrel") kommentert ut gammel simulert datasett
+train_set_path_simulated_v1 = pathlib.Path("datasets/sim_data_rgb_barrel")
+test_set_path_simulated = pathlib.Path("datasets/test_set_cycleGAN")
 #test_set_path = pathlib.Path("datasets/test")
 #test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
 train_set_extra_path = pathlib.Path("datasets/test")
 
-image_paths_train = [str(path) for path in list(
-    train_set_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
 image_paths_train_extra = [str(path) for path in list(
     train_set_extra_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 
+image_paths_train_sim_V1 = [str(path) for path in list(
+    train_set_path_simulated_v1.glob("*.png"))]
+print(f"size of simulert trainingset V1: {len(image_paths_train_sim_V1)}")
+
 image_paths_train.extend(image_paths_train_extra)
-print(f"size of trainingset after adding extra training data: {len(image_paths_train)}")
+print(f"size of sonar trainingset after adding extra training data: {len(image_paths_train)}")
 
 
 if image_type_2:
@@ -190,11 +195,12 @@ if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]  # [:8000]
     image_paths_train.extend(img_buffer_2)
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:552]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
+image_paths_train_simulated.extend(image_paths_train_sim_V1)
+print(f"size of simulated trainingset after adding extra simulated data: {len(image_paths_train_simulated)}")
 
-image_paths_test = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][
-                   553:]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_test =[str(path) for path in list(test_set_path_simulated.glob("*.png"))] #[str(path) for path in list(train_set_path_simulated.glob("*.png"))][553:]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
 #buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob(
@@ -1330,7 +1336,7 @@ print("Generate using test dataset")
 num = 0
 print(f"len test dataset: {len(test_dataset)}")
 
-for test_batch in test_dataset.take(19): #endre ved behov
+for test_batch in test_dataset.take(len(test_dataset)): #endre ved behov
     # Siden generate_images forventer et enkelt bilde, pass test_image direkte
     generate_images(generator_g, test_batch, epoch, num, testing=True)
 
