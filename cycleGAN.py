@@ -1155,14 +1155,14 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
             plt.savefig(f'{folder_name}/test image_at_step_{num:04d}.png')
             image_path_buffer = f'{folder_name}/test image_at_step_{num:04d}.png'
             run[f"visualizations/test_my_model/test_image_at_step_{num:04d}"].upload(image_path_buffer)
-            if BATCH_SIZE > 1 or BATCH_SIZE_TEST > 1:
+            if BATCH_SIZE_TEST > 1:
                 fid_score = calculate_fid(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score tested:", fid_score)
-                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, tf.convert_to_tensor(num, dtype=tf.int32)], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"test/FID_score", fid_score, tf.convert_to_tensor(num, dtype=tf.int32)], Tout=[])
             else:
                 fid_score = calculate_fid_single_image(FIDmodel, test_input_prepared, prediction_prepared)
                 print("FID Score one to one:", fid_score)
-                tf.py_function(func=log_wrapper, inp=[f"train/FID_score", fid_score, tf.convert_to_tensor(num, dtype=tf.int32)], Tout=[])
+                tf.py_function(func=log_wrapper, inp=[f"test/FID_score", fid_score, tf.convert_to_tensor(num, dtype=tf.int32)], Tout=[])
 
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
