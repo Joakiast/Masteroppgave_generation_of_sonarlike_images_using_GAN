@@ -168,7 +168,7 @@ run["model/parameters"] = params
 
 train_set_path = pathlib.Path("datasets/train")
 train_set_path_simulated = pathlib.Path("datasets/barrel_sim_v2/sim_data_rgb_barrel_v2")#("datasets/sim_data_rgb_barrel") kommentert ut gammel simulert datasett
-train_set_path_simulated_v1 = pathlib.Path("datasets/sim_data_rgb_barrel")
+#train_set_path_simulated_v1 = pathlib.Path("datasets/sim_data_rgb_barrel")
 test_set_path_simulated = pathlib.Path("datasets/test_set_cycleGAN")
 #test_set_path = pathlib.Path("datasets/test")
 #test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
@@ -180,12 +180,11 @@ print(f"size of trainingset: {len(image_paths_train)}")
 image_paths_train_extra = [str(path) for path in list(
     train_set_extra_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 
-image_paths_train_sim_V1 = [str(path) for path in list(
-    train_set_path_simulated_v1.glob("*.png"))]
-print(f"size of simulert trainingset V1: {len(image_paths_train_sim_V1)}")
+#image_paths_train_sim_V1 = [str(path) for path in list(train_set_path_simulated_v1.glob("*.png"))]
+#print(f"size of simulert trainingset V1: {len(image_paths_train_sim_V1)}")
 
-image_paths_train.extend(image_paths_train_extra)
-print(f"size of sonar trainingset after adding extra training data: {len(image_paths_train)}")
+#image_paths_train.extend(image_paths_train_extra)
+#print(f"size of sonar trainingset after adding extra training data: {len(image_paths_train)}")
 
 
 if image_type_2:
