@@ -196,8 +196,8 @@ if image_type_3:
 
 image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
-image_paths_train_simulated.extend(image_paths_train_sim_V1)
-print(f"size of simulated trainingset after adding extra simulated data: {len(image_paths_train_simulated)}")
+#image_paths_train_simulated.extend(image_paths_train_sim_V1)
+#print(f"size of simulated trainingset after adding extra simulated data: {len(image_paths_train_simulated)}")
 
 image_paths_test =[str(path) for path in list(test_set_path_simulated.glob("*.png"))] #[str(path) for path in list(train_set_path_simulated.glob("*.png"))][553:]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
