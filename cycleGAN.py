@@ -116,11 +116,11 @@ image_type = '*oil_drum_RGB'
 # image_type = "*man_made_object_RGB"
 # image_type = "*Mine_size_rock_RGB.jpg"
 
-#image_type_2 = False
+image_type_2 = False
 # image_type_2 = '*rock_RGB'
 # image_type_2 = '*oil_drum_RGB'
 # image_type_2 = "*man_made_object_RGB"
-image_type_2 = "*Mine_size_rock_RGB.jpg"
+#image_type_2 = "*Mine_size_rock_RGB.jpg"
 
 
 image_type_3 = False
