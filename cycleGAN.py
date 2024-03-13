@@ -183,8 +183,8 @@ image_paths_train_extra = [str(path) for path in list(
 #image_paths_train_sim_V1 = [str(path) for path in list(train_set_path_simulated_v1.glob("*.png"))]
 #print(f"size of simulert trainingset V1: {len(image_paths_train_sim_V1)}")
 
-#image_paths_train.extend(image_paths_train_extra)
-#print(f"size of sonar trainingset after adding extra training data: {len(image_paths_train)}")
+image_paths_train.extend(image_paths_train_extra)
+print(f"size of sonar trainingset after adding extra sonar training data: {len(image_paths_train)}")
 
 
 if image_type_2:
@@ -194,7 +194,7 @@ if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]  # [:8000]
     image_paths_train.extend(img_buffer_2)
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:425]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
 #image_paths_train_simulated.extend(image_paths_train_sim_V1)
 #print(f"size of simulated trainingset after adding extra simulated data: {len(image_paths_train_simulated)}")
