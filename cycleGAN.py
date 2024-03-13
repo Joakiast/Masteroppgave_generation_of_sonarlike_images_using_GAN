@@ -41,6 +41,8 @@ from numpy import iscomplexobj
 from scipy.linalg import sqrtm
 import random
 
+from tensorflow_addons.layers import SpectralNormalization
+
 #from skimage.metrics import structural_similarity as ssim
 #from skimage.metrics import peak_signal_noise_ratio as psnr
 
@@ -850,8 +852,13 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
     down3 = downsample(math.floor(512 * filter_multiplier), 4, norm_type)(down2)  # (bs, 32, 32, 256)
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
-    conv = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,
-        use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
+    # conv = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
+    conv_layer = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,
+                        use_bias=False)
+    spectral_conv = SpectralNormalization(conv_layer)
+    conv = spectral_conv(zero_pad1)  # (bs, 31, 31, 512)
+
+
 
     if norm_type.lower() == 'batchnorm':
         norm1 = tf.keras.layers.BatchNormalization()(conv)
@@ -862,9 +869,10 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
 
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
 
-    last = tf.keras.layers.Conv2D(
-        1, 4, strides=1,
-        kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
+    #last = tf.keras.layers.Conv2D(1, 4, strides=1,kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
+    final_conv_layer = tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False)
+    spectral_final_conv = SpectralNormalization(final_conv_layer)
+    last = spectral_final_conv(zero_pad2)  # (bs, 30, 30, 1)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)
