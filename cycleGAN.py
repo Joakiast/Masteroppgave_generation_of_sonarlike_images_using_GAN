@@ -694,10 +694,10 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
 
     result = tf.keras.Sequential()
     result.add(
-        tf.keras.layers.SpectralNormalization(tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
+        tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
                                         padding='same',
                                         kernel_initializer=initializer,
-                                        use_bias=True)))
+                                        use_bias=True))
 
     if norm_type.lower() == 'batchnorm':
         result.add(tf.keras.layers.BatchNormalization())
@@ -850,8 +850,12 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
     down3 = downsample(math.floor(512 * filter_multiplier), 4, norm_type)(down2)  # (bs, 32, 32, 256)
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
-    conv = tf.keras.layers.SpectralNormalization(tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,
-        use_bias=False)(zero_pad1)) # (bs, 31, 31, 512)
+
+    # conv = tf.keras.layers.SpectralNormalization(tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,
+    #     use_bias=False)(zero_pad1)) # (bs, 31, 31, 512)
+
+    conv_layer = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1,kernel_initializer=initializer, use_bias=False)
+    conv = tf.keras.layers.SpectralNormalization(conv_layer)(zero_pad1)  # Her pakkes Conv2D laget med SpectralNormalization
 
     if norm_type.lower() == 'batchnorm':
         norm1 = tf.keras.layers.BatchNormalization()(conv)
@@ -862,9 +866,11 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
 
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
 
-    last = tf.keras.layers.SpectralNormalization(tf.keras.layers.Conv2D(
-        1, 4, strides=1,
-        kernel_initializer=initializer)(zero_pad2))  # (bs, 30, 30, 1)
+    # last = tf.keras.layers.SpectralNormalization(tf.keras.layers.Conv2D(
+    #     1, 4, strides=1,
+    #     kernel_initializer=initializer)(zero_pad2))  # (bs, 30, 30, 1)
+    last_conv_layer = tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False)
+    last = tf.keras.layers.SpectralNormalization(last_conv_layer)(zero_pad2)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)
