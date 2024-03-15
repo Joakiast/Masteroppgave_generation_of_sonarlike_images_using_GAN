@@ -624,8 +624,9 @@ OUTPUT_CHANNELS = 3
 class InstanceNormalization(tf.keras.layers.Layer):
     """Instance Normalization Layer (https://arxiv.org/abs/1607.08022)."""
 
-    def __init__(self, epsilon=1e-5):
-        super(InstanceNormalization, self).__init__()
+    def __init__(self, epsilon=1e-5, **kwargs):
+        # Pass any additional keyword arguments to the superclass.
+        super(InstanceNormalization, self).__init__(**kwargs)
         self.epsilon = epsilon
 
     def build(self, input_shape):
