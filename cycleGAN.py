@@ -33,6 +33,8 @@ import sys
 import math
 import tensorflow_addons as tfa
 
+from tensorflow.keras.utils import register_keras_serializable
+
 
 
 from numpy import cov
@@ -618,6 +620,7 @@ OUTPUT_CHANNELS = 3
 # region Genrator and discriminator
 # ===========================================================================================
 
+@register_keras_serializable(package='Custom', name='InstanceNormalization')
 class InstanceNormalization(tf.keras.layers.Layer):
     """Instance Normalization Layer (https://arxiv.org/abs/1607.08022)."""
 
@@ -643,6 +646,13 @@ class InstanceNormalization(tf.keras.layers.Layer):
         inv = tf.math.rsqrt(variance + self.epsilon)
         normalized = (x - mean) * inv
         return self.scale * normalized + self.offset
+
+    def get_config(self):
+        config = super(InstanceNormalization, self).get_config()
+        config.update({
+            'epsilon': self.epsilon,
+        })
+        return config
 
 
 def downsample(filters, size, norm_type='batchnorm', apply_norm=True):
