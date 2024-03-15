@@ -897,6 +897,23 @@ discriminator_x = discriminator(filter_muultiplier_discriminator, norm_type='ins
 discriminator_y = discriminator(filter_muultiplier_discriminator, norm_type='instancenorm',
                                 target=False)  # pix2pix.discriminator(norm_type='instancenorm', target=False)
 
+###################################################################
+#                    exponential average generator weights
+###################################################################
+
+
+shadow_generator_g = tf.keras.models.clone_model(generator_g)
+shadow_generator_g.set_weights(generator_g.get_weights())
+shadow_generator_f = tf.keras.models.clone_model(generator_f)
+shadow_generator_f.set_weights(generator_f.get_weights())
+
+def update_shadow_weights(shadow_model, model, beta=0.999):
+    shadow_weights = shadow_model.get_weights()
+    model_weights = model.get_weights()
+    updated_shadow_weights = [beta * shadow_weight + (1 - beta) * model_weight for shadow_weight, model_weight in zip(shadow_weights, model_weights)]
+    shadow_model.set_weights(updated_shadow_weights)
+
+
 # endregion
 
 to_training_image = generator_g(sample_simulated)
@@ -1242,6 +1259,13 @@ def train_step(real_x, real_y):
     discriminator_y_optimizer.apply_gradients(zip(discriminator_y_gradients,
                                                   discriminator_y.trainable_variables))
 
+    ###################################################################
+    #                    exponential average generator weights
+    ###################################################################
+
+    update_shadow_weights(shadow_generator_g, generator_g, beta=0.999)
+    update_shadow_weights(shadow_generator_f, generator_f, beta=0.999)
+
 
 
     # ==============logging===========================================================
@@ -1322,7 +1346,12 @@ for epoch in range(EPOCHS):
     # Using a consistent image (sample_horse) so that the progress of the model
     # is clearly visible.
     num = 0
-    generate_images(generator_g, sample_simulated, epoch, num)
+    #generate_images(generator_g, sample_simulated, epoch, num)
+    #############################################################
+    #                          expenential average generator weights
+    #############################################################
+    generate_images(shadow_generator_g, sample_simulated, epoch, num)
+
 
     # if (epoch + 1) % 5 == 0:
     #   ckpt_save_path = ckpt_manager.save()
