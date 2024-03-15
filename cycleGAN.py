@@ -1355,9 +1355,15 @@ for epoch in range(EPOCHS):
     ###################################################################
     #                    exponential average generator weights
     ###################################################################
+    if epoch > 2:
+        update_shadow_weights(shadow_generator_g, generator_g, beta=0.90)
+        update_shadow_weights(shadow_generator_f, generator_f, beta=0.90)
+        update_shadow_weights(shadow_generator_g, generator_g, beta=0.90)
+        update_shadow_weights(shadow_generator_f, generator_f, beta=0.90)
+    elif epoch  < 2:
+        shadow_generator_g = generator_g
+        shadow_generator_f = generator_f
 
-    update_shadow_weights(shadow_generator_g, generator_g, beta=0.999)
-    update_shadow_weights(shadow_generator_f, generator_f, beta=0.999)
 
     #generate_images(generator_g, sample_simulated, epoch, num)
     generate_images(shadow_generator_g, sample_simulated, epoch, num)
