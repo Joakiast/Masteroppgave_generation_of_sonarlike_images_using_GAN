@@ -1270,12 +1270,6 @@ def train_step(real_x, real_y):
     discriminator_y_optimizer.apply_gradients(zip(discriminator_y_gradients,
                                                   discriminator_y.trainable_variables))
 
-    ###################################################################
-    #                    exponential average generator weights
-    ###################################################################
-
-    update_shadow_weights(shadow_generator_g, generator_g, beta=0.999)
-    update_shadow_weights(shadow_generator_f, generator_f, beta=0.999)
 
 
 
@@ -1357,10 +1351,15 @@ for epoch in range(EPOCHS):
     # Using a consistent image (sample_horse) so that the progress of the model
     # is clearly visible.
     num = 0
+
+    ###################################################################
+    #                    exponential average generator weights
+    ###################################################################
+
+    update_shadow_weights(shadow_generator_g, generator_g, beta=0.999)
+    update_shadow_weights(shadow_generator_f, generator_f, beta=0.999)
+
     #generate_images(generator_g, sample_simulated, epoch, num)
-    #############################################################
-    #                          expenential average generator weights
-    #############################################################
     generate_images(shadow_generator_g, sample_simulated, epoch, num)
 
 
