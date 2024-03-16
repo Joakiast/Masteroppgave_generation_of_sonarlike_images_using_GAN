@@ -1362,8 +1362,8 @@ for epoch in range(EPOCHS):
     #     shadow_generator_g = generator_g
     #     shadow_generator_f = generator_f
 
-    update_shadow_weights(shadow_generator_g, generator_g, beta=0.60)
-    update_shadow_weights(shadow_generator_f, generator_f, beta=0.60)
+    update_shadow_weights(shadow_generator_g, generator_g, beta=0.80)
+    update_shadow_weights(shadow_generator_f, generator_f, beta=0.80)
 
 
     #generate_images(generator_g, sample_simulated, epoch, num)
