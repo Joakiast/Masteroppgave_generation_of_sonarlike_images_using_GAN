@@ -955,19 +955,48 @@ plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
 
 plt.show()
 
+
+
+def gradient_penalty(discriminator, real_images, fake_images, lambda_gp=10.0):
+    batch_size = real_images.shape[0]
+    alpha = tf.random.uniform([batch_size, 1, 1, 1], 0., 1.)
+    interpolated_images = real_images * alpha + fake_images * (1 - alpha)
+
+    with tf.GradientTape() as tape:
+        tape.watch(interpolated_images)
+        predictions = discriminator(interpolated_images, training=True)
+    gradients = tape.gradient(predictions, [interpolated_images])[0]
+    slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
+    gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
+    return gradient_penalty * lambda_gp
+
+
+
 # region define loss functions
 # loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 loss_obj = tf.keras.losses.MeanSquaredError()
 
 
-def discriminator_loss(real, generated):
+# def discriminator_loss(real, generated):
+#     real_loss = loss_obj(tf.ones_like(real), real)
+#
+#     generated_loss = loss_obj(tf.zeros_like(generated), generated)
+#
+#     total_disc_loss = real_loss + generated_loss
+#
+#     return total_disc_loss * 0.5
+
+
+
+def discriminator_loss(discriminator, real, generated, real_images, fake_images, lambda_gp=10.0): #lambda_gp=10.0 brukes i paperet om gradient penalty https://arxiv.org/pdf/1704.00028.pdf
     real_loss = loss_obj(tf.ones_like(real), real)
-
     generated_loss = loss_obj(tf.zeros_like(generated), generated)
-
-    total_disc_loss = real_loss + generated_loss
-
+    gp = gradient_penalty(discriminator, real_images, fake_images, lambda_gp)
+    total_disc_loss = real_loss + generated_loss + gp
     return total_disc_loss * 0.5
+
+
+
 
 
 def generator_loss(generated):
@@ -1207,7 +1236,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
 
 
 @tf.function
-def train_step(real_x, real_y):
+def train_step(real_x, real_y, lambda_gp=10.0):
     # persistent is set to True because the tape is used more than
     # once to calculate the gradients.
     with tf.GradientTape(persistent=True) as tape:
@@ -1240,10 +1269,10 @@ def train_step(real_x, real_y):
         total_gen_g_loss = gen_g_loss + total_cycle_loss + identity_loss(real_y, same_y)
         total_gen_f_loss = gen_f_loss + total_cycle_loss + identity_loss(real_x, same_x)
 
-        disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
-        disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
-        # run["train/disc_x_loss"].log(disc_x_loss)
-        # run["train/disc_y_loss"].log(disc_y_loss)
+        # disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
+        # disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
+        disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, real_x, fake_x, lambda_gp)
+        disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, real_y, fake_y, lambda_gp)
 
     # Calculate the gradients for generator and discriminator
     generator_g_gradients = tape.gradient(total_gen_g_loss,
