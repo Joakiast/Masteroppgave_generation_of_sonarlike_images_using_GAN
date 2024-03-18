@@ -967,8 +967,8 @@ def gradient_penalty(discriminator, real_images, fake_images, lambda_gp=10.0):
         predictions = discriminator(interpolated_images, training=True)
     gradients = tape.gradient(predictions, [interpolated_images])[0]
     slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
-    # gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) #centered around a gradientnorm of 1
-    gradient_penalty = tf.reduce_mean(tf.square(slopes)) # centered around a gradientnorm of 0 slik som paperet https://arxiv.org/pdf/2303.16280.pdf foreslår
+    gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) #centered around a gradientnorm of 1
+    #gradient_penalty = tf.reduce_mean(tf.square(slopes)) # centered around a gradientnorm of 0 slik som paperet https://arxiv.org/pdf/2303.16280.pdf foreslår
 
 
     return gradient_penalty * lambda_gp
@@ -1394,8 +1394,8 @@ for epoch in range(EPOCHS):
     #     shadow_generator_g = generator_g
     #     shadow_generator_f = generator_f
 
-    update_shadow_weights(shadow_generator_g, generator_g, beta=0.99)
-    update_shadow_weights(shadow_generator_f, generator_f, beta=0.99)
+    update_shadow_weights(shadow_generator_g, generator_g, beta=0.9)
+    update_shadow_weights(shadow_generator_f, generator_f, beta=0.9)
 
 
     #generate_images(generator_g, sample_simulated, epoch, num)
