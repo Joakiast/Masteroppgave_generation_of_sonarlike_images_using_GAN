@@ -967,8 +967,8 @@ def gradient_penalty(discriminator, real_images, fake_images, lambda_gp=10.0):
         predictions = discriminator(interpolated_images, training=True)
     gradients = tape.gradient(predictions, [interpolated_images])[0]
     slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
-    #gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) #centered around a gradientnorm of 1
-    gradient_penalty = tf.reduce_mean(tf.square(slopes)) # centered around a gradientnorm of 0 slik som paperet https://arxiv.org/pdf/2303.16280.pdf foreslår
+    gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) #centered around a gradientnorm of 1
+    #gradient_penalty = tf.reduce_mean(tf.square(slopes)) # centered around a gradientnorm of 0 slik som paperet https://arxiv.org/pdf/2303.16280.pdf foreslår
 
 
     return gradient_penalty * lambda_gp
@@ -1239,7 +1239,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
 
 
 @tf.function
-def train_step(real_x, real_y, lambda_gp=5.0):
+def train_step(real_x, real_y, lambda_gp=1.0):
     # persistent is set to True because the tape is used more than
     # once to calculate the gradients.
     with tf.GradientTape(persistent=True) as tape:
