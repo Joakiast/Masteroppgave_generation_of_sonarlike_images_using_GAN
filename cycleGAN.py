@@ -1239,7 +1239,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
 
 
 @tf.function
-def train_step(real_x, real_y, lambda_gp=1.0):
+def train_step(real_x, real_y, lambda_gp=10):
     # persistent is set to True because the tape is used more than
     # once to calculate the gradients.
     with tf.GradientTape(persistent=True) as tape:
@@ -1394,8 +1394,8 @@ for epoch in range(EPOCHS):
     #     shadow_generator_g = generator_g
     #     shadow_generator_f = generator_f
 
-    update_shadow_weights(shadow_generator_g, generator_g, beta=0.9)
-    update_shadow_weights(shadow_generator_f, generator_f, beta=0.9)
+    update_shadow_weights(shadow_generator_g, generator_g, beta=0.99)
+    update_shadow_weights(shadow_generator_f, generator_f, beta=0.99)
 
 
     #generate_images(generator_g, sample_simulated, epoch, num)
