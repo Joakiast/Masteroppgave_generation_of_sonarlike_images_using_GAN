@@ -108,8 +108,8 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-generator_type = "resnet" # virker som resnet gir best resultat
-#generator_type = "unet"
+#generator_type = "resnet" # virker som resnet gir best resultat
+generator_type = "unet"
 
 filter_muultiplier_generator = 2
 filter_muultiplier_discriminator = 1
@@ -1233,7 +1233,6 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
         # plt.close()  # Close the figure to free up memory
         # print('Saved generated images at step '+ str(step))
         plt.show()
-
 
 # =============================================================================
 
