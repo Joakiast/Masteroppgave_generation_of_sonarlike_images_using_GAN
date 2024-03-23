@@ -88,12 +88,12 @@ resize_y = 256
 
 # The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 1
-BATCH_SIZE_TEST = 1#BATCH_SIZE
+BATCH_SIZE_TEST = 1  # BATCH_SIZE
 EPOCHS = 200
 decay_start_epoch = 100
 color_channel = 3
 crop_size = 256  # resize_x / 2 150 fin størrelse på
-DROPOUT = 0#.5
+DROPOUT = 0  # .5
 LAMBDA = 10
 
 learningrate_G_g = 0.0002  # 7e-5
@@ -108,7 +108,7 @@ beta_D_y = 0.9
 
 save_every_n_epochs = 2
 
-#generator_type = "resnet" # virker som resnet gir best resultat
+# generator_type = "resnet" # virker som resnet gir best resultat
 generator_type = "unet"
 
 filter_muultiplier_generator = 2
@@ -124,7 +124,7 @@ image_type_2 = False
 # image_type_2 = '*rock_RGB'
 # image_type_2 = '*oil_drum_RGB'
 # image_type_2 = "*man_made_object_RGB"
-#image_type_2 = "*Mine_size_rock_RGB.jpg"
+# image_type_2 = "*Mine_size_rock_RGB.jpg"
 
 
 image_type_3 = False
@@ -171,25 +171,27 @@ run["model/parameters"] = params
 # region Preparing datasets
 
 train_set_path = pathlib.Path("datasets/train")
-train_set_path_simulated = pathlib.Path("datasets/barrel_sim_v2/sim_data_rgb_barrel_v2")#("datasets/sim_data_rgb_barrel") kommentert ut gammel simulert datasett
-#train_set_path_simulated_v1 = pathlib.Path("datasets/sim_data_rgb_barrel")
+train_set_path_simulated = pathlib.Path(
+    "datasets/barrel_sim_v2/sim_data_rgb_barrel_v2")  # ("datasets/sim_data_rgb_barrel") kommentert ut gammel simulert datasett
+# train_set_path_simulated_v1 = pathlib.Path("datasets/sim_data_rgb_barrel")
 test_set_path_simulated = pathlib.Path("datasets/test_set_cycleGAN")
-#test_set_path = pathlib.Path("datasets/test")
-#test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
+# test_set_path = pathlib.Path("datasets/test")
+# test_set_path_handdrawn = pathlib.Path("datasets/image_translation_handdrawn_images")
 train_set_extra_path = pathlib.Path("datasets/test")
 
-image_paths_train = [str(path) for path in list(train_set_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train = [str(path) for path in list(
+    train_set_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of trainingset: {len(image_paths_train)}")
 
 image_paths_train_extra = [str(path) for path in list(
-    train_set_extra_path.glob(image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
+    train_set_extra_path.glob(
+        image_type + ".jpg"))]  # [:8000]  # filterer ut data i datasettet i terminal: ls |grep oil
 
-#image_paths_train_sim_V1 = [str(path) for path in list(train_set_path_simulated_v1.glob("*.png"))]
-#print(f"size of simulert trainingset V1: {len(image_paths_train_sim_V1)}")
+# image_paths_train_sim_V1 = [str(path) for path in list(train_set_path_simulated_v1.glob("*.png"))]
+# print(f"size of simulert trainingset V1: {len(image_paths_train_sim_V1)}")
 
 image_paths_train.extend(image_paths_train_extra)
 print(f"size of sonar trainingset after adding extra sonar training data: {len(image_paths_train)}")
-
 
 if image_type_2:
     img_buffer_1 = [str(path) for path in list(train_set_path.glob(image_type_2 + ".jpg"))]  # [:8000]
@@ -198,17 +200,20 @@ if image_type_3:
     img_buffer_2 = [str(path) for path in list(train_set_path.glob(image_type_3 + ".jpg"))]  # [:8000]
     image_paths_train.extend(img_buffer_2)
 
-image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][:425]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_train_simulated = [str(path) for path in list(train_set_path_simulated.glob("*.png"))][
+                              :425]  # total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of simulated trainingset:: {len(image_paths_train_simulated)}")
-#image_paths_train_simulated.extend(image_paths_train_sim_V1)
-#print(f"size of simulated trainingset after adding extra simulated data: {len(image_paths_train_simulated)}")
+# image_paths_train_simulated.extend(image_paths_train_sim_V1)
+# print(f"size of simulated trainingset after adding extra simulated data: {len(image_paths_train_simulated)}")
 
-image_paths_test =[str(path) for path in list(test_set_path_simulated.glob("*.png"))] #[str(path) for path in list(train_set_path_simulated.glob("*.png"))][553:]  # filterer ut data i datasettet i terminal: ls |grep oil
+image_paths_test = [str(path) for path in list(test_set_path_simulated.glob(
+    "*.png"))]  # [str(path) for path in list(train_set_path_simulated.glob("*.png"))][553:]  # filterer ut data i datasettet i terminal: ls |grep oil
 print(f"size of testset: {len(image_paths_test)}")
 
-#buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob(
- #   "*.png"))]  # [:405] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
-#image_paths_test.extend(buffer_test)
+
+# buffer_test = [str(path) for path in list(test_set_path_handdrawn.glob(
+#   "*.png"))]  # [:405] #total størrelse 425   # filterer ut data i datasettet i terminal: ls |grep oil
+# image_paths_test.extend(buffer_test)
 
 
 def crop_image_around_POI(image, point_x, point_y, crop_size):
@@ -257,8 +262,7 @@ def find_coordinates_for_cropping_tensor(path_image):
         label_path = os.path.join("datasets/train/Label", label_file)
     #####################
 
-
-    #label_path = os.path.join("datasets/train/Label", label_file)
+    # label_path = os.path.join("datasets/train/Label", label_file)
     # print(f"label_path {label_path}")
     x, y = None, None
     try:
@@ -296,8 +300,7 @@ def find_coordinates_for_cropping(path_image):
         label_path = os.path.join("datasets/train/Label", label_file)
     #####################
 
-
-    #label_path = os.path.join("datasets/train/Label", label_file)
+    # label_path = os.path.join("datasets/train/Label", label_file)
     # print(f"label_path {label_path}")
     x, y = None, None
     try:
@@ -321,19 +324,21 @@ def find_coordinates_for_cropping(path_image):
 
 
 # ==========================
-def load_and_preprocess_image_trainset(path_image_trainset,path_simulated_image_trainset):
+def load_and_preprocess_image_trainset(path_image_trainset, path_simulated_image_trainset):
     # path_simulated_image_trainset = pathlib.Path("datasets")
     if isinstance(path_image_trainset, tf.Tensor) and isinstance(path_simulated_image_trainset, tf.Tensor):
         # print("===================start load and preprocess image============================================")
         real_image = tf.io.read_file(path_image_trainset)
         inp_image = tf.io.read_file(path_simulated_image_trainset)
-        real_image = tf.image.decode_jpeg(real_image,channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        real_image = tf.image.decode_jpeg(real_image,
+                                          channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         inp_image = tf.image.decode_png(inp_image, channels=color_channel)
         real_image = tf.cast(real_image, tf.float32)
         inp_image = tf.cast(inp_image, tf.float32)
         real_image = (real_image - 127.5) / 127.5  # Normaliser bildene til [-1, 1] området
         inp_image = (inp_image - 127.5) / 127.5
-        x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],Tout=[tf.float32, tf.float32])
+        x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],
+                              Tout=[tf.float32, tf.float32])
         real_image.set_shape([400, 600, 3])
         inp_image.set_shape([369, 496, 3])
         real_image = crop_image_around_POI(real_image, x, y, crop_size)
@@ -347,7 +352,8 @@ def load_and_preprocess_image_trainset(path_image_trainset,path_simulated_image_
         # print("===================start load and preprocess image============================================")
         real_image = tf.io.read_file(path_image_trainset)
         inp_image = tf.io.read_file(path_simulated_image_trainset)
-        real_image = tf.image.decode_jpeg(real_image,channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        real_image = tf.image.decode_jpeg(real_image,
+                                          channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         inp_image = tf.image.decode_png(inp_image, channels=color_channel)
         real_image = tf.cast(real_image, tf.float32)
         inp_image = tf.cast(inp_image, tf.float32)
@@ -364,22 +370,24 @@ def load_and_preprocess_image_trainset(path_image_trainset,path_simulated_image_
         real_image = tf.image.resize(real_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
         inp_image = tf.image.resize(inp_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
 
-        return inp_image ,real_image
+        return inp_image, real_image
 
 
-def load_and_preprocess_image_simulated_set(path_simulated_image_trainset,path_image_trainset):
+def load_and_preprocess_image_simulated_set(path_simulated_image_trainset, path_image_trainset):
     # path_simulated_image_trainset = pathlib.Path("datasets")
     if isinstance(path_simulated_image_trainset, tf.Tensor) and isinstance(path_image_trainset, tf.Tensor):
         # print("===================start load and preprocess image============================================")
         inp_image = tf.io.read_file(path_simulated_image_trainset)
         real_image = tf.io.read_file(path_image_trainset)
-        inp_image = tf.image.decode_png(inp_image,channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+        inp_image = tf.image.decode_png(inp_image,
+                                        channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
         real_image = tf.image.decode_jpeg(real_image, channels=color_channel)
         inp_image = tf.cast(inp_image, tf.float32)
         real_image = tf.cast(real_image, tf.float32)
         inp_image = (inp_image - 127.5) / 127.5
         real_image = (real_image - 127.5) / 127.5
-        x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_simulated_image_trainset],Tout=[tf.float32, tf.float32])
+        x, y = tf.py_function(func=find_coordinates_for_cropping_tensor, inp=[path_image_trainset],
+                              Tout=[tf.float32, tf.float32])
         real_image.set_shape([400, 600, 3])
         # if not "clutter" in image_type:
         inp_image.set_shape([369, 496, 3])
@@ -400,7 +408,7 @@ def load_and_preprocess_image_simulated_set(path_simulated_image_trainset,path_i
         real_image = tf.cast(real_image, tf.float32)
         inp_image = (inp_image - 127.5) / 127.5
         real_image = (real_image - 127.5) / 127.5
-        x, y = find_coordinates_for_cropping(path_simulated_image_trainset)
+        x, y = find_coordinates_for_cropping(path_image_trainset)
         real_image.set_shape([400, 600, 3])
         assert inp_image.shape == (369, 496, 3)
         assert real_image.shape == (400, 600, 3)
@@ -420,7 +428,7 @@ print(f"BUFFER_SIZE simulated set: {BUFFER_SIZE_simulated}")
 BUFFER_SIZE_test_set = len(image_paths_test)
 
 
-def augmentation(input_img,real_img):
+def augmentation(input_img, real_img):
     flipped_left_right = (tf.image.flip_left_right(input_img), tf.image.flip_left_right(real_img))
     flipped_up_down = (tf.image.flip_up_down(input_img), tf.image.flip_up_down(real_img))
     n_degrees = 10  # degrees rotated
@@ -448,8 +456,9 @@ real_augmented_training_data_rotate = []
 
 i = 0
 for image_path, image_path_simulated in zip(image_paths_train, image_paths_train_simulated):
-    re = load_and_preprocess_image_trainset(image_path)
-    inp = load_and_preprocess_image_simulated_set(image_path_simulated)
+    input_to_train_set, re_to_trainset = load_and_preprocess_image_trainset(image_path, image_path_simulated)
+    real_img_sim_set, simulated_image_sim_set = load_and_preprocess_image_simulated_set(image_path_simulated,
+                                                                                        image_path)
 
     #
     # # Konverterer begge tensorer til uint8 ved å bruke tf.cast etter å ha skalert dem
