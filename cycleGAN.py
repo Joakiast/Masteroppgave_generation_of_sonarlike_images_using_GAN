@@ -1238,7 +1238,7 @@ def generate_images(model, test_input, epoch_num, num, testing=False):
 
 
 @tf.function
-def train_step(real_x, real_y, lambda_gp=10):
+def train_step(real_x, real_y, lambda_gp=1):
     # persistent is set to True because the tape is used more than
     # once to calculate the gradients.
     with tf.GradientTape(persistent=True) as tape:
