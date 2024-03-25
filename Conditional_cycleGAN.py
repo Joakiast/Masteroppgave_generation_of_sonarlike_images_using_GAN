@@ -647,6 +647,9 @@ number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
 
 # endregion
+sample_simulated = next(iter(simulated_dataset))
+sample_train = next(iter(train_dataset))
+sample_test = next(iter(test_dataset))
 
 
 """
