@@ -323,10 +323,18 @@ def find_coordinates_for_cropping(path_image):
     return None, None
 
 
+def packout_strings(paths):
+    inp, re = paths
+    return inp, re
+
+
 # ==========================
-def load_and_preprocess_image_trainset(path_image_trainset, path_simulated_image_trainset):
+def load_and_preprocess_image_trainset(paths):
     # path_simulated_image_trainset = pathlib.Path("datasets")
-    if isinstance(path_image_trainset, tf.Tensor) and isinstance(path_simulated_image_trainset, tf.Tensor):
+    if isinstance(paths, tf.Tensor):
+        # path_image_trainset, path_simulated_image_trainset = paths
+        path_image_trainset, path_simulated_image_trainset = tf.py_function(func=packout_strings, inp=[paths],
+                                                                            Tout=[tf.string, tf.string])
         # print("===================start load and preprocess image============================================")
         real_image = tf.io.read_file(path_image_trainset)
         inp_image = tf.io.read_file(path_simulated_image_trainset)
@@ -349,6 +357,7 @@ def load_and_preprocess_image_trainset(path_image_trainset, path_simulated_image
 
         return inp_image, real_image
     else:
+        path_image_trainset, path_simulated_image_trainset = paths
         # print("===================start load and preprocess image============================================")
         real_image = tf.io.read_file(path_image_trainset)
         inp_image = tf.io.read_file(path_simulated_image_trainset)
@@ -373,9 +382,13 @@ def load_and_preprocess_image_trainset(path_image_trainset, path_simulated_image
         return inp_image, real_image
 
 
-def load_and_preprocess_image_simulated_set(path_simulated_image_trainset, path_image_trainset):
+def load_and_preprocess_image_simulated_set(paths):
     # path_simulated_image_trainset = pathlib.Path("datasets")
-    if isinstance(path_simulated_image_trainset, tf.Tensor) and isinstance(path_image_trainset, tf.Tensor):
+    if isinstance(paths, tf.Tensor):
+
+        path_simulated_image_trainset, path_image_trainset = tf.py_function(func=packout_strings, inp=[paths],
+                                                                            Tout=[tf.string, tf.string])
+
         # print("===================start load and preprocess image============================================")
         inp_image = tf.io.read_file(path_simulated_image_trainset)
         real_image = tf.io.read_file(path_image_trainset)
@@ -396,6 +409,8 @@ def load_and_preprocess_image_simulated_set(path_simulated_image_trainset, path_
         real_image = tf.image.resize(real_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
         return real_image, inp_image
     else:
+        path_simulated_image_trainset, path_image_trainset = paths
+
         # print("===================start load and preprocess image============================================")
 
         # =================================for inp image======================================================
@@ -428,12 +443,16 @@ print(f"BUFFER_SIZE simulated set: {BUFFER_SIZE_simulated}")
 BUFFER_SIZE_test_set = len(image_paths_test)
 
 
-def augmentation(input_img, real_img):
-    flipped_left_right = (tf.image.flip_left_right(input_img), tf.image.flip_left_right(real_img))
-    flipped_up_down = (tf.image.flip_up_down(input_img), tf.image.flip_up_down(real_img))
+def augmentation(inp, re):
+    # print(f"input in augmentation len: {len(inp)}")
+    # real_img, inp_img, = inp
+    # print(f"real_img shape: {real_img.shape} inp_img shape: {inp_img.shape}")
+
+    flipped_left_right = (tf.image.flip_left_right(re), tf.image.flip_left_right(inp))
+    flipped_up_down = (tf.image.flip_up_down(re), tf.image.flip_up_down(inp))
     n_degrees = 10  # degrees rotated
     radians = n_degrees * math.pi / 180
-    rotate = (tfa.image.rotate(input_img, -radians), tfa.image.rotate(real_img, -radians))
+    rotate = (tfa.image.rotate(re, -radians), tfa.image.rotate(inp, -radians))  # tfa.image.rotate(inp,-radians)
 
     # rotate = tf.image.rot90(input_img)
     # flytte objektet til forksjellige posisjoner i bildet, være forskintg rotering av sonar bilder med tanke på skygge 10 grader opp og ned
@@ -441,6 +460,7 @@ def augmentation(input_img, real_img):
     # kan dele det inn i fysiske realiserbare og ikke realiserbare
     # kan også være innteresant å croppe og resize så det ikke blir helt likt det blir da ikke fysisk realiserbart, men kan være av interesse
     # bør ta det til sist liten tro på
+    # print(f"inne i augmentation flipped_left_right len: {len(flipped_left_right)} flipped_up_down len: {len(flipped_up_down)} rotate len: {len(rotate)}")
 
     return flipped_left_right, flipped_up_down, rotate
 
@@ -454,11 +474,22 @@ real_augmented_training_data_flip_up_down = []
 inp_augmented_training_data_rotate = []
 real_augmented_training_data_rotate = []
 
+inp_augmented_simulated_data_flip_left_right = []
+real_augmented_simulated_data_flip_left_right = []
+
+inp_augmented_simulated_data_flip_up_down = []
+real_augmented_simulated_data_flip_up_down = []
+
+inp_augmented_simulated_data_rotate = []
+real_augmented_simulated_data_rotate = []
+
 i = 0
 for image_path, image_path_simulated in zip(image_paths_train, image_paths_train_simulated):
-    input_to_train_set, re_to_trainset = load_and_preprocess_image_trainset(image_path, image_path_simulated)
-    real_img_sim_set, simulated_image_sim_set = load_and_preprocess_image_simulated_set(image_path_simulated,
-                                                                                        image_path)
+    re_x, inp_x = load_and_preprocess_image_trainset((image_path, image_path_simulated))
+    re_y, inp_y = load_and_preprocess_image_simulated_set((image_path_simulated, image_path))
+
+    # print(f"input_to_train_set len: {len(re_x)} re_to_trainset len: {len(inp_x)}")
+    # print(f"input_to_train_set shape: {re.shape} re_to_trainset shape: {inp.shape}")
 
     #
     # # Konverterer begge tensorer til uint8 ved å bruke tf.cast etter å ha skalert dem
@@ -488,25 +519,36 @@ for image_path, image_path_simulated in zip(image_paths_train, image_paths_train
     # plt.show()
     # only augment the image if we dont have a image type of clutter
     if "rock_RGB" in image_type or "oil_drum_RGB" in image_type or "man_made_object_RGB" in image_type:
-        train_flipped_left_right, train_flipped_up_down, train_rotate = augmentation(re)
-        flipped_left_right_train = train_flipped_left_right
-        real_augmented_training_data_flip_left_right.append(flipped_left_right_train)  # , flipped_up_down, rotate])
-        real_augmented_up_down = train_flipped_up_down
+        # print(f"re shape: {re.shape}")
+        train_flipped_left_right, train_flipped_up_down, train_rotate = augmentation(re_x, inp_x)
+
+        flipped_left_right_train_re, flipped_left_right_train_inp = train_flipped_left_right
+        real_augmented_training_data_flip_left_right.append(flipped_left_right_train_re)  # , flipped_up_down, rotate])
+        inp_augmented_training_data_flip_left_right.append(flipped_left_right_train_inp)
+        real_augmented_up_down, inp_augmented_up_down = train_flipped_up_down
         real_augmented_training_data_flip_up_down.append(real_augmented_up_down)
-        rotate_real = train_rotate
-        real_augmented_training_data_rotate.append(rotate_real)
+        inp_augmented_training_data_flip_up_down.append(inp_augmented_up_down)
+        real_augmented_rotate, inp_augmented_rotate = train_rotate
+        real_augmented_training_data_rotate.append(real_augmented_rotate)
+        inp_augmented_training_data_rotate.append(inp_augmented_rotate)
 
     elif "clutter" in image_type:
         pass
 
     # ===================================for simulated data===================================
-    inp_flipped_left_right, inp_flipped_up_down, inp_rotate = augmentation(inp,re)  # tf.py_function(func = augmentation, inp = [inp, re], Tout=[tf.float32,tf.float32,tf.float32])
-    flipped_left_right_inp = inp_flipped_left_right
-    inp_augmented_training_data_flip_left_right.append(flipped_left_right_inp)  # , flipped_up_down, rotate])
-    flipped_up_down_inp = inp_flipped_up_down
-    inp_augmented_training_data_flip_up_down.append(flipped_up_down_inp)
-    rotate_inp = inp_rotate
-    inp_augmented_training_data_rotate.append(rotate_inp)
+    simulated_flipped_left_right, simulated_flipped_up_down, simulated_rotate = augmentation(re_y, inp_y)
+
+    flipped_left_right_simulated_re, flipped_left_right_simulated_inp = simulated_flipped_left_right
+    real_augmented_simulated_data_flip_left_right.append(flipped_left_right_simulated_re)
+    inp_augmented_simulated_data_flip_left_right.append(flipped_left_right_simulated_inp)
+
+    flipped_up_down_simulated_re, flipped_up_down_simulated_inp = simulated_flipped_up_down
+    real_augmented_simulated_data_flip_up_down.append(flipped_up_down_simulated_re)
+    inp_augmented_simulated_data_flip_up_down.append(flipped_up_down_simulated_inp)
+
+    rotate_simulated_re, rotate_simulated_inp = simulated_rotate
+    real_augmented_simulated_data_rotate.append(rotate_simulated_re)
+    inp_augmented_simulated_data_rotate.append(rotate_simulated_inp)
 
     # ===================================for simulated data===================================
 
@@ -518,10 +560,13 @@ for image_path, image_path_simulated in zip(image_paths_train, image_paths_train
 # Opprett et tf.data.Dataset fra bildestier
 # the dataset consist of both inp and re images.
 # region oppretter dataset for trening og inp
-train_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train, image_paths_train_simulated)
+data_pairs = list(zip(image_paths_train, image_paths_train_simulated))
+
+train_dataset = tf.data.Dataset.from_tensor_slices(data_pairs)
 print(image_paths_train[0])
 print(f"dataset train shape 1: {len(train_dataset)}")
-simulated_dataset = tf.data.Dataset.from_tensor_slices(image_paths_train_simulated,image_paths_train)
+data_pairs_2 = list(zip(image_paths_train_simulated, image_paths_train))
+simulated_dataset = tf.data.Dataset.from_tensor_slices(data_pairs_2)
 print(f"dataset simulated shape 1: {len(simulated_dataset)}")
 
 train_dataset = train_dataset.map(load_and_preprocess_image_trainset, num_parallel_calls=tf.data.AUTOTUNE)
@@ -530,23 +575,27 @@ simulated_dataset = simulated_dataset.map(load_and_preprocess_image_simulated_se
 print(f"dataset simulated shape 2: {len(simulated_dataset)}")
 
 augmented_training_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(
-    real_augmented_training_data_flip_left_right)
+    (real_augmented_training_data_flip_left_right, inp_augmented_training_data_flip_left_right))
 augmented_simulated_dataset_flip_left_right = tf.data.Dataset.from_tensor_slices(
-    inp_augmented_training_data_flip_left_right)
+    (inp_augmented_training_data_flip_left_right, real_augmented_training_data_flip_left_right))
 train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_left_right)
 simulated_dataset = simulated_dataset.concatenate(augmented_simulated_dataset_flip_left_right)
 print(f"dataset shape 2: {len(train_dataset)}")
 print(f"dataset simulated shape 2: {len(simulated_dataset)}")
 
-augmented_training_dataset_flip_up_down = tf.data.Dataset.from_tensor_slices(real_augmented_training_data_flip_up_down)
-augmented_simulated_dataset_flip_up_down = tf.data.Dataset.from_tensor_slices(inp_augmented_training_data_flip_up_down)
+augmented_training_dataset_flip_up_down = tf.data.Dataset.from_tensor_slices(
+    (real_augmented_training_data_flip_up_down, inp_augmented_training_data_flip_up_down))
+augmented_simulated_dataset_flip_up_down = tf.data.Dataset.from_tensor_slices(
+    (inp_augmented_training_data_flip_up_down, real_augmented_training_data_flip_up_down))
 train_dataset = train_dataset.concatenate(augmented_training_dataset_flip_up_down)
 simulated_dataset = simulated_dataset.concatenate(augmented_simulated_dataset_flip_up_down)
 print(f"dataset shape 3: {len(train_dataset)}")
 print(f"dataset simulated shape 3: {len(simulated_dataset)}")
 
-augmented_training_dataset_rotate = tf.data.Dataset.from_tensor_slices(real_augmented_training_data_rotate)
-augmented_simulated_dataset_rotate = tf.data.Dataset.from_tensor_slices(inp_augmented_training_data_rotate)
+augmented_training_dataset_rotate = tf.data.Dataset.from_tensor_slices(
+    (real_augmented_training_data_rotate, inp_augmented_training_data_rotate))
+augmented_simulated_dataset_rotate = tf.data.Dataset.from_tensor_slices(
+    (inp_augmented_training_data_rotate, real_augmented_training_data_rotate))
 train_dataset = train_dataset.concatenate(augmented_training_dataset_rotate)
 simulated_dataset = simulated_dataset.concatenate(augmented_simulated_dataset_rotate)
 print(f"dataset shape 4: {len(train_dataset)}")
