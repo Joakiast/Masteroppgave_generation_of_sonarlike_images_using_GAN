@@ -624,58 +624,26 @@ test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 # endregion
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
-for i in train_dataset.take(1):
-    print(f"Element type tuple len: {len(i)}")
-
+# for i in train_dataset.take(1):
+#     print(f"Element type tuple len: {len(i)}")
+#
 # # Tar en batch fra datasettet
-# for real_imgs in train_dataset.take(2):
+# for input_imgs, real_imgs in train_dataset.take(1):
 #     plt.figure(figsize=(10, 5))
 #     for i in range(number_of_samples_to_show):
 #         # Plotter input_img
-#         ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
+#         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)
 #         plt.title("Input Image")
+#         plt.imshow(input_imgs[i].numpy() )
+#
+#         # Plotter real_img
+#         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)
+#         plt.title("Real Image")
 #         plt.imshow(real_imgs[i].numpy())
+#         plt.axis('on')
+#
 # plt.tight_layout()
 # plt.show()
-
-# for inp_imgs in simulated_dataset.take(2):
-#     plt.figure(figsize=(10, 5))
-#     for i in range(number_of_samples_to_show):
-#         # Plotter input_img
-#         ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
-#         plt.title("Input Image")
-#         plt.imshow(inp_imgs[i].numpy())
-# plt.tight_layout()
-# plt.show()
-# save_path = "/media/joakim/Random Stuff/random_slett_meg"
-#
-# # Sjekk om mappen eksisterer, hvis ikke, opprett den
-# if not os.path.exists(save_path):
-#     os.makedirs(save_path)
-#
-# # Anta at last_500_dataset er ditt TensorFlow Dataset
-# count = 0
-# for img in train_dataset:
-#     # Opprett et filnavn for hvert bilde
-#     filename = os.path.join(save_path, f"image_{count}.png")
-#
-#     # Lagre bildet
-#     plt.figure()
-#     plt.imshow(img.numpy().squeeze())  # Juster dette kallet basert på ditt datasett
-#     plt.axis('off')
-#     plt.savefig(filename)
-#     plt.close()  # Lukk figuren for å frigjøre minne
-#
-#     # Inkrementer tellevariabelen
-#     count += 1
-#
-#     # (Valgfritt) Gi tilbakemelding i konsollen
-#     if count % 100 == 0:
-#         print(f"Lagret {count} bilder...")
-
-sample_simulated = next(iter(simulated_dataset))
-sample_train = next(iter(train_dataset))
-sample_test = next(iter(test_dataset))
 
 
 # endregion
