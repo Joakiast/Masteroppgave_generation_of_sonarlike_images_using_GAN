@@ -434,6 +434,36 @@ def load_and_preprocess_image_simulated_set(paths):
         return real_image, inp_image
 
 
+def load_and_preprocess_image_test_set(path_simulated_image_trainset):
+    # path_simulated_image_trainset = pathlib.Path("datasets")
+    if isinstance(path_simulated_image_trainset, tf.Tensor):
+        # print("===================start load and preprocess image============================================")
+
+        inp_image = tf.io.read_file(path_simulated_image_trainset)
+        inp_image = tf.image.decode_png(inp_image,
+                                        channels=color_channel)  # Bruk tf.image.decode_png for PNG-bilder, etc. endre channels til 3 dersom jeg har rbg bilde
+
+        inp_image = tf.cast(inp_image, tf.float32)
+        inp_image = (inp_image - 127.5) / 127.5
+        # if not "clutter" in image_type:
+        inp_image.set_shape([369, 496, 3])
+        inp_image = tf.image.resize(inp_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
+        return inp_image
+    else:
+        # print("===================start load and preprocess image============================================")
+
+        # =================================for inp image======================================================
+        inp_image = tf.io.read_file(path_simulated_image_trainset)
+        inp_image = tf.image.decode_png(inp_image, channels=color_channel)
+        # print(f" inp_image.shape: {inp_image.shape}")
+        inp_image = tf.cast(inp_image, tf.float32)
+        inp_image = (inp_image - 127.5) / 127.5
+        assert inp_image.shape == (369, 496, 3)
+        inp_image = tf.image.resize(inp_image, [resize_x, resize_y], method=tf.image.ResizeMethod.LANCZOS5)
+
+        return inp_image
+
+
 BUFFER_SIZE_trainset = len(image_paths_train)
 print(f"BUFFER_SIZE train set:: {BUFFER_SIZE_trainset}")
 
@@ -615,7 +645,7 @@ train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 simulated_dataset = simulated_dataset.prefetch(tf.data.AUTOTUNE)
 
 test_dataset = tf.data.Dataset.from_tensor_slices(image_paths_test)
-test_dataset = test_dataset.map(load_and_preprocess_image_simulated_set, num_parallel_calls=tf.data.AUTOTUNE)
+test_dataset = test_dataset.map(load_and_preprocess_image_test_set, num_parallel_calls=tf.data.AUTOTUNE)
 test_dataset = test_dataset.shuffle(BUFFER_SIZE_test_set)
 test_dataset = test_dataset.batch(BATCH_SIZE_TEST)
 test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
@@ -624,33 +654,30 @@ test_dataset = test_dataset.prefetch(tf.data.AUTOTUNE)
 # endregion
 number_of_samples_to_show = BATCH_SIZE  # Antall eksempler du ønsker å vise
 
-# for i in train_dataset.take(1):
-#     print(f"Element type tuple len: {len(i)}")
-#
-# # Tar en batch fra datasettet
-# for input_imgs, real_imgs in train_dataset.take(1):
-#     plt.figure(figsize=(10, 5))
-#     for i in range(number_of_samples_to_show):
-#         # Plotter input_img
-#         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 1)
-#         plt.title("Input Image")
-#         plt.imshow(input_imgs[i].numpy() )
-#
-#         # Plotter real_img
-#         ax = plt.subplot(2, number_of_samples_to_show, 2*i + 2)
-#         plt.title("Real Image")
-#         plt.imshow(real_imgs[i].numpy())
-#         plt.axis('on')
-#
-# plt.tight_layout()
-# plt.show()
+for i in train_dataset.take(1):
+    print(f"Element type tuple len: {len(i)}")
 
+# Tar en batch fra datasettet
+for input_imgs, real_imgs in train_dataset.take(1):
+    plt.figure(figsize=(10, 5))
+    for i in range(number_of_samples_to_show):
+        # Plotter input_img
+        ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 1)
+        plt.title("Input Image")
+        plt.imshow(input_imgs[i].numpy())
 
-# endregion
+        # Plotter real_img
+        ax = plt.subplot(2, number_of_samples_to_show, 2 * i + 2)
+        plt.title("Real Image")
+        plt.imshow(real_imgs[i].numpy())
+        plt.axis('on')
+
+plt.tight_layout()
+plt.show()
+
 sample_simulated = next(iter(simulated_dataset))
 sample_train = next(iter(train_dataset))
 sample_test = next(iter(test_dataset))
-
 
 """
 Import and reuse the Pix2Pix models
