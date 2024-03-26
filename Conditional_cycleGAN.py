@@ -57,7 +57,7 @@ np.random.seed(seed_number)
 random.seed(seed_number)
 
 run = neptune.init_run(
-    project="masteroppgave/ConditionalCycleGAN",
+    project="masteroppgave/testRun",
     api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
 )
 
@@ -883,7 +883,10 @@ def ResidualBlock(x, filters, size, norm_type='instancenorm', apply_dropout=Fals
 
 def ResNetGenerator(filter_multiplier, input_shape=(resize_x, resize_y, 3), output_channels=3, filters=64,
                     norm_type='instancenorm', num_blocks=9):
-    inputs = layers.Input(shape=input_shape)
+    inputs = layers.Input(shape=input_shape, name='input_image')
+    #input_2 = layers.Input(shape=input_shape, name='input_image_2')
+
+    #combined_inputs = tf.keras.layers.concatenate([inputs, input_2])  # (bs, 256, 256, channels*2)
 
     x = layers.Conv2D(filters * filter_multiplier, 7, strides=1, padding='same')(inputs)
     x = layers.ReLU()(x)
@@ -965,6 +968,30 @@ def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
         return tf.keras.Model(inputs=inp, outputs=last)
 
 
+#
+# ###################################################
+# def discriminator(filter_multiplier):
+#     initializer = tf.random_normal_initializer(0., 0.02) #where mean is 0 and the STD is 0.02
+#     inp = tf.keras.layers.Input(shape=[256,256,3], name='input_image')
+#     tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
+#     x = tf.keras.layers.concatenate([inp, tar])
+#     down1 = downsample(128* filter_multiplier, 4, 'instancenorm')(x) # fordi vi har en batch size på 128,128,64
+#     down2 = downsample(256* filter_multiplier, 4)(down1) #batch size 64,64,128
+#     down3 = downsample(512* filter_multiplier, 4)(down2) #batch size ,32,32,256
+#
+#     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
+#     conv = SpectralNormalization(tf.keras.layers.Conv2D(512* filter_multiplier, 4, strides=1, kernel_initializer=initializer, use_bias=False))(zero_pad1) #batch size ,31,31,512
+#     norm1 = InstanceNormalization()(conv)
+#     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
+#     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
+#     last = SpectralNormalization(tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False))(zero_pad2) #batch size 30,30,1
+#     return tf.keras.Model(inputs=[inp,tar], outputs=[last])
+#
+# ####################################################
+
+
+
+
 # ==================================prøve pix2pix example fra tensorflow authors==================================
 
 if generator_type == 'unet':
@@ -977,10 +1004,10 @@ if generator_type == 'resnet':
     generator_g = ResNetGenerator(filter_muultiplier_generator)
     generator_f = ResNetGenerator(filter_muultiplier_generator)
 
-discriminator_x = discriminator(filter_muultiplier_discriminator, norm_type='instancenorm',
-                                target=False)  # pix2pix.discriminator(norm_type='instancenorm', target=False)
-discriminator_y = discriminator(filter_muultiplier_discriminator, norm_type='instancenorm',
-                                target=False)  # pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_x = discriminator(filter_muultiplier_discriminator)#,training= False)# norm_type='instancenorm',
+                                #target=False)  # pix2pix.discriminator(norm_type='instancenorm', target=False)
+discriminator_y = discriminator(filter_muultiplier_discriminator)#, training = False)# norm_type='instancenorm',
+                                #target=False)  # pix2pix.discriminator(norm_type='instancenorm', target=False)
 
 ###################################################################
 #                    exponential average generator weights
@@ -1000,34 +1027,42 @@ def update_shadow_weights(shadow_model, model, beta=0.999):
 
 
 # endregion
+try:
+    print(f"sample_simulated shape: {sample_simulated.shape}")
 
-to_training_image = generator_g(sample_simulated)
-to_simulated = generator_f(sample_train)
+except:
+    print(f"sample_simulated len: {len(sample_simulated)}")
+_,input_x = sample_simulated
+
+_,input_y= sample_train   #input_img , real_img
+
+to_training_image = generator_g(input_x)
+to_simulated = generator_f(input_y)
 plt.figure(figsize=(8, 8))
 contrast = 8
 
 imgs = [sample_simulated, to_training_image, sample_train, to_simulated]
 title = ['sample_simulated', 'To to_training_image', 'sample_train', ' To simulated']
 
-for i in range(len(imgs)):
-    plt.subplot(2, 2, i + 1)
-    plt.title(title[i])
-    if i % 2 == 0:
-        plt.imshow(imgs[i][0] * 0.5 + 0.5)
-    else:
-        plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
-plt.show()
-
-plt.figure(figsize=(8, 8))
-plt.subplot(121)
-plt.title('Is a real oil_drum?')
-plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
-
-plt.subplot(122)
-plt.title('Is a fake oildrum?')
-plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
-
-plt.show()
+# for i in range(len(imgs)):
+#     plt.subplot(2, 2, i + 1)
+#     plt.title(title[i])
+#     if i % 2 == 0:
+#         plt.imshow(imgs[i][0] * 0.5 + 0.5)
+#     else:
+#         plt.imshow(imgs[i][0] * 0.5 * contrast + 0.5)
+# plt.show()
+#
+# plt.figure(figsize=(8, 8))
+# plt.subplot(121)
+# plt.title('Is a real oil_drum?')
+# plt.imshow(discriminator_y(sample_train)[0, ..., -1], cmap='RdBu_r')
+#
+# plt.subplot(122)
+# plt.title('Is a fake oildrum?')
+# plt.imshow(discriminator_x(sample_simulated)[0, ..., -1], cmap='RdBu_r')
+#
+# plt.show()
 
 
 
@@ -1071,10 +1106,6 @@ def discriminator_loss(discriminator, real, generated, real_images, fake_images,
     gp = gradient_penalty(discriminator, real_images, fake_images, lambda_gp)
     total_disc_loss = real_loss + generated_loss + gp
     return total_disc_loss * 0.5
-
-
-
-
 
 def generator_loss(generated):
     return loss_obj(tf.ones_like(generated), generated)
@@ -1319,21 +1350,30 @@ def train_step(real_x, real_y, lambda_gp=10):
         # Generator G translates X -> Y
         # Generator F translates Y -> X.
 
-        fake_y = generator_g(real_x, training=True)
+
+        ###############################
+        target_x, input_x = real_x
+        print("target_x shape:", target_x.shape, "input_x shape:", input_x.shape)
+        target_y, input_y = real_y  # input_img , real_img
+
+
+        ################################
+
+        fake_y = generator_g(input_x, training=True)
         cycled_x = generator_f(fake_y, training=True)
 
-        fake_x = generator_f(real_y, training=True)
+        fake_x = generator_f(input_y, training=True)
         cycled_y = generator_g(fake_x, training=True)
 
         # same_x and same_y are used for identity loss.
-        same_x = generator_f(real_x, training=True)
-        same_y = generator_g(real_y, training=True)
+        same_x = generator_f(input_x, training=True)
+        same_y = generator_g(input_y, training=True)
 
-        disc_real_x = discriminator_x(real_x, training=True)
-        disc_real_y = discriminator_y(real_y, training=True)
+        disc_real_x = discriminator_x(inputs=[input_x, same_x], training=True)
+        disc_real_y = discriminator_y(inputs=[input_y, same_y], training=True)
 
-        disc_fake_x = discriminator_x(fake_x, training=True)
-        disc_fake_y = discriminator_y(fake_y, training=True)
+        disc_fake_x = discriminator_x([target_x, fake_x], training=True)
+        disc_fake_y = discriminator_y([target_y,fake_y], training=True)
 
         # calculate the loss
         gen_g_loss = generator_loss(disc_fake_y)
@@ -1347,8 +1387,8 @@ def train_step(real_x, real_y, lambda_gp=10):
 
         # disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
         # disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
-        disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, real_x, fake_x, lambda_gp)
-        disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, real_y, fake_y, lambda_gp)
+        disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, input_x, fake_x, lambda_gp)
+        disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, input_y, fake_y, lambda_gp)
 
     # Calculate the gradients for generator and discriminator
     generator_g_gradients = tape.gradient(total_gen_g_loss,
