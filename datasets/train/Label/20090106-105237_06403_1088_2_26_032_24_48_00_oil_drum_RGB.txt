@@ -1,0 +1,2 @@
+oil_drum 294 125
+detector_clutter 409 340
