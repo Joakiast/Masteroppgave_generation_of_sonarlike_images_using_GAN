@@ -1306,7 +1306,7 @@ def generate_images(model, input, epoch_num, num, testing=False):
             run[name].log(value, step=int(step))
 
         # assert test_input.shape[1:] == (256, 256, 3), f"Input shape was: {test_input.shape}, expected: (256, 256, 3)"
-        prediction = model(test_input)
+        prediction = model(input)
 
         # =================
         test_input_prepared = preprocess_input(test_input)
