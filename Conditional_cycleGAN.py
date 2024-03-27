@@ -1066,22 +1066,22 @@ title = ['sample_simulated', 'To to_training_image', 'sample_train', ' To simula
 
 
 
-def gradient_penalty(discriminator, real_images, fake_images, lambda_gp=10.0):
-    batch_size = real_images.shape[0]
-    alpha = tf.random.uniform([batch_size, 1, 1, 1], 0., 1.)
-    interpolated_images = real_images * alpha + fake_images * (1 - alpha)
-
-    with tf.GradientTape() as tape:
-        tape.watch(interpolated_images)
-        predictions = discriminator(interpolated_images, training=True)
-    gradients = tape.gradient(predictions, [interpolated_images])[0]
-    slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
-    #gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) #centered around a gradientnorm of 1
-    gradient_penalty = tf.reduce_mean(tf.square(slopes)) # centered around a gradientnorm of 0 slik som paperet https://arxiv.org/pdf/2303.16280.pdf foreslår
-
-
-    return gradient_penalty * lambda_gp
-
+# def gradient_penalty(discriminator, real_images, fake_images, lambda_gp=10.0):
+#     batch_size = real_images.shape[0]
+#     alpha = tf.random.uniform([batch_size, 1, 1, 1], 0., 1.)
+#     interpolated_images = real_images * alpha + fake_images * (1 - alpha)
+#
+#     with tf.GradientTape() as tape:
+#         tape.watch(interpolated_images)
+#         predictions = discriminator(interpolated_images, training=True)
+#     gradients = tape.gradient(predictions, [interpolated_images])[0]
+#     slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
+#     #gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) #centered around a gradientnorm of 1
+#     gradient_penalty = tf.reduce_mean(tf.square(slopes)) # centered around a gradientnorm of 0 slik som paperet https://arxiv.org/pdf/2303.16280.pdf foreslår
+#
+#
+#     return gradient_penalty * lambda_gp
+#
 
 
 # region define loss functions
@@ -1238,7 +1238,7 @@ def generate_images(model, input, epoch_num, num, testing=False):
     #                   training
     #################################################
     if testing == False:
-        _,test_input = input
+        condition,test_input = input
 
         def log_wrapper(name, value, step):
             if isinstance(step, tf.Tensor):
@@ -1257,12 +1257,12 @@ def generate_images(model, input, epoch_num, num, testing=False):
 
         plt.figure(figsize=(12, 12))
 
-        display_list = [test_input[0], prediction[0]]
-        title = ['Input Image', 'Predicted Image']
+        display_list = [test_input[0], prediction[0], condition[0]]
+        title = ['Input Image', 'Predicted Image', 'Condition Image']
         num_elem = len(display_list)
 
         for i in range(num_elem):
-            plt.subplot(1, 2, i + 1)
+            plt.subplot(1, num_elem, i + 1)
             plt.title(title[i])
             # getting the pixel values between [0, 1] to plot it.
             plt.imshow(display_list[i] * 0.5 + 0.5)
@@ -1366,8 +1366,6 @@ def train_step(real_x, real_y, lambda_gp=10):
         print("target_x shape:", target_x.shape, "input_x shape:", input_x.shape)
         target_y, input_y = real_y  # input_img , real_img
 
-
-        ################################
 
         fake_y = generator_g(input_x, training=True)
         cycled_x = generator_f(fake_y, training=True)
@@ -1481,6 +1479,62 @@ for epoch in range(EPOCHS):
     n = 0
     for image_x, image_y in tf.data.Dataset.zip((simulated_dataset, train_dataset)):
         #train_step(image_x, image_y)
+
+
+        # #################################################################
+        #
+        # # =======================================================================================================
+        # # Første figur for input_x og target_x
+        #
+        # target_x, input_x = image_x
+        # print("target_x shape:", target_x.shape, "input_x shape:", input_x.shape)
+        # target_y, input_y = image_y  # input_img , real_img
+        #
+        #
+        #
+        # plt.figure(figsize=(16, 8))
+        #
+        # # Viser input_x
+        # plt.subplot(1, 2, 1)  # 1 rad, 2 kolonner, første posisjon
+        # input_x_np = input_x[0].numpy() * 0.5 + 0.5  # Konverterer tensor til NumPy og normaliserer
+        # plt.imshow(input_x_np)
+        # plt.title("Input X")
+        # plt.axis('off')
+        #
+        # # Viser target_x
+        # plt.subplot(1, 2, 2)  # 1 rad, 2 kolonner, andre posisjon
+        # target_x_np = target_x[0].numpy() * 0.5 + 0.5  # Konverterer tensor til NumPy og normaliserer
+        # plt.imshow(target_x_np)
+        # plt.title("Target X")
+        # plt.axis('off')
+        #
+        # plt.show()
+        #
+        # # Andre figur for input_y og target_y
+        # plt.figure(figsize=(16, 8))
+        #
+        # # Viser input_y
+        # plt.subplot(1, 2, 1)  # 1 rad, 2 kolonner, første posisjon
+        # input_y_np = input_y[0].numpy() * 0.5 + 0.5  # Konverterer tensor til NumPy og normaliserer
+        # plt.imshow(input_y_np)
+        # plt.title("Input Y")
+        # plt.axis('off')
+        #
+        # # Viser target_y
+        # plt.subplot(1, 2, 2)  # 1 rad, 2 kolonner, andre posisjon
+        # target_y_np = target_y[0].numpy() * 0.5 + 0.5  # Konverterer tensor til NumPy og normaliserer
+        # plt.imshow(target_y_np)
+        # plt.title("Target Y")
+        # plt.axis('off')
+        #
+        # plt.show()
+        # #######################################################
+        #
+        # sys.exit()
+        # ##################################################################33
+
+
+
         losses = train_step(image_x, image_y)
 
         total_gen_g_loss += losses['gen_g_loss']
