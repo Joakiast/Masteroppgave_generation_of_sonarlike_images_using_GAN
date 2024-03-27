@@ -1233,11 +1233,12 @@ def calculate_fid_single_image(model, image1, image2):
 #     return ssim_index, psnr_value
 
 
-def generate_images(model, test_input, epoch_num, num, testing=False):
+def generate_images(model, input, epoch_num, num, testing=False):
     #################################################
     #                   training
     #################################################
     if testing == False:
+        _,test_input = input
 
         def log_wrapper(name, value, step):
             if isinstance(step, tf.Tensor):
