@@ -1309,13 +1309,13 @@ def generate_images(model, input, epoch_num, num, testing=False):
         prediction = model(input)
 
         # =================
-        test_input_prepared = preprocess_input(test_input)
+        test_input_prepared = preprocess_input(input)
         prediction_prepared = preprocess_input(prediction)
         # ================
 
         plt.figure(figsize=(12, 12))
 
-        display_list = [test_input[0], prediction[0]]
+        display_list = [input[0], prediction[0]]
         title = ['Test Input Image', 'Predicted Image from testinput']
         num_elem = len(display_list)
 
