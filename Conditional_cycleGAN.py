@@ -1569,5 +1569,5 @@ run["vanilla_GAN/discriminator_y"].upload(f'saved_model_cycle_GAN/{image_type[1:
 run.stop()
 
 time.sleep(30)  # for at slurm i fox ikke skal avslutte jobben før neptune har gjort seg ferdig
-print("End of line")
+print("End of line program finished")
 
