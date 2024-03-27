@@ -1100,12 +1100,21 @@ loss_obj = tf.keras.losses.MeanSquaredError()
 
 
 
-def discriminator_loss(discriminator, real, generated, real_images, fake_images, lambda_gp=10.0): #lambda_gp=10.0 brukes i paperet om gradient penalty https://arxiv.org/pdf/1704.00028.pdf
-    real_loss = loss_obj(tf.ones_like(real), real)
-    generated_loss = loss_obj(tf.zeros_like(generated), generated)
-    gp = gradient_penalty(discriminator, real_images, fake_images, lambda_gp)
-    total_disc_loss = real_loss + generated_loss + gp
-    return total_disc_loss * 0.5
+ # def discriminator_loss(discriminator, real, generated, real_images, fake_images, lambda_gp=10.0): #lambda_gp=10.0 brukes i paperet om gradient penalty https://arxiv.org/pdf/1704.00028.pdf
+ #    real_loss = loss_obj(tf.ones_like(real), real)
+ #    generated_loss = loss_obj(tf.zeros_like(generated), generated)
+ #    gp = gradient_penalty(discriminator, real_images, fake_images, lambda_gp)
+ #    total_disc_loss = real_loss + generated_loss + gp
+ #    return total_disc_loss * 0.5
+
+# ##########################################
+
+def discriminator_loss(disc_real_output,disc_generated_output):
+    real_loss = loss_obj(tf.ones_like(disc_real_output), disc_real_output)
+    generated_loss = loss_obj(tf.zeros_like(disc_generated_output), disc_generated_output)
+    total_disc_loss = real_loss + generated_loss
+    return total_disc_loss
+##########################################
 
 def generator_loss(generated):
     return loss_obj(tf.ones_like(generated), generated)
@@ -1387,8 +1396,12 @@ def train_step(real_x, real_y, lambda_gp=10):
 
         # disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
         # disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
-        disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, input_x, fake_x, lambda_gp)
-        disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, input_y, fake_y, lambda_gp)
+        # disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, input_x, fake_x, lambda_gp)
+        # disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, input_y, fake_y, lambda_gp)
+
+        ###########################################
+        disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
+        disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
 
     # Calculate the gradients for generator and discriminator
     generator_g_gradients = tape.gradient(total_gen_g_loss,
