@@ -914,80 +914,80 @@ def ResNetGenerator(filter_multiplier, input_shape=(resize_x, resize_y, 3), outp
 
 # ========================Resnet=====================================
 
-#
-# def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
-#     """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
-#
-#     Args:
-#       norm_type: Type of normalization. Either 'batchnorm' or 'instancenorm'.
-#       target: Bool, indicating whether target image is an input or not.
-#
-#     Returns:
-#       Discriminator model
-#     """
-#
-#     initializer = tf.random_normal_initializer(0., 0.02)
-#
-#     inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
-#     x = inp
-#
-#     if target:
-#         tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
-#         x = tf.keras.layers.concatenate([inp, tar])  # (bs, 256, 256, channels*2)
-#
-#     down1 = downsample(math.floor(128 * filter_multiplier), 4, norm_type, False)(x)  # (bs, 128, 128, 64)
-#     down2 = downsample(math.floor(256 * filter_multiplier), 4, norm_type)(down1)  # (bs, 64, 64, 128)
-#     down3 = downsample(math.floor(512 * filter_multiplier), 4, norm_type)(down2)  # (bs, 32, 32, 256)
-#
-#     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
-#     # conv = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
-#     conv_layer = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,
-#                         use_bias=False)
-#     spectral_conv = SpectralNormalization(conv_layer)
-#     conv = spectral_conv(zero_pad1)  # (bs, 31, 31, 512)
-#
-#
-#
-#     if norm_type.lower() == 'batchnorm':
-#         norm1 = tf.keras.layers.BatchNormalization()(conv)
-#     elif norm_type.lower() == 'instancenorm':
-#         norm1 = InstanceNormalization()(conv)
-#
-#     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
-#
-#     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
-#
-#     #last = tf.keras.layers.Conv2D(1, 4, strides=1,kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
-#     final_conv_layer = tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False)
-#     spectral_final_conv = SpectralNormalization(final_conv_layer)
-#     last = spectral_final_conv(zero_pad2)  # (bs, 30, 30, 1)
-#
-#     if target:
-#         return tf.keras.Model(inputs=[inp, tar], outputs=last)
-#     else:
-#         return tf.keras.Model(inputs=inp, outputs=last)
-#
+
+def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
+    """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
+
+    Args:
+      norm_type: Type of normalization. Either 'batchnorm' or 'instancenorm'.
+      target: Bool, indicating whether target image is an input or not.
+
+    Returns:
+      Discriminator model
+    """
+
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    x = inp
+
+    if target:
+        tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        x = tf.keras.layers.concatenate([inp, tar])  # (bs, 256, 256, channels*2)
+
+    down1 = downsample(math.floor(128 * filter_multiplier), 4, norm_type, False)(x)  # (bs, 128, 128, 64)
+    down2 = downsample(math.floor(256 * filter_multiplier), 4, norm_type)(down1)  # (bs, 64, 64, 128)
+    down3 = downsample(math.floor(512 * filter_multiplier), 4, norm_type)(down2)  # (bs, 32, 32, 256)
+
+    zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
+    # conv = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
+    conv_layer = tf.keras.layers.Conv2D(math.floor(512 * filter_multiplier), 4, strides=1, kernel_initializer=initializer,
+                        use_bias=False)
+    spectral_conv = SpectralNormalization(conv_layer)
+    conv = spectral_conv(zero_pad1)  # (bs, 31, 31, 512)
 
 
-###################################################
-def discriminator(filter_multiplier):
-    initializer = tf.random_normal_initializer(0., 0.02) #where mean is 0 and the STD is 0.02
-    inp = tf.keras.layers.Input(shape=[256,256,3], name='input_image')
-    tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
-    x = tf.keras.layers.concatenate([inp, tar])
-    down1 = downsample(128* filter_multiplier, 4, 'instancenorm')(x) # fordi vi har en batch size på 128,128,64
-    down2 = downsample(256* filter_multiplier, 4)(down1) #batch size 64,64,128
-    down3 = downsample(512* filter_multiplier, 4)(down2) #batch size ,32,32,256
 
-    zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
-    conv = SpectralNormalization(tf.keras.layers.Conv2D(512* filter_multiplier, 4, strides=1, kernel_initializer=initializer, use_bias=False))(zero_pad1) #batch size ,31,31,512
-    norm1 = InstanceNormalization()(conv)
+    if norm_type.lower() == 'batchnorm':
+        norm1 = tf.keras.layers.BatchNormalization()(conv)
+    elif norm_type.lower() == 'instancenorm':
+        norm1 = InstanceNormalization()(conv)
+
     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
-    zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
-    last = SpectralNormalization(tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False))(zero_pad2) #batch size 30,30,1
-    return tf.keras.Model(inputs=[inp,tar], outputs=[last])
 
-####################################################
+    zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
+
+    #last = tf.keras.layers.Conv2D(1, 4, strides=1,kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
+    final_conv_layer = tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False)
+    spectral_final_conv = SpectralNormalization(final_conv_layer)
+    last = spectral_final_conv(zero_pad2)  # (bs, 30, 30, 1)
+
+    if target:
+        return tf.keras.Model(inputs=[inp, tar], outputs=last)
+    else:
+        return tf.keras.Model(inputs=inp, outputs=last)
+
+
+#
+# ###################################################
+# def discriminator(filter_multiplier):
+#     initializer = tf.random_normal_initializer(0., 0.02) #where mean is 0 and the STD is 0.02
+#     inp = tf.keras.layers.Input(shape=[256,256,3], name='input_image')
+#     tar = tf.keras.layers.Input(shape=[256,256,3], name='target_image')
+#     x = tf.keras.layers.concatenate([inp, tar])
+#     down1 = downsample(128* filter_multiplier, 4, 'instancenorm')(x) # fordi vi har en batch size på 128,128,64
+#     down2 = downsample(256* filter_multiplier, 4)(down1) #batch size 64,64,128
+#     down3 = downsample(512* filter_multiplier, 4)(down2) #batch size ,32,32,256
+#
+#     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)
+#     conv = SpectralNormalization(tf.keras.layers.Conv2D(512* filter_multiplier, 4, strides=1, kernel_initializer=initializer, use_bias=False))(zero_pad1) #batch size ,31,31,512
+#     norm1 = InstanceNormalization()(conv)
+#     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
+#     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu) #batchsize,33,33,512
+#     last = SpectralNormalization(tf.keras.layers.Conv2D(1, 4, strides=1, kernel_initializer=initializer, use_bias=False))(zero_pad2) #batch size 30,30,1
+#     return tf.keras.Model(inputs=[inp,tar], outputs=[last])
+#
+# ####################################################
 
 
 
@@ -1100,12 +1100,21 @@ loss_obj = tf.keras.losses.MeanSquaredError()
 
 
 
-def discriminator_loss(discriminator, real, generated, real_images, fake_images, lambda_gp=10.0): #lambda_gp=10.0 brukes i paperet om gradient penalty https://arxiv.org/pdf/1704.00028.pdf
-    real_loss = loss_obj(tf.ones_like(real), real)
-    generated_loss = loss_obj(tf.zeros_like(generated), generated)
-    gp = gradient_penalty(discriminator, real_images, fake_images, lambda_gp)
-    total_disc_loss = real_loss + generated_loss + gp
-    return total_disc_loss * 0.5
+ # def discriminator_loss(discriminator, real, generated, real_images, fake_images, lambda_gp=10.0): #lambda_gp=10.0 brukes i paperet om gradient penalty https://arxiv.org/pdf/1704.00028.pdf
+ #    real_loss = loss_obj(tf.ones_like(real), real)
+ #    generated_loss = loss_obj(tf.zeros_like(generated), generated)
+ #    gp = gradient_penalty(discriminator, real_images, fake_images, lambda_gp)
+ #    total_disc_loss = real_loss + generated_loss + gp
+ #    return total_disc_loss * 0.5
+
+# ##########################################
+
+def discriminator_loss(disc_real_output,disc_generated_output):
+    real_loss = loss_obj(tf.ones_like(disc_real_output), disc_real_output)
+    generated_loss = loss_obj(tf.zeros_like(disc_generated_output), disc_generated_output)
+    total_disc_loss = real_loss + generated_loss
+    return total_disc_loss
+##########################################
 
 def generator_loss(generated):
     return loss_obj(tf.ones_like(generated), generated)
@@ -1355,7 +1364,7 @@ def train_step(real_x, real_y, lambda_gp=10):
         target_x, input_x = real_x
         print("target_x shape:", target_x.shape, "input_x shape:", input_x.shape)
         target_y, input_y = real_y  # input_img , real_img
-        print(f"input_x {input_x}")
+
 
         ################################
 
@@ -1372,8 +1381,8 @@ def train_step(real_x, real_y, lambda_gp=10):
         disc_real_x = discriminator_x(inputs=[input_x, same_x], training=True)
         disc_real_y = discriminator_y(inputs=[input_y, same_y], training=True)
 
-        disc_fake_x = discriminator_x(inputs=[target_x, fake_x], training=True)
-        disc_fake_y = discriminator_y(inputs=[target_y,fake_y], training=True)
+        disc_fake_x = discriminator_x([target_x, fake_x], training=True)
+        disc_fake_y = discriminator_y([target_y,fake_y], training=True)
 
         # calculate the loss
         gen_g_loss = generator_loss(disc_fake_y)
@@ -1387,8 +1396,12 @@ def train_step(real_x, real_y, lambda_gp=10):
 
         # disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
         # disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
-        disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, input_x, fake_x, lambda_gp)
-        disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, input_y, fake_y, lambda_gp)
+        # disc_x_loss = discriminator_loss(discriminator_x, disc_real_x, disc_fake_x, input_x, fake_x, lambda_gp)
+        # disc_y_loss = discriminator_loss(discriminator_y, disc_real_y, disc_fake_y, input_y, fake_y, lambda_gp)
+
+        ###########################################
+        disc_x_loss = discriminator_loss(disc_real_x, disc_fake_x)
+        disc_y_loss = discriminator_loss(disc_real_y, disc_fake_y)
 
     # Calculate the gradients for generator and discriminator
     generator_g_gradients = tape.gradient(total_gen_g_loss,
