@@ -1570,3 +1570,4 @@ run.stop()
 
 time.sleep(30)  # for at slurm i fox ikke skal avslutte jobben før neptune har gjort seg ferdig
 print("End of line")
+
