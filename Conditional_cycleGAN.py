@@ -1575,12 +1575,13 @@ for epoch in range(EPOCHS):
     #     shadow_generator_g = generator_g
     #     shadow_generator_f = generator_f
 
-    update_shadow_weights(shadow_generator_g, generator_g, beta=0.99)
-    update_shadow_weights(shadow_generator_f, generator_f, beta=0.99)
+    # update_shadow_weights(shadow_generator_g, generator_g, beta=0.99)
+    # update_shadow_weights(shadow_generator_f, generator_f, beta=0.99)
 
 
-    #generate_images(generator_g, sample_simulated, epoch, num)
-    generate_images(shadow_generator_g, sample_simulated, epoch, num)
+    generate_images(generator_g, sample_simulated, epoch, num)
+    #generate_images(shadow_generator_g, sample_simulated, epoch, num)
+
 
 
     # if (epoch + 1) % 5 == 0:
