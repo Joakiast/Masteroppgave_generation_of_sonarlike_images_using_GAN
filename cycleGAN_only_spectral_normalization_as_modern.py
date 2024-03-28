@@ -1409,6 +1409,7 @@ for epoch in range(EPOCHS):
     print('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
                                                        time.time() - start))
 
+
 end_time = time.time()  # Lagrer slutttiden
 elapsed_time = end_time - start_time  # Beregner tiden det tok å kjøre koden
 
