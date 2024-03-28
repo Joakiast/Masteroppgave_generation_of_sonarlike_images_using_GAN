@@ -89,7 +89,7 @@ resize_y = 256
 # The bath size of 1 gives better results using the UNet in this experiment.
 BATCH_SIZE = 1
 BATCH_SIZE_TEST = 1  # BATCH_SIZE
-EPOCHS = 2
+EPOCHS = 200
 decay_start_epoch = 100
 color_channel = 3
 crop_size = 256  # resize_x / 2 150 fin størrelse på
