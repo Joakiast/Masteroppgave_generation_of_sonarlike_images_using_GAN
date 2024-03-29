@@ -799,7 +799,7 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
     return result
 
 
-def unet_generator(filter_multiplier, output_channels, norm_type='batchnorm'):
+def unet_generator(filter_multiplier, output_channels, norm_type='instancenorm'):
     """Modified u-net generator model (https://arxiv.org/abs/1611.07004).
 
     Args:
