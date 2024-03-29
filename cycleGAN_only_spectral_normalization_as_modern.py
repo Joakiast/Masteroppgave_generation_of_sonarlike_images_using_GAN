@@ -838,7 +838,7 @@ def ResNetGenerator(filter_multiplier, input_shape=(resize_x, resize_y, 3), outp
 # ========================Resnet=====================================
 
 
-def discriminator(filter_multiplier, norm_type='batchnorm', target=True):
+def discriminator(filter_multiplier, norm_type='instancenorm', target=True):
     """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
 
     Args:
