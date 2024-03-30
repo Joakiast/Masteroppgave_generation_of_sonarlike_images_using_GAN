@@ -69,3 +69,11 @@ se på for cycleGAN: https://github.com/tensorflow/examples/blob/master/tensorfl
 
 instance norm: 
 https://arxiv.org/pdf/1607.08022.pdf
+
+
+
+![Conditional CycleGAN](Conditional_CycleGAN.png)
+![CycleGAN](CycleGAN.png)
+
+
+
