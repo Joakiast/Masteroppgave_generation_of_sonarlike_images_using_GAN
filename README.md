@@ -61,6 +61,10 @@ module load cuDNN/8.4.1.50-CUDA-11.7.0
 
 
 
+
+![Conditional CycleGAN](images/Conditional_CycleGAN.png)
+
+
 se på for cycleGAN: https://github.com/tensorflow/examples/blob/master/tensorflow_examples/models/pix2pix/pix2pix.py
 
 instance norm: 
