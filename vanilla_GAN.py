@@ -39,7 +39,7 @@ BATCH_SIZE = 3
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
-EPOCHS = 200
+EPOCHS = 800
 
 print(f"image_type[1:]: {image_type[1:-4]}" )
 
