@@ -13,6 +13,13 @@ from IPython import display
 import datetime
 #import cv2
 #from sklearn.cluster import KMeans
+import neptune
+from neptune.types import File
+run = neptune.init_run(
+    project="masteroppgave/vamilla-GAN",
+    api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjMDY3ZDFlNS1hMGVhLTQ1N2YtODg4MC1hNThiOTM1NGM3YTQifQ=="
+)
+
 
 
 log_dir = "logs/"
@@ -32,7 +39,7 @@ BATCH_SIZE = 3
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
-EPOCHS = 400
+EPOCHS = 200
 
 print(f"image_type[1:]: {image_type[1:-4]}" )
 
@@ -42,8 +49,8 @@ image_paths = [str(path) for path in list(train_set_path.glob(image_type +".jpg"
 print(f"size of trainingset: {len(image_paths)}")
 label_path = [str(path) for path in list(train_set_label_path.glob(image_type +".txt"))]
 # Funksjon for å lese og forbehandle bildene
-resize_x = 240
-resize_y = 240
+resize_x = 256
+resize_y = 256
 crop_size = 150#resize_x / 2
 noise_vector_for_gen = 512 #husk å endre inni generator
 
@@ -493,8 +500,18 @@ def generate_and_save_images(model, epoch, test_input):
       os.makedirs(folder_name)
 
 
-  if epoch % 20 == 0:
+  if epoch % 2 == 0:
       plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
+
+      ##############################################################################################################
+      #                         to neptune
+        ##############################################################################################################
+
+      image_path_buffer = f'{folder_name}/ image_at_epoch_{epoch:04d}.png'
+      run[f"visualizations/from_training/image_at_epoch_{epoch:04d}"].upload(image_path_buffer)
+
+      #run[f"visualizations/from_training/test_image_at_step_{epoch_num:04d}"].upload(image_path_buffer)
+
       print('fig closed')
       plt.close("all")
   #plt.show() plot for hver epoch
@@ -544,3 +561,9 @@ discriminator.save(f'saved_model_vanilla_GAN/{image_type[1:-8]}/my_discriminator
 #   return PIL.Image.open('generated_images/image_at_epoch_{:04d}.png'.format(epoch_no))
 #
 # display_image(EPOCHS)
+
+run.stop()
+
+time.sleep(30)  # for at slurm i fox ikke skal avslutte jobben før neptune har gjort seg ferdig
+print("End of line")
+
