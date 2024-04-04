@@ -39,7 +39,7 @@ BATCH_SIZE = 3
 image_type = '*oil_drum_RGB'
 #image_type = '*clutter_RGB'
 #image_type = "*man_made_object_RGB"
-EPOCHS = 800
+EPOCHS = 2000
 
 print(f"image_type[1:]: {image_type[1:-4]}" )
 
@@ -500,7 +500,7 @@ def generate_and_save_images(model, epoch, test_input):
       os.makedirs(folder_name)
 
 
-  if epoch % 2 == 0:
+  if epoch % 10 == 0:
       plt.savefig(os.path.join(folder_name, ' image_at_epoch_{:04d}.png'.format(epoch)))
 
       ##############################################################################################################
