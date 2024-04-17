@@ -4,6 +4,9 @@ dataset: https://www.jottacloud.com/s/16192c1b7d186444bd1b7e5c16292e42e9e/thumbs
 
 ls |grep oil
 
+antall: ls -1 *oil* | wc -l
+
+
 MLnode kjøring:  module load TensorFlow/2.6.0-foss-2021a-CUDA-11.3.1
 
 fox: module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0
